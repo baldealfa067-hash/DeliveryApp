@@ -20,9 +20,18 @@ class MapErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
   render() {
     if (this.state.hasError) {
       return (
-        <div className="h-64 w-full rounded-lg border flex flex-col items-center justify-center gap-2 text-muted-foreground">
+        <div className="h-64 w-full rounded-lg border flex flex-col items-center justify-center gap-2 text-muted-foreground p-4">
           <MapPin className="h-8 w-8" />
-          <p className="text-sm">Não foi possível carregar o mapa.</p>
+          <p className="text-sm font-medium">Não foi possível carregar o mapa.</p>
+          {this.state.error && (
+            <p className="text-xs text-destructive">{this.state.error.message}</p>
+          )}
+          <button
+            onClick={() => this.setState({ hasError: false, error: undefined })}
+            className="text-xs underline mt-1"
+          >
+            Tentar novamente
+          </button>
         </div>
       );
     }
