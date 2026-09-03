@@ -616,7 +616,8 @@
     "qrValidate": "Valida Entrega"
   },
   "businessDetail": {
-    "detectLocation": "Deteta lokalizason"
+    "detectLocation": "Deteta lokalizason",
+    "deliveryInfo": "Informason di Entrega"
   },
   "notifications": {
     "title": "Notifikasons",

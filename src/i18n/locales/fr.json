@@ -464,6 +464,7 @@
     "bairroPlaceholder": "Ex: Quelele, Plateau",
     "selectBairro": "Sélectionner le bairro",
     "detectLocation": "Détecter la position",
+    "deliveryInfo": "Informations de livraison",
     "referencePoint": "Point de repère",
     "referencePlaceholder": "Ex: près de la pharmacie X, à côté du marché",
     "sendOrder": "Envoyer la commande via WhatsApp",
