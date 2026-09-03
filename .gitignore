@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment variables (secrets)
+.env
+.env.*
+!.env.example
+# Snapshots SQL antigos — nunca comitar (reintroduzem RLS vulnerável)
+migration_completa.sql
+rls_fix_seguro.sql
+
+# Source logo files (processed logo at src/assets/logo.png)
+imagem.png/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Supabase CLI link temp files
+supabase/.temp/
+.supabase/
+vite.config.ts.timestamp-*.mjs

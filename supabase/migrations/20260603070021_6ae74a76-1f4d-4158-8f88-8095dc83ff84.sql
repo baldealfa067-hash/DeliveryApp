@@ -1,0 +1,1 @@
+ALTER TABLE public.reviews DROP CONSTRAINT IF EXISTS reviews_user_id_fkey;
