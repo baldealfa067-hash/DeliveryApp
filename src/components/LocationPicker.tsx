@@ -1,10 +1,34 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Component, type ReactNode } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
-import { Loader2, LocateFixed } from "lucide-react";
+import { Loader2, LocateFixed, MapPin } from "lucide-react";
 import { useGeolocation, BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
+
+class MapErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error?: Error }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error) {
+    console.error("[LocationPicker] map error:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-64 w-full rounded-lg border flex flex-col items-center justify-center gap-2 text-muted-foreground">
+          <MapPin className="h-8 w-8" />
+          <p className="text-sm">Não foi possível carregar o mapa.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -61,6 +85,7 @@ export function LocationPicker({ value, onChange, detectLabel, className }: Loca
   };
 
   return (
+    <MapErrorBoundary>
     <div className={className}>
       <div className="flex items-center justify-between mb-2 gap-2">
         <p className="text-sm text-muted-foreground">
@@ -98,5 +123,6 @@ export function LocationPicker({ value, onChange, detectLabel, className }: Loca
         </MapContainer>
       </div>
     </div>
+    </MapErrorBoundary>
   );
 }

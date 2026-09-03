@@ -201,7 +201,8 @@ const BusinessDetail = () => {
       setCustomerLocation(null);
     } catch (err) {
       console.error("[order] error:", err);
-      toast.error(t("businessDetail.orderError"));
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(msg || t("businessDetail.orderError"));
     } finally {
       setSending(false);
     }

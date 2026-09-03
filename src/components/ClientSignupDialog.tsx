@@ -28,7 +28,7 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
     setSubmitting(true);
     try {
       const cleanPhone = phone.replace(/\s+/g, "").replace(/^0+/, "");
-      const email = `c${cleanPhone}@bornaal.cv`;
+      const email = `c${cleanPhone}@deliveryapp.gw`;
       const password = `Bn${Date.now().toString(36)}!`;
 
       const { data, error } = await supabase.auth.signUp({
