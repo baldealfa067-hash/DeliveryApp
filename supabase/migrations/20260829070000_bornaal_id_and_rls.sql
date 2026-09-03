@@ -107,73 +107,74 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_my_bornaal_id() TO authenticated;
 
--- 9. Ensure all RLS policies are correctly set
+-- 9. Ensure all RLS policies are correctly set (só se tabelas já existirem — push from-scratch)
 
--- Messages: allow sender and receiver
-DROP POLICY IF EXISTS "messages_participants_only" ON public.messages;
-CREATE POLICY "messages_participants_only"
-ON public.messages FOR SELECT
-TO authenticated
-USING (
-  sender_id = auth.uid() OR receiver_id = auth.uid()
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='messages') THEN
+    DROP POLICY IF EXISTS "messages_participants_only" ON public.messages;
+    CREATE POLICY "messages_participants_only"
+    ON public.messages FOR SELECT TO authenticated USING (sender_id = auth.uid() OR receiver_id = auth.uid());
+  END IF;
+END $$;
 
--- Conversations: allow participants
-DROP POLICY IF EXISTS "conversations_participants" ON public.conversations;
-CREATE POLICY "conversations_participants"
-ON public.conversations FOR SELECT
-TO authenticated
-USING (
-  auth.uid() = ANY(participant_ids)
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='conversations') THEN
+    DROP POLICY IF EXISTS "conversations_participants" ON public.conversations;
+    CREATE POLICY "conversations_participants"
+    ON public.conversations FOR SELECT TO authenticated USING (auth.uid() = ANY(participant_ids));
+  END IF;
+END $$;
 
--- Orders: customers see own, business owners see their orders
-DROP POLICY IF EXISTS "orders_access" ON public.orders;
-CREATE POLICY "orders_access"
-ON public.orders FOR SELECT
-TO authenticated
-USING (
-  customer_id = auth.uid()
-  OR business_id IN (SELECT id FROM public.businesses WHERE user_id = auth.uid())
-  OR public.has_role(auth.uid(), 'admin')
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='orders')
+     AND EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='businesses') THEN
+    DROP POLICY IF EXISTS "orders_access" ON public.orders;
+    CREATE POLICY "orders_access" ON public.orders FOR SELECT TO authenticated USING (
+      customer_id = auth.uid()
+      OR business_id IN (SELECT id FROM public.businesses WHERE user_id = auth.uid())
+      OR public.has_role(auth.uid(), 'admin')
+    );
+  END IF;
+EXCEPTION WHEN others THEN NULL;
+END $$;
 
--- Appointments: customer and business owner
-DROP POLICY IF EXISTS "appointments_access" ON public.appointments;
-CREATE POLICY "appointments_access"
-ON public.appointments FOR SELECT
-TO authenticated
-USING (
-  customer_id = auth.uid()
-  OR business_id IN (SELECT id FROM public.businesses WHERE user_id = auth.uid())
-  OR public.has_role(auth.uid(), 'admin')
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='appointments')
+     AND EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='businesses') THEN
+    DROP POLICY IF EXISTS "appointments_access" ON public.appointments;
+    CREATE POLICY "appointments_access" ON public.appointments FOR SELECT TO authenticated USING (
+      customer_id = auth.uid()
+      OR business_id IN (SELECT id FROM public.businesses WHERE user_id = auth.uid())
+      OR public.has_role(auth.uid(), 'admin')
+    );
+  END IF;
+EXCEPTION WHEN others THEN NULL;
+END $$;
 
--- Deliveries: driver, restaurant, customer
-DROP POLICY IF EXISTS "deliveries_access" ON public.deliveries;
-CREATE POLICY "deliveries_access"
-ON public.deliveries FOR SELECT
-TO authenticated
-USING (
-  driver_id IN (SELECT id FROM public.drivers WHERE user_id = auth.uid())
-  OR order_id IN (
-    SELECT id FROM public.orders
-    WHERE customer_id = auth.uid()
-       OR business_id IN (SELECT id FROM public.businesses WHERE user_id = auth.uid())
-  )
-  OR public.has_role(auth.uid(), 'admin')
-);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='deliveries')
+     AND EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='drivers')
+     AND EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tablename='orders') THEN
+    DROP POLICY IF EXISTS "deliveries_access" ON public.deliveries;
+    CREATE POLICY "deliveries_access" ON public.deliveries FOR SELECT TO authenticated USING (
+      driver_id IN (SELECT id FROM public.drivers WHERE user_id = auth.uid())
+      OR order_id IN (SELECT id FROM public.orders WHERE customer_id = auth.uid() OR business_id IN (SELECT id FROM public.businesses WHERE user_id = auth.uid()))
+      OR public.has_role(auth.uid(), 'admin')
+    );
+  END IF;
+EXCEPTION WHEN others THEN NULL;
+END $$;
 
--- 10. Index for faster lookups
-CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON public.orders(customer_id);
-CREATE INDEX IF NOT EXISTS idx_orders_business_id ON public.orders(business_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_customer_id ON public.appointments(customer_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_business_id ON public.appointments(business_id);
-CREATE INDEX IF NOT EXISTS idx_deliveries_driver_id ON public.deliveries(driver_id);
-CREATE INDEX IF NOT EXISTS idx_deliveries_order_id ON public.deliveries(order_id);
-CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON public.messages(sender_id);
-CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON public.messages(receiver_id);
-CREATE INDEX IF NOT EXISTS idx_conversations_participant_ids ON public.conversations USING GIN(participant_ids);
+-- 10. Index for faster lookups (só se tabelas/colunas existirem)
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON public.orders(customer_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_orders_business_id ON public.orders(business_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_appointments_customer_id ON public.appointments(customer_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_appointments_business_id ON public.appointments(business_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_deliveries_driver_id ON public.deliveries(driver_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_deliveries_order_id ON public.deliveries(order_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON public.messages(sender_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON public.messages(receiver_id); EXCEPTION WHEN others THEN NULL; END $$;
+DO $$ BEGIN CREATE INDEX IF NOT EXISTS idx_conversations_participant_ids ON public.conversations USING GIN(participant_ids); EXCEPTION WHEN others THEN NULL; END $$;
 
 -- 11. Add bornaal_id to driver registration
 CREATE OR REPLACE FUNCTION public.register_as_driver(

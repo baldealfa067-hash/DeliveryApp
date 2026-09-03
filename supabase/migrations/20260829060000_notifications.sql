@@ -36,9 +36,15 @@ WITH CHECK (true);
 GRANT SELECT, UPDATE ON public.notifications TO authenticated;
 GRANT ALL ON public.notifications TO service_role;
 
-CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
-CREATE INDEX idx_notifications_created_at ON public.notifications(created_at DESC);
-CREATE INDEX idx_notifications_unread ON public.notifications(user_id, is_read) WHERE is_read = false;
+-- Garantir colunas legadas (tabela já existe desde 20260816 com body/link/read)
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS message text;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS reference_type text;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS reference_id uuid;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS is_read boolean DEFAULT false;
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON public.notifications(user_id, is_read) WHERE is_read = false;
 
 -- 2. RPC: Criar notificação
 CREATE OR REPLACE FUNCTION public.create_notification(
@@ -122,4 +128,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.mark_notifications_read(uuid[]) TO authenticated;
 
 -- 6. Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

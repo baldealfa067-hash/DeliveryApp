@@ -81,6 +81,7 @@ GRANT EXECUTE ON FUNCTION public.create_notification(uuid, text, text, text, tex
 GRANT EXECUTE ON FUNCTION public.create_notification(uuid, text, text, text, text, uuid) TO service_role;
 
 -- 5. Re-criar get_my_notifications para retornar todas as colunas
+DROP FUNCTION IF EXISTS public.get_my_notifications(integer, integer);
 CREATE OR REPLACE FUNCTION public.get_my_notifications(
   p_limit integer DEFAULT 50,
   p_offset integer DEFAULT 0

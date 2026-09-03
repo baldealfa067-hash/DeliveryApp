@@ -43,7 +43,7 @@ CREATE POLICY "Providers can update own profile" ON public.profiles
   WITH CHECK (
     auth.uid() = user_id
     AND COALESCE(is_verified, false) = false
-    AND NEW.verification_status NOT IN ('aprovado', 'rejeitado')
+    AND verification_status NOT IN ('aprovado', 'rejeitado')
   );
 
 -- Nota: o admin continua a conseguir alterar is_verified e verification_status

@@ -146,6 +146,7 @@ REVOKE ALL ON FUNCTION public.update_order_status(uuid, text, text, integer) FRO
 GRANT EXECUTE ON FUNCTION public.update_order_status(uuid, text, text, integer) TO authenticated;
 
 -- 5. Atualizar get_business_orders para incluir bairro
+DROP FUNCTION IF EXISTS public.get_business_orders(uuid, text);
 CREATE OR REPLACE FUNCTION public.get_business_orders(
   p_business_id uuid,
   p_status text DEFAULT NULL
@@ -184,6 +185,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.get_business_orders(uuid, text) TO authenticated;
 
 -- 6. Atualizar get_customer_orders para incluir bairro
+DROP FUNCTION IF EXISTS public.get_customer_orders(uuid);
 CREATE OR REPLACE FUNCTION public.get_customer_orders(
   p_customer_id uuid
 )
