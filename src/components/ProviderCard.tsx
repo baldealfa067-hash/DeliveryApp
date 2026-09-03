@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatCFA } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
-import { useCategories, useBusinessCategories, useBeautyCategories } from "@/hooks/useProviders";
+import { useBusinessCategories } from "@/hooks/useProviders";
 import { translateCategoryName } from "@/lib/categoryI18n";
 
 interface ProviderCardProps {
@@ -31,21 +31,12 @@ export const ProviderCard = ({
   id, name, category, location, phone, photo_url, price_type, starting_price, services, is_verified, profile_type, avgRating, reviewCount
 }: ProviderCardProps) => {
   const { t, i18n } = useTranslation();
-  const { data: serviceCats = [] } = useCategories();
   const { data: businessCats = [] } = useBusinessCategories();
-  const { data: beautyCats = [] } = useBeautyCategories();
-  const catList = (
-    profile_type === "business" ? businessCats : profile_type === "beleza" ? beautyCats : serviceCats
-  ) as { id: string; name: string; name_en: string | null; name_fr: string | null }[];
+  const catList = businessCats as { id: string; name: string; name_en: string | null; name_fr: string | null }[];
   const displayCategory = translateCategoryName(category, catList, i18n.language);
-  const detailUrl =
-    profile_type === "business" ? `/loja/${id}` : profile_type === "beleza" ? `/beleza/${id}` : `/prestador/${id}`;
+  const detailUrl = `/loja/${id}`;
   const cleanPhone = phone.replace(/\D/g, "");
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-    profile_type !== "provider"
-      ? t("providerCardExtra.whatsappBusinessMsg", { name })
-      : t("providerCardExtra.whatsappProviderMsg", { name })
-  )}`;
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(t("providerCardExtra.whatsappBusinessMsg", { name }))}`;
   const telUrl = `tel:${phone.replace(/\s/g, "")}`;
 
   const trackContact = (type: "whatsapp" | "call") => {

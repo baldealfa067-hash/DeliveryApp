@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, Wrench, Scissors, User, ArrowLeft } from "lucide-react";
+import { Store, User, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -14,21 +14,21 @@ import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import logo from "@/assets/logo.png";
 
-type ProfileType = "provider" | "business" | "beleza";
+type ProfileType = "business";
 type AuthMode = "choose" | "client" | "professional";
 
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isAdmin, isProvider, isBusiness, isBeleza, isClient, rolesLoaded, loading } = useAuth();
+  const { user, isAdmin, isBusiness, isClient, rolesLoaded, loading } = useAuth();
   const [mode, setMode] = useState<AuthMode>(
     searchParams.get("mode") === "cliente" ? "client" : "choose"
   );
   const [tab, setTab] = useState<"login" | "signup">(
     searchParams.get("tab") === "registar" ? "signup" : "login"
   );
-  const [profileType, setProfileType] = useState<ProfileType>("provider");
+  const [profileType] = useState<ProfileType>("business");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -55,19 +55,10 @@ const Login = () => {
             if (error) console.error("Role error:", error);
             sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
             navigate("/pedidos", { replace: true });
-          } else if (savedType === "business") {
+          } else {
             const { error } = await supabase.rpc("register_as_business");
             if (error) console.error("Role error:", error);
             navigate("/painel-loja/editar", { replace: true });
-          } else if (savedType === "beleza") {
-            const { error } = await supabase.rpc("register_as_beleza");
-            if (error) console.error("Role error:", error);
-            navigate("/painel-beleza/editar", { replace: true });
-          } else {
-            const { error } = await supabase.rpc("register_as_provider");
-            if (error) console.error("Role error:", error);
-            sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-            navigate("/painel", { replace: true });
           }
         } finally {
           signingUp.current = false;
@@ -75,11 +66,9 @@ const Login = () => {
       };
 
       // If roles are already loaded and user has one, just redirect
-      if (isProvider || isBusiness || isBeleza || isClient || isAdmin) {
+      if (isBusiness || isClient || isAdmin) {
         if (isAdmin) navigate("/admin", { replace: true });
-        else if (isProvider) navigate("/painel", { replace: true });
         else if (isBusiness) navigate("/painel-loja", { replace: true });
-        else if (isBeleza) navigate("/painel-beleza", { replace: true });
         else if (isClient) navigate("/pedidos", { replace: true });
         return;
       }
@@ -90,12 +79,10 @@ const Login = () => {
     }
 
     if (isAdmin) navigate("/admin", { replace: true });
-    else if (isProvider) navigate("/painel", { replace: true });
     else if (isBusiness) navigate("/painel-loja", { replace: true });
-    else if (isBeleza) navigate("/painel-beleza", { replace: true });
     else if (isClient) navigate("/pedidos", { replace: true });
     else navigate("/inicio", { replace: true });
-  }, [user, isAdmin, isProvider, isBusiness, isBeleza, isClient, rolesLoaded, loading, navigate, searchParams]);
+  }, [user, isAdmin, isBusiness, isClient, rolesLoaded, loading, navigate, searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,10 +101,7 @@ const Login = () => {
     setSubmitting(true);
     try {
       const isClientFlow = mode === "client";
-      const redirectPath = isClientFlow ? "/pedidos"
-        : profileType === "business" ? "/painel-loja/editar"
-        : profileType === "beleza" ? "/painel-beleza/editar"
-        : "/painel";
+      const redirectPath = isClientFlow ? "/pedidos" : "/painel-loja/editar";
 
       // Passar profile_type no metadata para o trigger handle_new_user criar a role
       // mesmo quando Confirm Email = ON (session === null)
@@ -139,12 +123,7 @@ const Login = () => {
           const { error: roleErr } = await supabase.rpc("register_as_client");
           if (roleErr) console.error("Role error:", roleErr);
         } else {
-          const { error: roleErr } =
-            profileType === "business"
-              ? await supabase.rpc("register_as_business")
-              : profileType === "beleza"
-                ? await supabase.rpc("register_as_beleza")
-                : await supabase.rpc("register_as_provider");
+          const { error: roleErr } = await supabase.rpc("register_as_business");
           if (roleErr) console.error("Role error:", roleErr);
         }
         toast.success(t("auth.accountCreated"));
@@ -213,11 +192,11 @@ const Login = () => {
           >
             <CardContent className="flex items-center gap-4 p-4">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Wrench className="h-6 w-6 text-primary" />
+                <Store className="h-6 w-6 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="font-semibold">{t("auth.professionalLabel")}</p>
-                <p className="text-xs text-muted-foreground">{t("auth.professionalDesc")}</p>
+                <p className="font-semibold">Restaurante</p>
+                <p className="text-xs text-muted-foreground">Gerir restaurante e receber pedidos</p>
               </div>
             </CardContent>
           </Card>
@@ -256,33 +235,7 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Selecção de tipo de perfil — visível para Google e registo */}
-        {!isClientFlow && (
-          <div className="space-y-2">
-            <Label>{t("auth.profileType")}</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {([
-                { value: "provider", icon: Wrench, label: t("auth.providerProfile") },
-                { value: "business", icon: Store, label: t("auth.businessProfile") },
-                { value: "beleza", icon: Scissors, label: t("auth.belezaProfile") },
-              ] as const).map(({ value, icon: Icon, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setProfileType(value)}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-colors ${
-                    profileType === value
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border hover:border-primary/30"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium leading-tight text-center">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Restaurante é o único perfil profissional no DeliveryApp */}
 
         {/* Google OAuth (preparado — desativado sem credenciais) */}
         <Button
@@ -354,20 +307,10 @@ const Login = () => {
                   ? t("auth.creatingAccount")
                   : isClientFlow
                     ? t("auth.createClientAccount")
-                    : profileType === "business"
-                      ? t("auth.createBusinessAccount")
-                      : profileType === "beleza"
-                        ? t("auth.createBelezaAccount")
-                        : t("auth.createProviderAccount")}
+                    : t("auth.createBusinessAccount")}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                {isClientFlow
-                  ? t("auth.afterClient")
-                  : profileType === "business"
-                    ? t("auth.afterBusiness")
-                    : profileType === "beleza"
-                      ? t("auth.afterBeleza")
-                      : t("auth.afterProvider")}
+                {isClientFlow ? t("auth.afterClient") : t("auth.afterBusiness")}
               </p>
             </form>
           </TabsContent>

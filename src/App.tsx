@@ -15,7 +15,6 @@ import { Loader2 } from "lucide-react";
 const Landing = lazy(() => import("./pages/Landing"));
 const Index = lazy(() => import("./pages/Index"));
 const Explore = lazy(() => import("./pages/Explore"));
-const ProviderDetail = lazy(() => import("./pages/ProviderDetail"));
 const About = lazy(() => import("./pages/About"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -23,13 +22,9 @@ const Login = lazy(() => import("./pages/Login"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const ProviderDashboard = lazy(() => import("./pages/ProviderDashboard"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessEdit = lazy(() => import("./pages/BusinessEdit"));
 const BusinessDetail = lazy(() => import("./pages/BusinessDetail"));
-const BeautyDashboard = lazy(() => import("./pages/BeautyDashboard"));
-const BeautyEdit = lazy(() => import("./pages/BeautyEdit"));
-const BeautyDetail = lazy(() => import("./pages/BeautyDetail"));
 const Requests = lazy(() => import("./pages/Requests"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Models = lazy(() => import("./pages/Models"));
@@ -75,11 +70,8 @@ const App = () => (
               <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
               <Route path="/admin-moderacao" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
               <Route path="/models" element={<Models />} />
-              <Route path="/painel" element={<ProviderDashboard />} />
               <Route path="/painel-loja" element={<BusinessDashboard />} />
               <Route path="/painel-loja/editar" element={<BusinessEdit />} />
-              <Route path="/painel-beleza" element={<BeautyDashboard />} />
-              <Route path="/painel-beleza/editar" element={<BeautyEdit />} />
               <Route path="/painel-motorista" element={<DriverDashboard />} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/mensagem/:userId" element={<ChatPage />} />
@@ -92,9 +84,7 @@ const App = () => (
                 <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
                 <Route path="/pedidos" element={<Requests />} />
                 <Route path="/perfil" element={<Profile />} />
-                <Route path="/prestador/:id" element={<ProviderDetail />} />
                 <Route path="/loja/:id" element={<BusinessDetail />} />
-                <Route path="/beleza/:id" element={<BeautyDetail />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

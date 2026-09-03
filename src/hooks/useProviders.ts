@@ -20,15 +20,15 @@ export interface ProviderWithRating {
   reviewCount: number;
 }
 
-export const useProviders = (profileType?: "provider" | "business" | "beleza") =>
+export const useProviders = (profileType?: "business") =>
   useQuery({
-    queryKey: ["providers", profileType ?? "all"],
+    queryKey: ["providers", profileType ?? "business"],
     queryFn: async (): Promise<ProviderWithRating[]> => {
       let q = supabase
         .from("profiles")
         .select("*")
         .neq("category", "")
-        .in("profile_type", ["provider", "business", "beleza"]);
+        .eq("profile_type", "business");
       if (profileType) q = q.eq("profile_type", profileType);
       const { data: profiles, error } = await q;
       if (error) throw error;

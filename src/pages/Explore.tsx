@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, MapPin, Loader2 } from "lucide-react";
 import { ProviderCard } from "@/components/ProviderCard";
 import { Pagination } from "@/components/Pagination";
-import { useProviders, useCategories, useBusinessCategories, useBeautyCategories } from "@/hooks/useProviders";
+import { useProviders, useBusinessCategories } from "@/hooks/useProviders";
 import { useBairros } from "@/hooks/useBairros";
 import { BAIRROS_FILTER } from "@/lib/locations";
 import { getPageCount, paginateArray } from "@/lib/pagination";
@@ -15,37 +15,31 @@ import { getCategoryName } from "@/lib/categoryI18n";
 
 const PAGE_SIZE = 10;
 
-type SectionKey = "servicos" | "lojas" | "beleza";
+type SectionKey = "lojas";
 
 const Explore = () => {
   const { t, i18n } = useTranslation();
   const SECTIONS = [
-    { key: "servicos" as const, label: t("explore.providersTitle"), short: t("explore.providersShort") },
     { key: "lojas" as const, label: t("explore.shopsTitle"), short: t("explore.shopsShort") },
-    { key: "beleza" as const, label: t("explore.belezaTitle"), short: t("explore.belezaShort") },
   ] as const;
   const [searchParams, setSearchParams] = useSearchParams();
   const tipoParam = searchParams.get("tipo");
   const section: SectionKey = SECTIONS.some((s) => s.key === tipoParam)
     ? (tipoParam as SectionKey)
-    : "servicos";
+    : "lojas";
   const activeCategory = searchParams.get("categoria") || "";
   const qParam = searchParams.get("q") || "";
   const [search, setSearch] = useState(qParam);
   const [location, setLocation] = useState(BAIRROS_FILTER[0]);
   const [page, setPage] = useState(1);
 
-  const { data: providers = [], isLoading: loadingProviders, error: providersError } = useProviders(
-    section === "lojas" ? "business" : section === "beleza" ? "beleza" : "provider"
-  );
-  const { data: serviceCategories = [] } = useCategories();
+  const { data: providers = [], isLoading: loadingProviders, error: providersError } = useProviders("business");
   const { data: businessCategories = [] } = useBusinessCategories();
-  const { data: beautyCategories = [] } = useBeautyCategories();
   const { data: bairros = [] } = useBairros();
   const bairroOptions = bairros.length ? [BAIRROS_FILTER[0], ...bairros] : BAIRROS_FILTER;
   const displayBairro = (loc: string) => (loc === BAIRROS_FILTER[0] ? t("common.allNeighborhoods") : loc);
 
-  const categories = section === "lojas" ? businessCategories : section === "beleza" ? beautyCategories : serviceCategories;
+  const categories = businessCategories;
 
   // Sync q param to search state on mount
   useEffect(() => {
@@ -92,21 +86,7 @@ const Explore = () => {
     <div className="max-w-lg mx-auto px-4 pt-6">
       <h1 className="text-xl font-bold mb-3">{current.label}</h1>
 
-      {/* Section switcher */}
-      <div className="flex gap-1.5 rounded-full bg-muted p-1 mb-3">
-        {SECTIONS.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => goSection(s.key)}
-            className={`flex-1 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-              section === s.key ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {s.short}
-          </button>
-        ))}
-      </div>
+      {/* Título único - só restaurantes (Yango/Glovo style) */}
 
       <div className="relative mb-3">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

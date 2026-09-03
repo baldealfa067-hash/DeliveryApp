@@ -78,7 +78,6 @@ type MenuKey =
   | "requests"
   | "categories"
   | "lojas-categorias"
-  | "beleza-categorias"
   | "bairros"
   | "stats"
   | "send_notification"
@@ -609,7 +608,6 @@ const AdminDashboard = () => {
     { key: "requests", label: t("admin.requests"), icon: <ClipboardList className="h-4 w-4" />, count: requests.length },
     { key: "categories", label: t("admin.categories"), icon: <Tag className="h-4 w-4" />, count: categories.length },
     { key: "lojas-categorias", label: t("admin.shopCategories"), icon: <Store className="h-4 w-4" />, count: businessCategories.length },
-    { key: "beleza-categorias", label: t("admin.belezaCategories"), icon: <Scissors className="h-4 w-4" />, count: beautyCategories.length },
     { key: "bairros", label: t("admin.neighborhoods"), icon: <MapPin className="h-4 w-4" />, count: bairros.length },
     { key: "stats", label: t("admin.statistics"), icon: <BarChart3 className="h-4 w-4" /> },
     { key: "send_notification", label: t("admin.sendNotification"), icon: <Bell className="h-4 w-4" /> },
@@ -985,25 +983,6 @@ const AdminDashboard = () => {
                 onRename={renameBusinessCategory}
                 onDelete={(id) => setBizCategoryToDelete(businessCategories.find((c) => c.id === id) ?? null)}
                 emptyText={t("admin.noShopCategories")}
-              />
-            </div>
-          )}
-
-          {menu === "beleza-categorias" && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-2xl font-bold">{t("admin.belezaCategories")}</h1>
-              <p className="text-xs text-muted-foreground">
-                {t("admin.belezaCategoriesDesc")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Tradução: preencha EN e FR para cada subcategoria. Exibida conforme o idioma do utilizador.
-              </p>
-              <ManageCategoryList
-                items={beautyCategories}
-                onAdd={addBelezaCategory}
-                onRename={renameBelezaCategory}
-                onDelete={(id) => setBelezaCategoryToDelete(beautyCategories.find((c) => c.id === id) ?? null)}
-                emptyText={t("admin.noBelezaCategories")}
               />
             </div>
           )}
