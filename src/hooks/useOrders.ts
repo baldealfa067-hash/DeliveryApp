@@ -44,20 +44,6 @@ export const useCreateOrder = () => {
       customerLat?: number;
       customerLng?: number;
     }) => {
-      console.log("[createOrder] calling RPC with:", {
-        p_business_id: params.businessId,
-        p_customer_id: params.customerId,
-        p_customer_name: params.customerName,
-        p_customer_phone: params.customerPhone,
-        p_items: params.items,
-        p_total: params.total,
-        p_consumption_option: params.consumptionOption,
-        p_address: params.address ?? null,
-        p_notes: params.notes ?? null,
-        p_bairro: params.bairro ?? null,
-        p_customer_lat: params.customerLat ?? null,
-        p_customer_lng: params.customerLng ?? null,
-      });
       const { data, error } = await supabase.rpc("create_order", {
         p_business_id: params.businessId,
         p_customer_id: params.customerId,
@@ -71,8 +57,7 @@ export const useCreateOrder = () => {
         p_bairro: params.bairro ?? null,
         p_customer_lat: params.customerLat ?? null,
         p_customer_lng: params.customerLng ?? null,
-      });
-      console.log("[createOrder] RPC result:", { data, error });
+      }      );
       if (error) throw error;
       return data as string;
     },

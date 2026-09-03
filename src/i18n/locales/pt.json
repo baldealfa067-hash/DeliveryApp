@@ -466,6 +466,7 @@
     "bairro": "Bairro",
     "bairroPlaceholder": "Ex: Quelele, Plateau",
     "selectBairro": "Selecionar bairro",
+    "detectLocation": "Detetar localização",
     "referencePoint": "Ponto de referência",
     "referencePlaceholder": "Ex: perto da farmácia X, ao lado do mercado",
     "sendOrder": "Enviar pedido por WhatsApp",

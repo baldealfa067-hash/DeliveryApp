@@ -615,6 +615,9 @@
     "qrInstruction": "Klienti pu valida entrega kum kodigu QR.",
     "qrValidate": "Valida Entrega"
   },
+  "businessDetail": {
+    "detectLocation": "Deteta lokalizason"
+  },
   "notifications": {
     "title": "Notifikasons",
     "empty": "Nenhum notifikason na momentu."
