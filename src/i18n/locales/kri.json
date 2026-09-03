@@ -615,6 +615,12 @@
     "qrInstruction": "Klienti pu valida entrega kum kodigu QR.",
     "qrValidate": "Valida Entrega"
   },
+  "businessEdit": {
+    "locationRequired": "Lokalizason *",
+    "businessLocation": "Lokalizason di stabelesimentu",
+    "businessLocationHint": "Uzadu pa kalkula distansa te na bu klientis.",
+    "detectLocation": "Deteta"
+  },
   "businessDetail": {
     "detectLocation": "Deteta lokalizason",
     "deliveryInfo": "Informason di Entrega"
