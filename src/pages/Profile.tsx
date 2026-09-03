@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Settings, Briefcase, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, Scissors, ClipboardList } from "lucide-react";
+import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -29,7 +29,9 @@ type ProviderProfile = {
 const Profile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, isProvider, isBusiness, isBeleza, isClient, isAdmin, roles, loading, signOut } = useAuth();
+  const { user, isBusiness, isClient, isAdmin, roles, loading, signOut } = useAuth();
+  const isProvider = false;
+  const isBeleza = false;
   const qc = useQueryClient();
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -111,9 +113,9 @@ const Profile = () => {
           <h1 className="text-2xl font-bold mb-4">{t("profile.myProfile")}</h1>
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-              <Scissors className="h-8 w-8 text-muted-foreground" />
+              <Store className="h-8 w-8 text-muted-foreground" />
               <p className="text-muted-foreground">{t("beautyDashboard.noProfile")}</p>
-              <Button onClick={() => navigate("/painel-beleza/editar")}>{t("beautyDashboard.createProfile")}</Button>
+              <Button onClick={() => navigate("/painel-loja/editar")}>{t("beautyDashboard.createProfile")}</Button>
             </CardContent>
           </Card>
         </div>
@@ -144,13 +146,13 @@ const Profile = () => {
                   </div>
                 </div>
               )}
-              <Button variant="outline" onClick={() => navigate("/pedidos")} className="w-full justify-start gap-2">
-                <ClipboardList className="h-4 w-4" />
-                {t("profile.myRequests")}
+              <Button variant="outline" onClick={() => navigate("/meus-pedidos")} className="w-full justify-start gap-2">
+                <ShoppingBag className="h-4 w-4" />
+                {t("profile.myOrders", "Meus Pedidos")}
               </Button>
               <Button variant="outline" onClick={() => navigate("/login?mode=profissional")} className="w-full justify-start gap-2">
-                <Briefcase className="h-4 w-4" />
-                {t("profile.becomeProvider")}
+                <Store className="h-4 w-4" />
+                Tornar-se Restaurante
               </Button>
               <Button variant="destructive" onClick={handleLogout} className="w-full justify-start gap-2">
                 <LogOut className="h-4 w-4" />
@@ -262,22 +264,16 @@ const Profile = () => {
               </div>
             </div>
           )}
-          {isProvider && (
-            <Button variant="outline" onClick={() => navigate("/painel")} className="w-full justify-start gap-2">
+          {isBusiness && (
+            <Button variant="outline" onClick={() => navigate("/painel-loja/editar")} className="w-full justify-start gap-2">
               <Settings className="h-4 w-4" />
-              {t("profile.editProvider")}
+              Editar Restaurante
             </Button>
           )}
-          {!isProvider && hasBelezaBusiness && (
-            <Button variant="outline" onClick={() => navigate("/painel-beleza/editar")} className="w-full justify-start gap-2">
-              <Scissors className="h-4 w-4" />
-              {t("beautyDashboard.configure")}
-            </Button>
-          )}
-          {!isProvider && !isBusiness && !hasBelezaBusiness && (
-            <Button variant="outline" onClick={() => navigate("/painel")} className="w-full justify-start gap-2">
-              <Briefcase className="h-4 w-4" />
-              {t("profile.becomeProvider")}
+          {!isBusiness && !isClient && (
+            <Button variant="outline" onClick={() => navigate("/painel-loja/editar")} className="w-full justify-start gap-2">
+              <Store className="h-4 w-4" />
+              Criar Restaurante
             </Button>
           )}
           <Button variant="destructive" onClick={handleLogout} className="w-full justify-start gap-2">

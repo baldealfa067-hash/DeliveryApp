@@ -75,7 +75,6 @@ type MenuKey =
   | "verifications"
   | "complaints"
   | "reviews"
-  | "requests"
   | "categories"
   | "lojas-categorias"
   | "bairros"
@@ -605,7 +604,6 @@ const AdminDashboard = () => {
     { key: "verifications", label: t("admin.verifications"), icon: <ShieldCheck className="h-4 w-4" />, count: pendingVerifications.length },
     { key: "complaints", label: t("admin.complaints"), icon: <ShieldAlert className="h-4 w-4" />, count: pendingComplaints.length },
     { key: "reviews", label: t("admin.reviews"), icon: <Star className="h-4 w-4" />, count: pendingReviews.length },
-    { key: "requests", label: t("admin.requests"), icon: <ClipboardList className="h-4 w-4" />, count: requests.length },
     { key: "categories", label: t("admin.categories"), icon: <Tag className="h-4 w-4" />, count: categories.length },
     { key: "lojas-categorias", label: t("admin.shopCategories"), icon: <Store className="h-4 w-4" />, count: businessCategories.length },
     { key: "bairros", label: t("admin.neighborhoods"), icon: <MapPin className="h-4 w-4" />, count: bairros.length },

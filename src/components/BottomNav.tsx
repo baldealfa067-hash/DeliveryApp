@@ -1,4 +1,4 @@
-import { Home, Search, ClipboardList, MessageSquare, User } from "lucide-react";
+import { Home, Search, ShoppingBag, MessageSquare, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,8 +12,8 @@ export const BottomNav = () => {
   const items = [
     { to: "/inicio", icon: Home, label: t("bottomNav.home") },
     { to: "/explorar", icon: Search, label: t("bottomNav.explore") },
+    { to: "/meus-pedidos", icon: ShoppingBag, label: t("bottomNav.orders", "Pedidos") },
     { to: "/conversas", icon: MessageSquare, label: t("bottomNav.chat") },
-    { to: "/pedidos", icon: ClipboardList, label: t("bottomNav.requests") },
     { to: "/perfil", icon: User, label: t("bottomNav.profile") },
   ];
   return (

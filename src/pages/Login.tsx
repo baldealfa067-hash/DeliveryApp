@@ -54,7 +54,7 @@ const Login = () => {
             const { error } = await supabase.rpc("register_as_client");
             if (error) console.error("Role error:", error);
             sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-            navigate("/pedidos", { replace: true });
+            navigate("/inicio", { replace: true });
           } else {
             const { error } = await supabase.rpc("register_as_business");
             if (error) console.error("Role error:", error);
@@ -69,7 +69,7 @@ const Login = () => {
       if (isBusiness || isClient || isAdmin) {
         if (isAdmin) navigate("/admin", { replace: true });
         else if (isBusiness) navigate("/painel-loja", { replace: true });
-        else if (isClient) navigate("/pedidos", { replace: true });
+        else if (isClient) navigate("/inicio", { replace: true });
         return;
       }
 
@@ -80,7 +80,7 @@ const Login = () => {
 
     if (isAdmin) navigate("/admin", { replace: true });
     else if (isBusiness) navigate("/painel-loja", { replace: true });
-    else if (isClient) navigate("/pedidos", { replace: true });
+    else if (isClient) navigate("/inicio", { replace: true });
     else navigate("/inicio", { replace: true });
   }, [user, isAdmin, isBusiness, isClient, rolesLoaded, loading, navigate, searchParams]);
 
@@ -101,7 +101,7 @@ const Login = () => {
     setSubmitting(true);
     try {
       const isClientFlow = mode === "client";
-      const redirectPath = isClientFlow ? "/pedidos" : "/painel-loja/editar";
+      const redirectPath = isClientFlow ? "/inicio" : "/painel-loja/editar";
 
       // Passar profile_type no metadata para o trigger handle_new_user criar a role
       // mesmo quando Confirm Email = ON (session === null)

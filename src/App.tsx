@@ -25,7 +25,6 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const BusinessDashboard = lazy(() => import("./pages/BusinessDashboard"));
 const BusinessEdit = lazy(() => import("./pages/BusinessEdit"));
 const BusinessDetail = lazy(() => import("./pages/BusinessDetail"));
-const Requests = lazy(() => import("./pages/Requests"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Models = lazy(() => import("./pages/Models"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -82,7 +81,6 @@ const App = () => (
                 <Route path="/meus-pedidos" element={<MyOrdersPage />} />
                 <Route path="/pedido/:id" element={<OrderTrackingPage />} />
                 <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
-                <Route path="/pedidos" element={<Requests />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/loja/:id" element={<BusinessDetail />} />
               </Route>
