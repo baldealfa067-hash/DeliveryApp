@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
 import { Loader2, LocateFixed, MapPin } from "lucide-react";
 import { useGeolocation, BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
+import { cn } from "@/lib/utils";
 
 class MapErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error?: Error }> {
   constructor(props: { children: ReactNode }) {
@@ -95,7 +96,7 @@ export function LocationPicker({ value, onChange, detectLabel, className }: Loca
 
   return (
     <MapErrorBoundary>
-    <div className={className}>
+    <div className={cn("relative z-0", className)}>
       <div className="flex items-center justify-between mb-2 gap-2">
         <p className="text-sm text-muted-foreground">
           {loading
