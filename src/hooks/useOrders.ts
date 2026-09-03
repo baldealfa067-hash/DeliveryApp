@@ -41,6 +41,8 @@ export const useCreateOrder = () => {
       address?: string;
       notes?: string;
       bairro?: string;
+      customerLat?: number;
+      customerLng?: number;
     }) => {
       const { data, error } = await supabase.rpc("create_order", {
         p_business_id: params.businessId,
@@ -53,6 +55,8 @@ export const useCreateOrder = () => {
         p_address: params.address ?? null,
         p_notes: params.notes ?? null,
         p_bairro: params.bairro ?? null,
+        p_customer_lat: params.customerLat ?? null,
+        p_customer_lng: params.customerLng ?? null,
       });
       if (error) throw error;
       return data as string;

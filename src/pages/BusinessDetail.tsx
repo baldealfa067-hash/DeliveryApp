@@ -27,6 +27,8 @@ import { useCreateOrder } from "@/hooks/useOrders";
 import { useBairros } from "@/hooks/useBairros";
 import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
+import { LocationPicker } from "@/components/LocationPicker";
+import type { GeoPosition } from "@/hooks/useGeolocation";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -77,6 +79,7 @@ const BusinessDetail = () => {
   const [referencePoint, setReferencePoint] = useState("");
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [sending, setSending] = useState(false);
+  const [customerLocation, setCustomerLocation] = useState<GeoPosition | null>(null);
   const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
   const [orderCustomerName, setOrderCustomerName] = useState("");
   const [orderCustomerPhone, setOrderCustomerPhone] = useState("");
@@ -183,6 +186,8 @@ const BusinessDetail = () => {
         address: activeConsumption === "entrega" ? [bairro.trim(), referencePoint.trim()].filter(Boolean).join(" - ") : undefined,
         notes: orderNotes.trim() || undefined,
         bairro: activeConsumption === "entrega" ? bairro.trim() || undefined : undefined,
+        customerLat: activeConsumption === "entrega" ? customerLocation?.lat : undefined,
+        customerLng: activeConsumption === "entrega" ? customerLocation?.lng : undefined,
       });
       toast.success(t("businessDetail.orderSuccess"));
       setCart({});
@@ -193,6 +198,7 @@ const BusinessDetail = () => {
       setOrderCustomerPhone("");
       setOrderNotes("");
       setOrderConfirmOpen(false);
+      setCustomerLocation(null);
     } catch (err) {
       console.error("[order] error:", err);
       toast.error(t("businessDetail.orderError"));
@@ -446,6 +452,12 @@ const BusinessDetail = () => {
                     className="mt-1.5"
                   />
                 </div>
+                <LocationPicker
+                  value={customerLocation}
+                  onChange={setCustomerLocation}
+                  detectLabel={t("businessDetail.detectLocation")}
+                  className="mb-3"
+                />
               </>
             )}
 

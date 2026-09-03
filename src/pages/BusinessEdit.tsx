@@ -37,6 +37,8 @@ import { formatCFA } from "@/lib/format";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getCategoryName } from "@/lib/categoryI18n";
+import { LocationPicker } from "@/components/LocationPicker";
+import type { GeoPosition } from "@/hooks/useGeolocation";
 
 type ConsumptionOption = "comer_no_local" | "para_levar" | "entrega";
 
@@ -75,6 +77,7 @@ const BusinessDashboard = () => {
   const { user, isBusiness, isAdmin, rolesLoaded, loading, signOut } = useAuth();
   const [profileId, setProfileId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(empty);
+  const [businessLocation, setBusinessLocation] = useState<GeoPosition | null>(null);
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -132,6 +135,9 @@ const BusinessDashboard = () => {
             ["comer_no_local", "para_levar", "entrega"].includes(o)
           ),
         });
+        if (data.lat && data.lng) {
+          setBusinessLocation({ lat: data.lat, lng: data.lng, accuracy: 0 });
+        }
         loadMenu(data.id);
       }
       setFetching(false);
@@ -231,6 +237,9 @@ const BusinessDashboard = () => {
     if (data) {
       setProfileId(data.id);
       await supabase.rpc("register_as_business");
+    }
+    if (businessLocation) {
+      await supabase.rpc("update_business_location", { p_lat: businessLocation.lat, p_lng: businessLocation.lng });
     }
     toast.success(t("businessEdit.profileSaved"));
   };
@@ -382,6 +391,17 @@ const BusinessDashboard = () => {
                   </Select>
                 </Field>
               </div>
+              {profileId && (
+                <div className="space-y-1">
+                  <Label>{t("businessEdit.businessLocation")}</Label>
+                  <p className="text-[11px] text-muted-foreground -mt-1">{t("businessEdit.businessLocationHint")}</p>
+                  <LocationPicker
+                    value={businessLocation}
+                    onChange={setBusinessLocation}
+                    detectLabel={t("businessEdit.detectLocation")}
+                  />
+                </div>
+              )}
               <Field label={t("businessEdit.description")}>
                 <Textarea rows={4} placeholder={t("businessEdit.descriptionPlaceholder")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </Field>
