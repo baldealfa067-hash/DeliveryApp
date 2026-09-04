@@ -77,9 +77,28 @@ const DriverDashboard = () => {
   const createProof = useCreateDeliveryProof();
   const validateQR = useValidateDeliveryQR();
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/login", { replace: true });
-  }, [user, loading, navigate]);
+  if (!loading && !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground p-2 -m-2 rounded-md">
+              <ArrowLeft className="h-4 w-4" /> {t("common.home")}
+            </Link>
+            <LanguageSelector />
+          </div>
+        </header>
+        <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <Navigation className="h-12 w-12 text-muted-foreground/40 mb-4" />
+          <h1 className="text-xl font-bold mb-2">{t("driverDashboard.registerTitle")}</h1>
+          <p className="text-sm text-muted-foreground mb-6">Precisas de fazer login para te tornares motorista.</p>
+          <Button onClick={() => navigate("/login?mode=cliente")} className="gap-2">
+            Fazer login
+          </Button>
+        </main>
+      </div>
+    );
+  }
 
   // Auto-update location
   useEffect(() => {
