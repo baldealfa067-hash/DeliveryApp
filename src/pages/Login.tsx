@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, User, ArrowLeft } from "lucide-react";
+import { Store, User, ArrowLeft, Bike } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -201,12 +201,20 @@ const Login = () => {
             </CardContent>
           </Card>
 
-          <button
+          <Card
+            className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
             onClick={() => navigate("/painel-motorista")}
-            className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors py-2"
           >
-            Quer entregar pedidos? <span className="font-medium text-primary hover:underline">Torna-te motorista</span>
-          </button>
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Bike className="h-6 w-6 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold">Motorista</p>
+                <p className="text-xs text-muted-foreground">Entregar pedidos e ganhar dinheiro</p>
+              </div>
+            </CardContent>
+          </Card>
 
           <p className="text-center text-xs text-muted-foreground">
             {t("auth.alreadyAccount")}{" "}
