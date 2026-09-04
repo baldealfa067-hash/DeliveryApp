@@ -201,6 +201,13 @@ const Login = () => {
             </CardContent>
           </Card>
 
+          <button
+            onClick={() => navigate("/painel-motorista")}
+            className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors py-2"
+          >
+            Quer entregar pedidos? <span className="font-medium text-primary hover:underline">Torna-te motorista</span>
+          </button>
+
           <p className="text-center text-xs text-muted-foreground">
             {t("auth.alreadyAccount")}{" "}
             <button onClick={() => { setMode("client"); setTab("login"); }} className="text-primary hover:underline font-medium">

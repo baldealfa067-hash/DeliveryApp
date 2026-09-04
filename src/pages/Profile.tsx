@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store } from "lucide-react";
+import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store, Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -153,6 +153,10 @@ const Profile = () => {
               <Button variant="outline" onClick={() => navigate("/login?mode=profissional")} className="w-full justify-start gap-2">
                 <Store className="h-4 w-4" />
                 Tornar-se Restaurante
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/painel-motorista")} className="w-full justify-start gap-2">
+                <Bike className="h-4 w-4" />
+                Torna-te motorista
               </Button>
               <Button variant="destructive" onClick={handleLogout} className="w-full justify-start gap-2">
                 <LogOut className="h-4 w-4" />
