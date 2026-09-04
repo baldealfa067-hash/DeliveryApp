@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { JUST_SIGNED_UP_KEY } from "@/lib/push";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { getPostLoginDestination } from "@/lib/getPostLoginDestination";
 import logo from "@/assets/logo.png";
 
 type ProfileType = "business";
@@ -58,7 +59,9 @@ const Login = () => {
             const { error } = await supabase.rpc("register_as_client");
             if (error) console.error("Role error:", error);
             sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-            navigate("/inicio", { replace: true });
+            // Depois de registar, usa destino centralizado (driver tem prioridade)
+            const dest = await getPostLoginDestination(user.id);
+            navigate(dest, { replace: true });
           } else {
             const { error } = await supabase.rpc("register_as_business");
             if (error) console.error("Role error:", error);
@@ -69,11 +72,12 @@ const Login = () => {
         }
       };
 
-      // If roles are already loaded and user has one, just redirect
+      // Se já tem sessão e roles, usa destino centralizado (driver > business > cliente)
       if (isBusiness || isClient || isAdmin) {
-        if (isAdmin) navigate("/admin", { replace: true });
-        else if (isBusiness) navigate("/painel-loja", { replace: true });
-        else if (isClient) navigate("/inicio", { replace: true });
+        (async () => {
+          const dest = await getPostLoginDestination(user.id);
+          navigate(dest, { replace: true });
+        })();
         return;
       }
 
@@ -82,10 +86,11 @@ const Login = () => {
       return;
     }
 
-    if (isAdmin) navigate("/admin", { replace: true });
-    else if (isBusiness) navigate("/painel-loja", { replace: true });
-    else if (isClient) navigate("/inicio", { replace: true });
-    else navigate("/inicio", { replace: true });
+    // Login normal — destino centralizado com prioridade driver > business > beleza > cliente
+    (async () => {
+      const dest = await getPostLoginDestination(user.id);
+      navigate(dest, { replace: true });
+    })();
   }, [user, isAdmin, isBusiness, isClient, rolesLoaded, loading, navigate, searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
