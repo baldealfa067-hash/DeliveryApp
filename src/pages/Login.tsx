@@ -203,7 +203,7 @@ const Login = () => {
 
           <Card
             className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
-            onClick={() => navigate("/painel-motorista")}
+            onClick={() => { console.log("[Login] Motorista clicked"); navigate("/painel-motorista"); }}
           >
             <CardContent className="flex items-center gap-4 p-4">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
