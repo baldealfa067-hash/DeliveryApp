@@ -91,10 +91,13 @@ const DriverDashboard = () => {
         <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[60vh] text-center">
           <Navigation className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <h1 className="text-xl font-bold mb-2">{t("driverDashboard.registerTitle")}</h1>
-          <p className="text-sm text-muted-foreground mb-6">Precisas de fazer login para te tornares motorista.</p>
-          <Button onClick={() => navigate("/login?mode=cliente")} className="gap-2">
-            Fazer login
+          <p className="text-sm text-muted-foreground mb-4">Cria a tua conta de motorista para começar a entregar.</p>
+          <Button onClick={() => navigate("/login?mode=motorista")} className="gap-2 w-full max-w-xs">
+            Criar conta de motorista
           </Button>
+          <button onClick={() => navigate("/login?mode=cliente")} className="text-sm text-muted-foreground hover:text-primary hover:underline mt-3">
+            Já tenho conta? Entrar
+          </button>
         </main>
       </div>
     );

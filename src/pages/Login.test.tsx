@@ -40,14 +40,13 @@ describe("Login - Motorista card", () => {
     // Cliente label is via i18n - check that Motorista card exists
   });
 
-  it("clicking Motorista navigates to /painel-motorista", async () => {
+  it("clicking Motorista shows driver signup form (independent flow)", async () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    const motoristaCard = screen.getByText("Motorista").closest("div");
-    // The Card itself is the clickable element - find by text and click Card container
     const card = screen.getByText("Motorista").closest(".cursor-pointer") as HTMLElement;
     expect(card).toBeTruthy();
     fireEvent.click(card!);
-    expect(mockNavigate).toHaveBeenCalledWith("/painel-motorista");
+    expect(screen.getByText("Conta de Motorista")).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalledWith("/painel-motorista");
   });
 
   it("clicking Cliente does NOT navigate to motorista, it switches mode", async () => {
@@ -59,13 +58,11 @@ describe("Login - Motorista card", () => {
     expect(mockNavigate).not.toHaveBeenCalledWith("/painel-motorista");
   });
 
-  it("instrumentation: console log on click", async () => {
-    const consoleSpy = vi.spyOn(console, "log");
+  it("driver signup form has correct CTA", async () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
     const card = screen.getByText("Motorista").closest(".cursor-pointer") as HTMLElement;
     fireEvent.click(card!);
-    // This will fail if click doesn't reach handler - proves overlay interception
-    expect(mockNavigate).toHaveBeenCalled();
-    consoleSpy.mockRestore();
+    expect(screen.getByText("Cria a tua conta para começar a entregar")).toBeInTheDocument();
+    expect(screen.getByText("Conta de Motorista")).toBeInTheDocument();
   });
 });

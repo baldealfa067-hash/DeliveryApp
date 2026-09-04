@@ -15,16 +15,20 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import logo from "@/assets/logo.png";
 
 type ProfileType = "business";
-type AuthMode = "choose" | "client" | "professional";
+type AuthMode = "choose" | "client" | "professional" | "driver";
 
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isAdmin, isBusiness, isClient, rolesLoaded, loading } = useAuth();
-  const [mode, setMode] = useState<AuthMode>(
-    searchParams.get("mode") === "cliente" ? "client" : "choose"
-  );
+  const [mode, setMode] = useState<AuthMode>(() => {
+    const m = searchParams.get("mode");
+    if (m === "cliente") return "client";
+    if (m === "motorista") return "driver";
+    if (m === "restaurante") return "professional";
+    return "choose";
+  });
   const [tab, setTab] = useState<"login" | "signup">(
     searchParams.get("tab") === "registar" ? "signup" : "login"
   );
@@ -101,11 +105,12 @@ const Login = () => {
     setSubmitting(true);
     try {
       const isClientFlow = mode === "client";
-      const redirectPath = isClientFlow ? "/inicio" : "/painel-loja/editar";
+      const isDriverFlow = mode === "driver";
+      const redirectPath = isDriverFlow ? "/painel-motorista" : isClientFlow ? "/inicio" : "/painel-loja/editar";
 
       // Passar profile_type no metadata para o trigger handle_new_user criar a role
       // mesmo quando Confirm Email = ON (session === null)
-      const profileTypeForMeta = isClientFlow ? "client" : profileType;
+      const profileTypeForMeta = isClientFlow || isDriverFlow ? "client" : profileType;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -119,7 +124,7 @@ const Login = () => {
       }
       if (data.session) {
         // Confirm email OFF — session existe, garantir role via RPC também (trigger já fez, mas RPC é idempotente)
-        if (isClientFlow) {
+        if (isClientFlow || isDriverFlow) {
           const { error: roleErr } = await supabase.rpc("register_as_client");
           if (roleErr) console.error("Role error:", roleErr);
         } else {
@@ -141,8 +146,10 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    sessionStorage.setItem("bornaal:google_mode", isClientFlow ? "client" : "professional");
-    if (!isClientFlow) {
+    const isDriverFlow = mode === "driver";
+    const googleMode = isDriverFlow ? "client" : isClientFlow ? "client" : "professional";
+    sessionStorage.setItem("bornaal:google_mode", googleMode);
+    if (!isClientFlow && !isDriverFlow) {
       sessionStorage.setItem("bornaal:google_profile_type", profileType);
     }
     setSubmitting(true);
@@ -203,7 +210,7 @@ const Login = () => {
 
           <Card
             className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
-            onClick={() => navigate("/painel-motorista")}
+            onClick={() => setMode("driver")}
           >
             <CardContent className="flex items-center gap-4 p-4">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -227,8 +234,9 @@ const Login = () => {
     );
   }
 
-  // ─── TELA: Auth (Cliente ou Profissional) ───
+  // ─── TELA: Auth (Cliente / Restaurante / Motorista) ───
   const isClientFlow = mode === "client";
+  const isDriverFlow = mode === "driver";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background">
@@ -243,10 +251,10 @@ const Login = () => {
         <div className="text-center space-y-1">
           <img src={logo} alt="Bornaal" className="h-10 mx-auto" />
           <h1 className="text-xl font-bold">
-            {isClientFlow ? t("auth.clientLoginTitle") : t("auth.professionalLoginTitle")}
+            {isDriverFlow ? "Conta de Motorista" : isClientFlow ? t("auth.clientLoginTitle") : t("auth.professionalLoginTitle")}
           </h1>
           <p className="text-xs text-muted-foreground">
-            {isClientFlow ? t("auth.clientLoginSubtitle") : t("auth.professionalLoginSubtitle")}
+            {isDriverFlow ? "Cria a tua conta para começar a entregar" : isClientFlow ? t("auth.clientLoginSubtitle") : t("auth.professionalLoginSubtitle")}
           </p>
         </div>
 
@@ -320,12 +328,14 @@ const Login = () => {
               <Button type="submit" disabled={submitting} className="w-full h-11">
                 {submitting
                   ? t("auth.creatingAccount")
-                  : isClientFlow
-                    ? t("auth.createClientAccount")
-                    : t("auth.createBusinessAccount")}
+                  : isDriverFlow
+                    ? "Criar conta de motorista"
+                    : isClientFlow
+                      ? t("auth.createClientAccount")
+                      : t("auth.createBusinessAccount")}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                {isClientFlow ? t("auth.afterClient") : t("auth.afterBusiness")}
+                {isDriverFlow ? "Depois irás para o registo de motorista." : isClientFlow ? t("auth.afterClient") : t("auth.afterBusiness")}
               </p>
             </form>
           </TabsContent>
