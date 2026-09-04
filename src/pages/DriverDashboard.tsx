@@ -56,8 +56,8 @@ const DriverDashboard = () => {
   const { data: driver, isLoading: driverLoading } = useDriverProfile(user?.id ?? null);
   const registerDriver = useRegisterDriver();
   const toggleAvailability = useToggleAvailability();
-  const { data: availableDeliveries = [] } = useAvailableDeliveries();
-  const { data: myDeliveries = [] } = useMyDeliveries();
+  const { data: availableDeliveries = [] } = useAvailableDeliveries(!!driver);
+  const { data: myDeliveries = [] } = useMyDeliveries(!!driver);
   const acceptDelivery = useAcceptDelivery();
   const pickupDelivery = usePickupDelivery();
   const completeDelivery = useCompleteDelivery();

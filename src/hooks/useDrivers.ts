@@ -109,7 +109,7 @@ export const useUpdateDriverLocation = () =>
     },
   });
 
-export const useAvailableDeliveries = () =>
+export const useAvailableDeliveries = (enabled: boolean = true) =>
   useQuery({
     queryKey: ["available-deliveries"],
     queryFn: async (): Promise<AvailableDelivery[]> => {
@@ -117,10 +117,11 @@ export const useAvailableDeliveries = () =>
       if (error) throw error;
       return (data ?? []) as AvailableDelivery[];
     },
-    refetchInterval: 5000,
+    refetchInterval: enabled ? 5000 : false,
+    enabled,
   });
 
-export const useMyDeliveries = () =>
+export const useMyDeliveries = (enabled: boolean = true) =>
   useQuery({
     queryKey: ["my-deliveries"],
     queryFn: async (): Promise<Delivery[]> => {
@@ -128,7 +129,8 @@ export const useMyDeliveries = () =>
       if (error) throw error;
       return (data ?? []) as Delivery[];
     },
-    refetchInterval: 5000,
+    refetchInterval: enabled ? 5000 : false,
+    enabled,
   });
 
 export const useAcceptDelivery = () => {
