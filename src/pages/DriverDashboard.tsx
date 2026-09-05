@@ -14,7 +14,7 @@ import {
   Power,
   PowerOff,
   Camera,
-  QrCode,
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,10 +41,9 @@ import {
   usePickupDelivery,
   useCompleteDelivery,
   useCreateDeliveryProof,
-  useValidateDeliveryQR,
   useUpdateDeliveryTracking,
 } from "@/hooks/useDrivers";
-import { QRCode } from "@/components/QRCode";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -70,12 +69,8 @@ const DriverDashboard = () => {
   const [proofDialogOpen, setProofDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  const [qrDeliveryId, setQrDeliveryId] = useState<string | null>(null);
-  const [qrOrderId, setQrOrderId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const createProof = useCreateDeliveryProof();
-  const validateQR = useValidateDeliveryQR();
 
   if (!loading && !user) {
     return (
@@ -136,12 +131,30 @@ const DriverDashboard = () => {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 800;
+          const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * ratio);
+          canvas.height = Math.round(img.height * ratio);
+          canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7));
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPhotoPreview(reader.result as string);
-    reader.readAsDataURL(file);
+    const compressed = await compressImage(file);
+    setPhotoPreview(compressed);
   };
 
   const handleProofSubmit = async () => {
@@ -151,6 +164,7 @@ const DriverDashboard = () => {
         deliveryId: selectedDeliveryId,
         photoUrl: photoPreview,
       });
+      await completeDelivery.mutateAsync(selectedDeliveryId);
       setProofDialogOpen(false);
       setPhotoPreview(null);
       setSelectedDeliveryId(null);
@@ -159,13 +173,11 @@ const DriverDashboard = () => {
     }
   };
 
-  const handleQRValidate = async () => {
-    if (!qrDeliveryId || !qrOrderId) return;
+  const handleConfirmDelivery = async (deliveryId: string) => {
     try {
-      const ok = await validateQR.mutateAsync({ deliveryId: qrDeliveryId, orderId: qrOrderId });
-      if (ok) setQrDialogOpen(false);
+      await completeDelivery.mutateAsync(deliveryId);
     } catch (err) {
-      console.error("[driver] qr error:", err);
+      console.error("[driver] confirm delivery error:", err);
     }
   };
 
@@ -385,12 +397,8 @@ const DriverDashboard = () => {
                               }} className="gap-1">
                                 <Camera className="h-3.5 w-3.5" /> {t("driverDashboard.proof")}
                               </Button>
-                              <Button size="sm" variant="outline" onClick={() => {
-                                setQrDeliveryId(d.id);
-                                setQrOrderId(d.order_id);
-                                setQrDialogOpen(true);
-                              }} className="gap-1">
-                                <QrCode className="h-3.5 w-3.5" /> QR
+                              <Button size="sm" variant="outline" onClick={() => handleConfirmDelivery(d.id)} disabled={completeDelivery.isPending} className="gap-1">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> {t("driverDashboard.confirmDelivery", "Confirmar")}
                               </Button>
                             </>
                           )}
@@ -437,26 +445,6 @@ const DriverDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* QR Code Dialog */}
-      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("driverDashboard.qrTitle")}</DialogTitle>
-            <DialogDescription>{t("driverDashboard.qrDesc")}</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-4">
-            {qrOrderId && <QRCode value={qrOrderId} size={200} />}
-            <p className="text-xs text-muted-foreground text-center">
-              {t("driverDashboard.qrInstruction")}
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleQRValidate} disabled={validateQR.isPending}>
-              {validateQR.isPending ? t("common.saving") : t("driverDashboard.qrValidate")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
