@@ -319,7 +319,7 @@ const DriverDashboard = () => {
           <Card>
             <CardContent className="p-3 flex flex-col items-center gap-1">
               <Clock className="h-5 w-5 text-yellow-600" />
-              <span className="text-2xl font-bold">{pendingDeliveries.length}</span>
+              <span className="text-2xl font-bold">{myDeliveries.filter((d) => ["aceite", "recolhido"].includes(d.status)).length}</span>
               <span className="text-[10px] text-muted-foreground text-center">{t("driverDashboard.active")}</span>
             </CardContent>
           </Card>
