@@ -206,8 +206,8 @@ const DriverDashboard = () => {
   };
 
   const activeDelivery = myDeliveries.find((d) => ["aceite", "recolhido"].includes(d.status));
-  const pendingDeliveries = myDeliveries.filter((d) => d.status === "aceite");
-  const completedToday = myDeliveries.filter((d) => d.status === "entregue").length;
+  const completedDeliveries = myDeliveries.filter((d) => d.status === "entregue");
+  const completedToday = completedDeliveries.length;
 
   // Not registered
   if (!driver) {
@@ -332,6 +332,47 @@ const DriverDashboard = () => {
           </Card>
         </div>
 
+        {/* Active delivery banner — always visible when driver has an active delivery */}
+        {activeDelivery && (
+          <Card className="mb-4 border-2 border-primary/50 bg-primary/5">
+            <CardContent className="p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-primary mb-2">
+                {activeDelivery.status === "aceite"
+                  ? "🛵 " + t("driverDashboard.goingToRestaurant", "A caminho do restaurante")
+                  : "📦 " + t("driverDashboard.goingToCustomer", "A caminho do cliente")}
+              </p>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold truncate">
+                    {activeDelivery.status === "aceite"
+                      ? activeDelivery.restaurant_name
+                      : activeDelivery.customer_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {activeDelivery.status === "aceite"
+                      ? activeDelivery.restaurant_address
+                      : activeDelivery.customer_address}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                  {activeDelivery.status === "aceite" && activeDelivery.restaurant_phone && (
+                    <a href={`tel:${activeDelivery.restaurant_phone.replace(/\s/g, "")}`}
+                      className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
+                      <Phone className="h-3.5 w-3.5" /> {t("driverDashboard.callRestaurant")}
+                    </a>
+                  )}
+                  {activeDelivery.status === "recolhido" && activeDelivery.customer_phone && (
+                    <a href={`tel:${activeDelivery.customer_phone.replace(/\s/g, "")}`}
+                      className="flex items-center gap-1 text-xs text-green-700 font-medium bg-green-100 px-2 py-1 rounded-md">
+                      <Phone className="h-3.5 w-3.5" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tabs */}
         <Tabs defaultValue="available">
           <TabsList className="w-full justify-start h-auto p-1 bg-muted/50">
@@ -390,22 +431,32 @@ const DriverDashboard = () => {
               </div>
             ) : (
               <div className="flex flex-col gap-3 mt-3">
-                {myDeliveries.map((d) => (
-                  <Card key={d.id}>
+                {/* Active deliveries */}
+                {myDeliveries.filter((d) => ["aceite", "recolhido"].includes(d.status)).map((d) => (
+                  <Card key={d.id} className="border-primary/30">
                     <CardContent className="p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-bold">#{d.order_number}</span>
-                            <Badge variant="secondary" className="text-[10px]">{t(`orderStatus.${d.status}`, d.status)}</Badge>
+                            <Badge className="text-[10px] bg-primary/10 text-primary border-0">
+                              {d.status === "aceite" ? t("driverDashboard.goingToRestaurant", "Ir ao restaurante") : t("driverDashboard.goingToCustomer", "Ir ao cliente")}
+                            </Badge>
                           </div>
                           <p className="text-sm font-medium">{d.customer_name}</p>
                           <p className="text-xs text-muted-foreground truncate">🏠 {d.customer_address}</p>
-                          {d.restaurant_phone && (
-                            <a href={`tel:${d.restaurant_phone.replace(/\s/g, "")}`} className="text-xs text-primary flex items-center gap-1 mt-1">
-                              <Phone className="h-3 w-3" /> {t("driverDashboard.callRestaurant")}
-                            </a>
-                          )}
+                          <div className="flex flex-col gap-0.5 mt-1">
+                            {d.restaurant_phone && (
+                              <a href={`tel:${d.restaurant_phone.replace(/\s/g, "")}`} className="text-xs text-primary flex items-center gap-1">
+                                <Phone className="h-3 w-3" /> {t("driverDashboard.callRestaurant")}
+                              </a>
+                            )}
+                            {d.status === "recolhido" && d.customer_phone && (
+                              <a href={`tel:${d.customer_phone.replace(/\s/g, "")}`} className="text-xs text-green-700 flex items-center gap-1 font-medium">
+                                <Phone className="h-3 w-3" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
+                              </a>
+                            )}
+                          </div>
                         </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
                           {d.status === "aceite" && (
@@ -439,6 +490,29 @@ const DriverDashboard = () => {
                     </CardContent>
                   </Card>
                 ))}
+
+                {/* Completed deliveries */}
+                {completedDeliveries.length > 0 && (
+                  <>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mt-2">
+                      {t("driverDashboard.completedDeliveries", "Concluídas hoje")} ({completedDeliveries.length})
+                    </p>
+                    {completedDeliveries.map((d) => (
+                      <Card key={d.id} className="opacity-60">
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                            <span className="text-sm font-bold">#{d.order_number}</span>
+                            <span className="text-sm text-muted-foreground truncate">{d.customer_name}</span>
+                            <span className="text-xs text-muted-foreground ml-auto shrink-0">
+                              {d.delivered_at ? new Date(d.delivered_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                )}
               </div>
             )}
           </TabsContent>
