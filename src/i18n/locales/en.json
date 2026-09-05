@@ -345,7 +345,15 @@
     "comments": "Comments",
     "viewPublic": "View public page",
     "ordersManagement": "Orders",
-    "profileTab": "Profile"
+    "profileTab": "Profile",
+    "salesTab": "Sales",
+    "salesToday": "Sales today",
+    "orders": "orders",
+    "last7days": "7 days",
+    "thisMonth": "This month",
+    "avgTicket": "Avg ticket",
+    "perOrder": "per order",
+    "salesChart": "Sales per day"
   },
   "businessEdit": {
     "imageTooLarge": "Image too large (max 5 MB)",
@@ -1141,7 +1149,13 @@
     "qrValidate": "Validate Delivery",
     "voiceDirection": "Customer directions",
     "voiceDirectionFrom": "Address directions — {{name}}",
-    "openGoogleMaps": "Open in Google Maps"
+    "openGoogleMaps": "Open in Google Maps",
+    "statsTitle": "Delivery summary",
+    "last7days": "7 days",
+    "thisMonth": "This month",
+    "totalDistance": "Distance",
+    "today": "today",
+    "deliveries": "Deliveries"
   },
   "notifications": {
     "title": "Notifications",

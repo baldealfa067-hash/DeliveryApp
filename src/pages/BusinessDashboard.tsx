@@ -29,6 +29,10 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { useBusinessCategories } from "@/hooks/useProviders";
 import { translateCategoryName } from "@/lib/categoryI18n";
 import OrderManagement from "@/components/OrderManagement";
+import { useBusinessSalesStats, useBusinessDailySales } from "@/hooks/useBusinessSales";
+import { formatCFA } from "@/lib/format";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { TrendingUp } from "lucide-react";
 
 type DashboardProfile = {
   id: string;
@@ -49,6 +53,8 @@ const BusinessDashboard = () => {
   const [commentCount, setCommentCount] = useState(0);
   const { data: stats = { profile_views: 0, whatsapp_clicks: 0, call_clicks: 0 } } = useProviderStatsQuery(profile?.id ?? null);
   const { data: bizCats = [] } = useBusinessCategories();
+  const { data: salesStats } = useBusinessSalesStats(profile?.id ?? null);
+  const { data: dailySales = [] } = useBusinessDailySales(profile?.id ?? null);
 
   const loadCounts = async (pid: string) => {
     const [{ count: orders }, { count: reviews }] = await Promise.all([
@@ -174,6 +180,10 @@ const BusinessDashboard = () => {
                 <ShoppingCart className="h-4 w-4" />
                 {t("businessDashboard.ordersManagement")}
               </TabsTrigger>
+              <TabsTrigger value="vendas" className="flex-1 text-sm min-h-10 gap-1.5">
+                <TrendingUp className="h-4 w-4" />
+                {t("businessDashboard.salesTab")}
+              </TabsTrigger>
               <TabsTrigger value="perfil" className="flex-1 text-sm min-h-10 gap-1.5">
                 <Store className="h-4 w-4" />
                 {t("businessDashboard.profileTab")}
@@ -182,6 +192,72 @@ const BusinessDashboard = () => {
 
             <TabsContent value="pedidos" className="mt-0">
               <OrderManagement businessId={profile.id} />
+            </TabsContent>
+
+            <TabsContent value="vendas" className="mt-0 space-y-4">
+              {salesStats && (
+                <>
+                  {/* Today */}
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="p-4">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t("businessDashboard.salesToday")}</p>
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-3xl font-bold text-primary">{formatCFA(salesStats.today_total)}</span>
+                        <span className="text-sm text-muted-foreground">{salesStats.today_count} {t("businessDashboard.orders")}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Week + Month + Avg */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <Card>
+                      <CardContent className="p-3 flex flex-col items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground uppercase">{t("businessDashboard.last7days")}</span>
+                        <span className="text-lg font-bold">{formatCFA(salesStats.week_total)}</span>
+                        <span className="text-[10px] text-muted-foreground">{salesStats.week_count} {t("businessDashboard.orders")}</span>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-3 flex flex-col items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground uppercase">{t("businessDashboard.thisMonth")}</span>
+                        <span className="text-lg font-bold">{formatCFA(salesStats.month_total)}</span>
+                        <span className="text-[10px] text-muted-foreground">{salesStats.month_count} {t("businessDashboard.orders")}</span>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-3 flex flex-col items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground uppercase">{t("businessDashboard.avgTicket")}</span>
+                        <span className="text-lg font-bold">{formatCFA(salesStats.avg_ticket)}</span>
+                        <span className="text-[10px] text-muted-foreground">{t("businessDashboard.perOrder")}</span>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Chart */}
+                  {dailySales.length > 0 && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">{t("businessDashboard.salesChart")}</p>
+                        <ResponsiveContainer width="100%" height={200}>
+                          <BarChart data={dailySales}>
+                            <XAxis
+                              dataKey="day"
+                              tickFormatter={(v) => new Date(v).toLocaleDateString(undefined, { weekday: "short" })}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+                            <Tooltip
+                              formatter={(v: number) => [formatCFA(v), t("businessDashboard.salesTab")]}
+                              labelFormatter={(v) => new Date(v).toLocaleDateString()}
+                            />
+                            <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="perfil" className="mt-0 space-y-4">

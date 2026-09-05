@@ -619,7 +619,13 @@
     "qrValidate": "Valida Entrega",
     "voiceDirection": "Indikason di klienti",
     "voiceDirectionFrom": "Indikason di morada — {{name}}",
-    "openGoogleMaps": "Abri na Google Maps"
+    "openGoogleMaps": "Abri na Google Maps",
+    "statsTitle": "Rezumu di entregas",
+    "last7days": "7 dias",
+    "thisMonth": "Es mes",
+    "totalDistance": "Distansia",
+    "today": "oji",
+    "deliveries": "Entregas"
   },
   "businessEdit": {
     "locationRequired": "Lokalizason *",

@@ -46,6 +46,9 @@ import {
   useUpdateDeliveryTracking,
 } from "@/hooks/useDrivers";
 
+import { useDriverDeliveryStats, useDriverDailyStats } from "@/hooks/useDriverDeliveryStats";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { TrendingUp, Route } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -65,6 +68,9 @@ const DriverDashboard = () => {
   const pickupDelivery = usePickupDelivery();
   const completeDelivery = useCompleteDelivery();
   const updateTracking = useUpdateDeliveryTracking();
+
+  const { data: deliveryStats } = useDriverDeliveryStats(driver?.id ?? null);
+  const { data: dailyStats = [] } = useDriverDailyStats(driver?.id ?? null);
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const [regName, setRegName] = useState("");
@@ -316,8 +322,8 @@ const DriverDashboard = () => {
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        {/* Stats — today */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <Card>
             <CardContent className="p-3 flex flex-col items-center gap-1">
               <Package className="h-5 w-5 text-primary" />
@@ -340,6 +346,54 @@ const DriverDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Extended stats — week, month, distance */}
+        {deliveryStats && (
+          <Card className="mb-4">
+            <CardContent className="p-4 space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" /> {t("driverDashboard.statsTitle")}
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.last7days")}</p>
+                  <p className="text-lg font-bold">{deliveryStats.week_count}</p>
+                  <p className="text-[10px] text-muted-foreground">{deliveryStats.week_distance.toFixed(1)} km</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.thisMonth")}</p>
+                  <p className="text-lg font-bold">{deliveryStats.month_count}</p>
+                  <p className="text-[10px] text-muted-foreground">{deliveryStats.month_distance.toFixed(1)} km</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.totalDistance")}</p>
+                  <p className="text-lg font-bold flex items-center justify-center gap-1">
+                    <Route className="h-4 w-4 text-primary" />
+                    {deliveryStats.today_distance.toFixed(1)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">km {t("driverDashboard.today")}</p>
+                </div>
+              </div>
+              {dailyStats.length > 0 && (
+                <ResponsiveContainer width="100%" height={150}>
+                  <BarChart data={dailyStats}>
+                    <XAxis
+                      dataKey="day"
+                      tickFormatter={(v) => new Date(v).toLocaleDateString(undefined, { weekday: "short" })}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                    <Tooltip
+                      formatter={(v: number, name: string) => [v, name === "delivery_count" ? t("driverDashboard.deliveries") : "km"]}
+                      labelFormatter={(v) => new Date(v).toLocaleDateString()}
+                    />
+                    <Bar dataKey="delivery_count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Active delivery banner — always visible when driver has an active delivery */}
         {activeDelivery && (
