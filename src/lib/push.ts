@@ -3,7 +3,7 @@ import i18n from "@/i18n";
 
 export const VAPID_PUBLIC_KEY =
   import.meta.env.VITE_VAPID_PUBLIC_KEY ??
-  "BMfnEZU0xnlB8nBXxrIODMPgr1WZD9kpehlwQViOCTOzBh6uZZGXHIxuFMYSS5sXhu3NiBqe5MQPVtbuB_2qJO4";
+  "BBQoeiYfzexfniUOWa1nfiFhXRNukxs2uYvNldVhhI-Q40H7yxtskD6FfpaENkcb5dDirTE2ea6MZh_yxeLEd-A";
 
 const ASKED_KEY = "bornaal:push-asked";
 export const JUST_SIGNED_UP_KEY = "bornaal:just-signed-up";
