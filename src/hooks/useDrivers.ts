@@ -278,6 +278,23 @@ export const useValidateDeliveryQR = () => {
   });
 };
 
+export const useValidateDeliveryCode = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { deliveryId: string; code: string }) => {
+      const { data, error } = await supabase.rpc("validate_delivery_code", {
+        p_delivery_id: params.deliveryId,
+        p_code: params.code,
+      });
+      if (error) throw error;
+      return data as boolean;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-deliveries"] });
+    },
+  });
+};
+
 export const useUpdateDeliveryTracking = () =>
   useMutation({
     mutationFn: async (params: {

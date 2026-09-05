@@ -41,6 +41,7 @@ import {
   usePickupDelivery,
   useCompleteDelivery,
   useCreateDeliveryProof,
+  useValidateDeliveryCode,
   useUpdateDeliveryTracking,
 } from "@/hooks/useDrivers";
 
@@ -69,8 +70,13 @@ const DriverDashboard = () => {
   const [proofDialogOpen, setProofDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
+  const [codeDeliveryId, setCodeDeliveryId] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const createProof = useCreateDeliveryProof();
+  const validateCode = useValidateDeliveryCode();
 
   if (!loading && !user) {
     return (
@@ -178,6 +184,24 @@ const DriverDashboard = () => {
       await completeDelivery.mutateAsync(deliveryId);
     } catch (err) {
       console.error("[driver] confirm delivery error:", err);
+    }
+  };
+
+  const handleCodeValidate = async () => {
+    if (!codeDeliveryId || codeInput.trim().length !== 6) return;
+    try {
+      const ok = await validateCode.mutateAsync({ deliveryId: codeDeliveryId, code: codeInput.trim() });
+      if (ok) {
+        setCodeDialogOpen(false);
+        setCodeInput("");
+        setCodeDeliveryId(null);
+        setCodeError(false);
+      } else {
+        setCodeError(true);
+      }
+    } catch (err) {
+      setCodeError(true);
+      console.error("[driver] code validate error:", err);
     }
   };
 
@@ -392,13 +416,21 @@ const DriverDashboard = () => {
                           {d.status === "recolhido" && (
                             <>
                               <Button size="sm" onClick={() => {
+                                setCodeDeliveryId(d.id);
+                                setCodeInput("");
+                                setCodeError(false);
+                                setCodeDialogOpen(true);
+                              }} className="gap-1">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> {t("driverDashboard.enterCode", "Código")}
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => {
                                 setSelectedDeliveryId(d.id);
                                 setProofDialogOpen(true);
                               }} className="gap-1">
                                 <Camera className="h-3.5 w-3.5" /> {t("driverDashboard.proof")}
                               </Button>
-                              <Button size="sm" variant="outline" onClick={() => handleConfirmDelivery(d.id)} disabled={completeDelivery.isPending} className="gap-1">
-                                <CheckCircle2 className="h-3.5 w-3.5" /> {t("driverDashboard.confirmDelivery", "Confirmar")}
+                              <Button size="sm" variant="ghost" onClick={() => handleConfirmDelivery(d.id)} disabled={completeDelivery.isPending} className="gap-1 text-xs">
+                                {t("driverDashboard.confirmDelivery", "Sem código")}
                               </Button>
                             </>
                           )}
@@ -412,6 +444,35 @@ const DriverDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Code Validation Dialog */}
+      <Dialog open={codeDialogOpen} onOpenChange={(open) => { setCodeDialogOpen(open); if (!open) { setCodeInput(""); setCodeError(false); setCodeDeliveryId(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("driverDashboard.codeTitle", "Código de entrega")}</DialogTitle>
+            <DialogDescription>{t("driverDashboard.codeDesc", "Pede ao cliente o código de 6 dígitos que aparece na app dele.")}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <Input
+              type="number"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="000000"
+              value={codeInput}
+              onChange={(e) => { setCodeInput(e.target.value.slice(0, 6)); setCodeError(false); }}
+              className="text-center text-2xl tracking-widest font-bold h-14"
+            />
+            {codeError && (
+              <p className="text-sm text-destructive text-center">{t("driverDashboard.codeError", "Código incorreto. Tenta novamente.")}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={handleCodeValidate} disabled={codeInput.trim().length !== 6 || validateCode.isPending}>
+              {validateCode.isPending ? t("common.saving") : t("driverDashboard.codeValidate", "Confirmar entrega")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Photo Proof Dialog */}
       <Dialog open={proofDialogOpen} onOpenChange={(open) => { setProofDialogOpen(open); if (!open) { setPhotoPreview(null); setSelectedDeliveryId(null); } }}>

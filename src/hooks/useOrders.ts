@@ -19,6 +19,7 @@ export interface Order {
   created_at: string;
   updated_at: string;
   bairro: string | null;
+  delivery_code: string | null;
 }
 
 export interface OrderHistoryEntry {

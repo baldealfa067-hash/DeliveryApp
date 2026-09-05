@@ -195,6 +195,25 @@ const OrderTrackingPage = () => {
         </CardContent>
       </Card>
 
+      {/* Delivery Code — shown when driver is handling the order */}
+      {order.consumption_option === "entrega" &&
+        ["motorista_encontrado", "pedido_recolhido", "a_caminho"].includes(order.status) &&
+        order.delivery_code && (
+          <Card className="mb-4 border-2 border-primary/40 bg-primary/5">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                {t("orderTracking.deliveryCode", "Código de entrega")}
+              </p>
+              <p className="text-4xl font-bold tracking-widest text-primary">
+                {order.delivery_code}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {t("orderTracking.deliveryCodeHint", "Mostra este código ao motorista quando chegar")}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
       {/* Delivery Address */}
       {order.address && (
         <Card className="mb-4">
