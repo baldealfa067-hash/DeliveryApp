@@ -20,6 +20,7 @@ export interface Order {
   updated_at: string;
   bairro: string | null;
   delivery_code: string | null;
+  voice_note_url: string | null;
 }
 
 export interface OrderHistoryEntry {
@@ -44,6 +45,7 @@ export const useCreateOrder = () => {
       bairro?: string;
       customerLat?: number;
       customerLng?: number;
+      voiceNoteUrl?: string;
     }) => {
       const { data, error } = await supabase.rpc("create_order", {
         p_business_id: params.businessId,
@@ -58,7 +60,8 @@ export const useCreateOrder = () => {
         p_bairro: params.bairro ?? null,
         p_customer_lat: params.customerLat ?? null,
         p_customer_lng: params.customerLng ?? null,
-      }      );
+        p_voice_note_url: params.voiceNoteUrl ?? null,
+      });
       if (error) throw error;
       return data as string;
     },

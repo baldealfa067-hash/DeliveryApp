@@ -15,6 +15,7 @@ import {
   Truck,
   MapPin,
   Phone,
+  Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -281,6 +282,14 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                           <span className="text-xs text-muted-foreground break-words">{selectedOrder.address}</span>
                         </div>
                         <CopyButton text={selectedOrder.address} label={t("common.copy")} />
+                      </div>
+                    )}
+                    {/* Voice note from customer */}
+                    {selectedOrder.voice_note_url && (
+                      <div className="flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
+                        <Volume2 className="h-4 w-4 text-amber-600 shrink-0" />
+                        <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("orderManagement.voiceDirection")}</span>
+                        <audio src={selectedOrder.voice_note_url} controls className="h-8 flex-1 min-w-0" />
                       </div>
                     )}
                     {/* Copy all delivery info button */}

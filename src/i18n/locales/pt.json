@@ -386,6 +386,9 @@
     "businessLocation": "Localização do estabelecimento",
     "businessLocationHint": "Usada para calcular a distância até aos teus clientes.",
     "detectLocation": "Detetar",
+    "locationDetected": "Localização detetada com sucesso!",
+    "locationError": "Não foi possível detetar a localização.",
+    "locationConfirmed": "Localização confirmada",
     "select": "Selecione",
     "description": "Descrição",
     "descriptionPlaceholder": "Fale sobre o seu estabelecimento, especialidades, horário...",
@@ -473,6 +476,11 @@
     "deliveryInfo": "Informação de entrega",
     "referencePoint": "Ponto de referência",
     "referencePlaceholder": "Ex: perto da farmácia X, ao lado do mercado",
+    "voiceNoteLabel": "Indicação de voz (onde entregar)",
+    "voiceNoteHint": "Grava uma mensagem de voz a explicar onde é a tua casa. Ex: \"Estou em Bairro Militar, casa amarela ao lado da farmácia, pergunta pelo Alfa.\"",
+    "voiceRecord": "Gravar indicação de voz",
+    "voiceRecorded": "Gravação pronta",
+    "voiceRerecord": "Regravar",
     "sendOrder": "Enviar pedido por WhatsApp",
     "placeOrder": "Fazer Pedido",
     "registering": "A registar...",
@@ -1073,7 +1081,8 @@
     "prepTimeDesc": "Indique o tempo estimado de preparação em minutos.",
     "prepTimeMinutes": "Minutos",
     "deliveryInfo": "Dados de Entrega",
-    "copyAllDelivery": "Copiar todos os dados"
+    "copyAllDelivery": "Copiar todos os dados",
+    "voiceDirection": "Indicação do cliente"
   },
   "myAppointments": {
     "title": "Os Meus Agendamentos",
@@ -1131,7 +1140,9 @@
     "qrTitle": "QR Code de Validação",
     "qrDesc": "Mostre este QR code ao cliente para validação.",
     "qrInstruction": "O cliente pode validar a entrega com este QR code.",
-    "qrValidate": "Validar Entrega"
+    "qrValidate": "Validar Entrega",
+    "voiceDirection": "Indicação do cliente",
+    "openGoogleMaps": "Abrir no Google Maps"
   },
   "notifications": {
     "title": "Notificações",

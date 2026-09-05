@@ -30,6 +30,11 @@ export interface Delivery {
   picked_up_at: string | null;
   delivered_at: string | null;
   created_at: string;
+  restaurant_lat: number | null;
+  restaurant_lng: number | null;
+  customer_lat: number | null;
+  customer_lng: number | null;
+  voice_note_url: string | null;
 }
 
 export interface AvailableDelivery {
@@ -41,6 +46,9 @@ export interface AvailableDelivery {
   distance_km: number | null;
   delivery_fee: number;
   created_at: string;
+  restaurant_lat: number | null;
+  restaurant_lng: number | null;
+  voice_note_url: string | null;
 }
 
 export interface TrackingPoint {

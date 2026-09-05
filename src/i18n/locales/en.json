@@ -383,6 +383,9 @@
     "businessLocation": "Business location",
     "businessLocationHint": "Used to calculate the distance to your customers.",
     "detectLocation": "Detect",
+    "locationDetected": "Location detected successfully!",
+    "locationError": "Could not detect location.",
+    "locationConfirmed": "Location confirmed",
     "select": "Select",
     "description": "Description",
     "descriptionPlaceholder": "Tell us about your business, specialties, hours...",
@@ -470,6 +473,11 @@
     "deliveryInfo": "Delivery information",
     "referencePoint": "Reference point",
     "referencePlaceholder": "E.g. near pharmacy X, next to the market",
+    "voiceNoteLabel": "Voice directions (where to deliver)",
+    "voiceNoteHint": "Record a voice message explaining where your house is. E.g. \"I'm in Bairro Militar, yellow house next to the pharmacy, ask for Alfa.\"",
+    "voiceRecord": "Record voice directions",
+    "voiceRecorded": "Recording ready",
+    "voiceRerecord": "Re-record",
     "sendOrder": "Send order via WhatsApp",
     "placeOrder": "Place Order",
     "registering": "Registering...",
@@ -1070,7 +1078,8 @@
     "prepTimeDesc": "Enter the estimated preparation time in minutes.",
     "prepTimeMinutes": "Minutes",
     "deliveryInfo": "Delivery Info",
-    "copyAllDelivery": "Copy all delivery info"
+    "copyAllDelivery": "Copy all delivery info",
+    "voiceDirection": "Customer directions"
   },
   "myAppointments": {
     "title": "My Appointments",
@@ -1128,7 +1137,9 @@
     "qrTitle": "QR Validation Code",
     "qrDesc": "Show this QR code to the customer for validation.",
     "qrInstruction": "The customer can validate delivery with this QR code.",
-    "qrValidate": "Validate Delivery"
+    "qrValidate": "Validate Delivery",
+    "voiceDirection": "Customer directions",
+    "openGoogleMaps": "Open in Google Maps"
   },
   "notifications": {
     "title": "Notifications",

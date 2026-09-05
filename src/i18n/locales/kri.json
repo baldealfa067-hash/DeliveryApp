@@ -614,17 +614,27 @@
     "qrTitle": "Kodigu QR di Validason",
     "qrDesc": "Mustra kodigu QR ase pa validason.",
     "qrInstruction": "Klienti pu valida entrega kum kodigu QR.",
-    "qrValidate": "Valida Entrega"
+    "qrValidate": "Valida Entrega",
+    "voiceDirection": "Indikason di klienti",
+    "openGoogleMaps": "Abri na Google Maps"
   },
   "businessEdit": {
     "locationRequired": "Lokalizason *",
     "businessLocation": "Lokalizason di stabelesimentu",
     "businessLocationHint": "Uzadu pa kalkula distansa te na bu klientis.",
-    "detectLocation": "Deteta"
+    "detectLocation": "Deteta",
+    "locationDetected": "Lokalizason detetadu!",
+    "locationError": "Ka konsigi deteta lokalizason.",
+    "locationConfirmed": "Lokalizason konfirmadu"
   },
   "businessDetail": {
     "detectLocation": "Deteta lokalizason",
-    "deliveryInfo": "Informason di Entrega"
+    "deliveryInfo": "Informason di Entrega",
+    "voiceNoteLabel": "Indikason di voz (undi pa entrega)",
+    "voiceNoteHint": "Grava mensajen di voz pa splika undi ki bu kasa sta. Ex: \"N sta na Bairro Militar, kasa amarelu aladu di farmasia, pidi pa Alfa.\"",
+    "voiceRecord": "Grava indikason di voz",
+    "voiceRecorded": "Gravasion prontu",
+    "voiceRerecord": "Grava di nobu"
   },
   "notifications": {
     "title": "Notifikasons",

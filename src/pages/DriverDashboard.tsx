@@ -14,7 +14,8 @@ import {
   Power,
   PowerOff,
   Camera,
-
+  Volume2,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
+// DriverMap disabled by product decision — voice directions replace map in Bissau context
+// import DriverMap from "@/components/DriverMap";
 
 const DriverDashboard = () => {
   const { t } = useTranslation();
@@ -74,6 +77,7 @@ const DriverDashboard = () => {
   const [codeDeliveryId, setCodeDeliveryId] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState(false);
+  const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number } | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const createProof = useCreateDeliveryProof();
   const validateCode = useValidateDeliveryCode();
@@ -109,7 +113,12 @@ const DriverDashboard = () => {
     if (!driver?.is_available) return;
     const watchId = navigator.geolocation?.watchPosition(
       (pos) => {
-        updateTracking.mutate({ lat: pos.coords.latitude, lng: pos.coords.longitude, deliveryId: "" });
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setDriverPosition(coords);
+        const deliveryId = myDeliveries.find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
+        if (deliveryId) {
+          updateTracking.mutate({ ...coords, deliveryId });
+        }
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 10000 }
@@ -369,6 +378,35 @@ const DriverDashboard = () => {
                   )}
                 </div>
               </div>
+              {/* Voice note from customer */}
+              {activeDelivery.voice_note_url && (
+                <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
+                  <Volume2 className="h-4 w-4 text-amber-600 shrink-0" />
+                  <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirection")}</span>
+                  <audio src={activeDelivery.voice_note_url} controls className="h-8 flex-1 min-w-0" />
+                </div>
+              )}
+              {/* Google Maps link */}
+              {activeDelivery.status === "recolhido" && activeDelivery.customer_lat != null && activeDelivery.customer_lng != null && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${activeDelivery.customer_lat},${activeDelivery.customer_lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-2.5 py-2 rounded-md"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> {t("driverDashboard.openGoogleMaps")}
+                </a>
+              )}
+              {activeDelivery.status === "aceite" && activeDelivery.restaurant_lat != null && activeDelivery.restaurant_lng != null && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${activeDelivery.restaurant_lat},${activeDelivery.restaurant_lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-2.5 py-2 rounded-md"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> {t("driverDashboard.openGoogleMaps")}
+                </a>
+              )}
             </CardContent>
           </Card>
         )}
@@ -457,6 +495,12 @@ const DriverDashboard = () => {
                               </a>
                             )}
                           </div>
+                          {d.voice_note_url && (
+                            <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 py-1.5">
+                              <Volume2 className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                              <audio src={d.voice_note_url} controls className="h-7 flex-1 min-w-0" />
+                            </div>
+                          )}
                         </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
                           {d.status === "aceite" && (

@@ -383,6 +383,9 @@
     "businessLocation": "Emplacement de l'établissement",
     "businessLocationHint": "Utilisée pour calculer la distance jusqu'à vos clients.",
     "detectLocation": "Détecter",
+    "locationDetected": "Localisation détectée avec succès !",
+    "locationError": "Impossible de détecter la localisation.",
+    "locationConfirmed": "Localisation confirmée",
     "select": "Sélectionner",
     "description": "Description",
     "descriptionPlaceholder": "Parlez de votre établissement, spécialités, horaires...",
@@ -470,6 +473,11 @@
     "deliveryInfo": "Informations de livraison",
     "referencePoint": "Point de repère",
     "referencePlaceholder": "Ex: près de la pharmacie X, à côté du marché",
+    "voiceNoteLabel": "Indication vocale (où livrer)",
+    "voiceNoteHint": "Enregistrez un message vocal expliquant où se trouve votre maison. Ex: «Je suis à Bairro Militar, maison jaune à côté de la pharmacie, demandez Alfa.»",
+    "voiceRecord": "Enregistrer indication vocale",
+    "voiceRecorded": "Enregistrement prêt",
+    "voiceRerecord": "Ré-enregistrer",
     "sendOrder": "Envoyer la commande via WhatsApp",
     "placeOrder": "Passer commande",
     "registering": "Enregistrement...",
@@ -1070,7 +1078,8 @@
     "prepTimeDesc": "Indiquez le temps de préparation estimé en minutes.",
     "prepTimeMinutes": "Minutes",
     "deliveryInfo": "Infos de livraison",
-    "copyAllDelivery": "Copier toutes les infos"
+    "copyAllDelivery": "Copier toutes les infos",
+    "voiceDirection": "Indication du client"
   },
   "myAppointments": {
     "title": "Mes Réservations",
@@ -1128,7 +1137,9 @@
     "qrTitle": "Code QR de Validation",
     "qrDesc": "Montrez ce code QR au client pour validation.",
     "qrInstruction": "Le client peut valider la livraison avec ce code QR.",
-    "qrValidate": "Valider la Livraison"
+    "qrValidate": "Valider la Livraison",
+    "voiceDirection": "Indication du client",
+    "openGoogleMaps": "Ouvrir dans Google Maps"
   },
   "notifications": {
     "title": "Notifications",

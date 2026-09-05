@@ -13,6 +13,7 @@ import {
   Store,
   UtensilsCrossed,
   Plus,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,8 @@ import { formatCFA } from "@/lib/format";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getCategoryName } from "@/lib/categoryI18n";
-import { LocationPicker } from "@/components/LocationPicker";
+// LocationPicker hidden by product decision — voice directions replace map in Bissau context
+// import { LocationPicker } from "@/components/LocationPicker";
 import type { GeoPosition } from "@/hooks/useGeolocation";
 
 type ConsumptionOption = "comer_no_local" | "para_levar" | "entrega";
@@ -391,15 +393,30 @@ const BusinessDashboard = () => {
                   </Select>
                 </Field>
               </div>
+              {/* GPS capture without map — product decision: map hidden in Bissau context */}
               {profileId && (
                 <div className="space-y-1">
                   <Label>{t("businessEdit.businessLocation")}</Label>
                   <p className="text-[11px] text-muted-foreground -mt-1">{t("businessEdit.businessLocationHint")}</p>
-                  <LocationPicker
-                    value={businessLocation}
-                    onChange={setBusinessLocation}
-                    detectLabel={t("businessEdit.detectLocation")}
-                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2"
+                    onClick={() => {
+                      if (!("geolocation" in navigator)) return toast.error("GPS não disponível");
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setBusinessLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
+                          toast.success(t("businessEdit.locationDetected"));
+                        },
+                        () => toast.error(t("businessEdit.locationError")),
+                        { enableHighAccuracy: true, timeout: 10000 }
+                      );
+                    }}
+                  >
+                    <MapPin className="h-4 w-4" />
+                    {businessLocation ? t("businessEdit.locationConfirmed") : t("businessEdit.detectLocation")}
+                  </Button>
                 </div>
               )}
               <Field label={t("businessEdit.description")}>

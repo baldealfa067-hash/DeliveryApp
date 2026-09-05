@@ -27,8 +27,9 @@ import { useCreateOrder } from "@/hooks/useOrders";
 import { useBairros } from "@/hooks/useBairros";
 import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
-import { LocationPicker } from "@/components/LocationPicker";
-import type { GeoPosition } from "@/hooks/useGeolocation";
+import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
+import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
+import { Mic, Square, Play, Pause, RotateCcw } from "lucide-react";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -80,6 +81,11 @@ const BusinessDetail = () => {
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [sending, setSending] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<GeoPosition | null>(null);
+  const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
+  const [voiceUploading, setVoiceUploading] = useState(false);
+  const [voicePlaying, setVoicePlaying] = useState(false);
+  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const recorder = useVoiceRecorder();
   const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
   const [orderCustomerName, setOrderCustomerName] = useState("");
   const [orderCustomerPhone, setOrderCustomerPhone] = useState("");
@@ -113,6 +119,17 @@ const BusinessDetail = () => {
       setLoading(false);
     })();
   }, [id]);
+
+  // Silent GPS capture for delivery orders (no map shown)
+  useEffect(() => {
+    if (consumptionOption !== "entrega" || customerLocation) return;
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, [consumptionOption]);
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen text-muted-foreground">{t("businessDetail.loading")}</div>;
@@ -157,6 +174,51 @@ const BusinessDetail = () => {
     });
   };
 
+  // Auto-stop voice recording at 30 seconds
+  useEffect(() => {
+    if (recorder.state === "recording" && recorder.duration >= 30) {
+      recorder.stopRecording();
+    }
+  }, [recorder.state, recorder.duration]);
+
+  const uploadVoiceNote = async (): Promise<string | null> => {
+    if (!recorder.audioBlob || !user?.id) return null;
+    const blob = recorder.audioBlob;
+    if (blob.size === 0) return null;
+    setVoiceUploading(true);
+    try {
+      const ext = blob.type.includes("webm") ? "webm" : blob.type.includes("mp4") ? "mp4" : "webm";
+      const fileName = `${user.id}/orders/voice/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("portfolio")
+        .upload(fileName, blob, { contentType: blob.type || "audio/webm" });
+      if (error) throw error;
+      const { data } = supabase.storage.from("portfolio").getPublicUrl(fileName);
+      setVoiceNoteUrl(data.publicUrl);
+      return data.publicUrl;
+    } catch (err) {
+      console.error("[voice] upload error:", err);
+      return null;
+    } finally {
+      setVoiceUploading(false);
+    }
+  };
+
+  const toggleVoicePlayback = () => {
+    if (!recorder.audioUrl) return;
+    if (!voiceAudioRef.current) {
+      voiceAudioRef.current = new Audio(recorder.audioUrl);
+      voiceAudioRef.current.onended = () => setVoicePlaying(false);
+    }
+    if (voicePlaying) {
+      voiceAudioRef.current.pause();
+      setVoicePlaying(false);
+    } else {
+      voiceAudioRef.current.play();
+      setVoicePlaying(true);
+    }
+  };
+
   const sendOrder = async () => {
     if (!id) return;
     if (!cartItems.length) return toast.error(t("businessDetail.addItems"));
@@ -175,6 +237,12 @@ const BusinessDetail = () => {
     if (!phoneForOrder) return toast.error(t("businessDetail.enterPhone"));
     setSending(true);
     try {
+      // Upload voice note if recorded
+      let uploadedVoiceUrl = voiceNoteUrl;
+      if (recorder.state === "recorded" && recorder.audioBlob && !voiceNoteUrl) {
+        uploadedVoiceUrl = await uploadVoiceNote();
+      }
+
       const orderId = await createOrder.mutateAsync({
         businessId: id,
         customerId: user?.id ?? null,
@@ -188,6 +256,7 @@ const BusinessDetail = () => {
         bairro: activeConsumption === "entrega" ? bairro.trim() || undefined : undefined,
         customerLat: activeConsumption === "entrega" ? customerLocation?.lat : undefined,
         customerLng: activeConsumption === "entrega" ? customerLocation?.lng : undefined,
+        voiceNoteUrl: activeConsumption === "entrega" ? uploadedVoiceUrl || undefined : undefined,
       });
       toast.success(t("businessDetail.orderSuccess"));
       setCart({});
@@ -199,6 +268,9 @@ const BusinessDetail = () => {
       setOrderNotes("");
       setOrderConfirmOpen(false);
       setCustomerLocation(null);
+      setVoiceNoteUrl(null);
+      recorder.reset();
+      voiceAudioRef.current = null;
     } catch (err) {
       console.error("[order] error:", err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -453,12 +525,83 @@ const BusinessDetail = () => {
                     className="mt-1.5"
                   />
                 </div>
-                <LocationPicker
-                  value={customerLocation}
-                  onChange={setCustomerLocation}
-                  detectLabel={t("businessDetail.detectLocation")}
-                  className="mb-3"
-                />
+                {/* Voice note for delivery directions — product decision: voice replaces map in Bissau context */}
+                <div className="mb-3 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-3">
+                  <Label className="text-xs font-semibold text-primary">
+                    {t("businessDetail.voiceNoteLabel")}
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 mb-2">
+                    {t("businessDetail.voiceNoteHint")}
+                  </p>
+                  {recorder.state === "idle" && !voiceNoteUrl && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={recorder.startRecording}
+                      className="w-full gap-2 min-h-12 text-sm font-semibold border-primary/40"
+                    >
+                      <Mic className="h-5 w-5 text-primary" />
+                      {t("businessDetail.voiceRecord")}
+                    </Button>
+                  )}
+                  {recorder.state === "recording" && (
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={recorder.stopRecording}
+                        className="h-12 w-12 rounded-full shrink-0"
+                      >
+                        <Square className="h-5 w-5" />
+                      </Button>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                          <span className="text-sm font-bold">{formatDuration(recorder.duration)}</span>
+                          <span className="text-xs text-muted-foreground">/ 0:30</span>
+                        </div>
+                        <div className="h-1 bg-muted rounded-full mt-1 overflow-hidden">
+                          <div
+                            className="h-full bg-red-500 rounded-full transition-all"
+                            style={{ width: `${Math.min(100, (recorder.duration / 30) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {(recorder.state === "recorded" || voiceNoteUrl) && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={toggleVoicePlayback}
+                        className="h-10 w-10 rounded-full shrink-0"
+                      >
+                        {voicePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
+                      <div className="flex-1">
+                        <span className="text-sm font-medium">{t("businessDetail.voiceRecorded")}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{formatDuration(recorder.duration)}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          recorder.reset();
+                          setVoiceNoteUrl(null);
+                          voiceAudioRef.current = null;
+                          setVoicePlaying(false);
+                        }}
+                        className="gap-1 text-xs"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" /> {t("businessDetail.voiceRerecord")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
