@@ -82,6 +82,26 @@ const DriverDashboard = () => {
   const createProof = useCreateDeliveryProof();
   const validateCode = useValidateDeliveryCode();
 
+  // Auto-update location — must be before any early returns (Rules of Hooks)
+  useEffect(() => {
+    if (!driver?.is_available) return;
+    const watchId = navigator.geolocation?.watchPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setDriverPosition(coords);
+        const deliveryId = myDeliveries.find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
+        if (deliveryId) {
+          updateTracking.mutate({ ...coords, deliveryId });
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10000 }
+    );
+    return () => {
+      if (watchId !== undefined) navigator.geolocation?.clearWatch(watchId);
+    };
+  }, [driver?.is_available]);
+
   if (!loading && !user) {
     return (
       <div className="min-h-screen bg-background">
@@ -107,26 +127,6 @@ const DriverDashboard = () => {
       </div>
     );
   }
-
-  // Auto-update location
-  useEffect(() => {
-    if (!driver?.is_available) return;
-    const watchId = navigator.geolocation?.watchPosition(
-      (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setDriverPosition(coords);
-        const deliveryId = myDeliveries.find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
-        if (deliveryId) {
-          updateTracking.mutate({ ...coords, deliveryId });
-        }
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 10000 }
-    );
-    return () => {
-      if (watchId !== undefined) navigator.geolocation?.clearWatch(watchId);
-    };
-  }, [driver?.is_available]);
 
   if (loading || driverLoading) {
     return (

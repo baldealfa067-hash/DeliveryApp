@@ -131,6 +131,13 @@ const BusinessDetail = () => {
     );
   }, [consumptionOption]);
 
+  // Auto-stop voice recording at 30 seconds — must be before early returns (Rules of Hooks)
+  useEffect(() => {
+    if (recorder.state === "recording" && recorder.duration >= 30) {
+      recorder.stopRecording();
+    }
+  }, [recorder.state, recorder.duration]);
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen text-muted-foreground">{t("businessDetail.loading")}</div>;
   }
@@ -173,13 +180,6 @@ const BusinessDetail = () => {
       return { ...c, [itemId]: qty };
     });
   };
-
-  // Auto-stop voice recording at 30 seconds
-  useEffect(() => {
-    if (recorder.state === "recording" && recorder.duration >= 30) {
-      recorder.stopRecording();
-    }
-  }, [recorder.state, recorder.duration]);
 
   const uploadVoiceNote = async (): Promise<string | null> => {
     if (!recorder.audioBlob || !user?.id) return null;
