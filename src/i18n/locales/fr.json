@@ -1079,7 +1079,8 @@
     "prepTimeMinutes": "Minutes",
     "deliveryInfo": "Infos de livraison",
     "copyAllDelivery": "Copier toutes les infos",
-    "voiceDirection": "Indication du client"
+    "voiceDirection": "Indication du client",
+    "voiceDirectionFrom": "Indication d'adresse — {{name}}"
   },
   "myAppointments": {
     "title": "Mes Réservations",
@@ -1139,6 +1140,7 @@
     "qrInstruction": "Le client peut valider la livraison avec ce code QR.",
     "qrValidate": "Valider la Livraison",
     "voiceDirection": "Indication du client",
+    "voiceDirectionFrom": "Indication d'adresse — {{name}}",
     "openGoogleMaps": "Ouvrir dans Google Maps"
   },
   "notifications": {

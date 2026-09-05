@@ -1082,7 +1082,8 @@
     "prepTimeMinutes": "Minutos",
     "deliveryInfo": "Dados de Entrega",
     "copyAllDelivery": "Copiar todos os dados",
-    "voiceDirection": "Indicação do cliente"
+    "voiceDirection": "Indicação do cliente",
+    "voiceDirectionFrom": "Indicação de morada — {{name}}"
   },
   "myAppointments": {
     "title": "Os Meus Agendamentos",
@@ -1142,6 +1143,7 @@
     "qrInstruction": "O cliente pode validar a entrega com este QR code.",
     "qrValidate": "Validar Entrega",
     "voiceDirection": "Indicação do cliente",
+    "voiceDirectionFrom": "Indicação de morada — {{name}}",
     "openGoogleMaps": "Abrir no Google Maps"
   },
   "notifications": {

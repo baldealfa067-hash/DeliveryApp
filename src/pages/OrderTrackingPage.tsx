@@ -24,34 +24,36 @@ import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 
-const ORDER_STATUS_FLOW = [
+const DELIVERY_STATUS_FLOW = [
   "novo",
   "confirmado",
   "em_preparacao",
-  "na_cozinha",
   "pronto",
-  "saiu_para_entrega",
   "aguardando_motorista",
   "motorista_encontrado",
   "pedido_recolhido",
   "a_caminho",
   "entregue",
-  "concluido",
+];
+
+const LOCAL_STATUS_FLOW = [
+  "novo",
+  "confirmado",
+  "em_preparacao",
+  "pronto",
+  "entregue",
 ];
 
 const STATUS_ICONS: Record<string, string> = {
   novo: "📋",
   confirmado: "✅",
   em_preparacao: "🍳",
-  na_cozinha: "🔥",
   pronto: "🍔",
-  saiu_para_entrega: "🛵",
   aguardando_motorista: "🛵",
   motorista_encontrado: "🛵",
   pedido_recolhido: "📦",
   a_caminho: "📍",
   entregue: "✅",
-  concluido: "🎉",
   cancelado: "❌",
 };
 
@@ -92,7 +94,8 @@ const OrderTrackingPage = () => {
     );
   }
 
-  const currentStatusIndex = ORDER_STATUS_FLOW.indexOf(order.status);
+  const statusFlow = order.consumption_option === "entrega" ? DELIVERY_STATUS_FLOW : LOCAL_STATUS_FLOW;
+  const currentStatusIndex = statusFlow.indexOf(order.status);
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-20">
@@ -153,7 +156,7 @@ const OrderTrackingPage = () => {
         <CardContent className="p-4">
           <h2 className="text-sm font-semibold mb-3">{t("orderTracking.progress")}</h2>
           <div className="space-y-0">
-            {ORDER_STATUS_FLOW.map((status, idx) => {
+            {statusFlow.map((status, idx) => {
               const isPast = idx < currentStatusIndex;
               const isCurrent = idx === currentStatusIndex;
               const isFuture = idx > currentStatusIndex;
@@ -173,7 +176,7 @@ const OrderTrackingPage = () => {
                     >
                       {isPast ? "✓" : isCurrent ? STATUS_ICONS[status] ?? "●" : "○"}
                     </div>
-                    {idx < ORDER_STATUS_FLOW.length - 1 && (
+                    {idx < statusFlow.length - 1 && (
                       <div className={`w-0.5 h-6 ${isPast ? "bg-primary" : "bg-muted"}`} />
                     )}
                   </div>

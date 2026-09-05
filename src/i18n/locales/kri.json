@@ -533,7 +533,9 @@
     "prepTimeDesc": "Indika tempu estimadu di preparason na minutus.",
     "prepTimeMinutes": "Minutus",
     "deliveryInfo": "Informason di Entrega",
-    "copyAllDelivery": "Kopia tudu informason"
+    "copyAllDelivery": "Kopia tudu informason",
+    "voiceDirection": "Indikason di klienti",
+    "voiceDirectionFrom": "Indikason di morada — {{name}}"
   },
   "beautyDetail": {
     "notFound": "Négoisiu na kuskutra.",
@@ -616,6 +618,7 @@
     "qrInstruction": "Klienti pu valida entrega kum kodigu QR.",
     "qrValidate": "Valida Entrega",
     "voiceDirection": "Indikason di klienti",
+    "voiceDirectionFrom": "Indikason di morada — {{name}}",
     "openGoogleMaps": "Abri na Google Maps"
   },
   "businessEdit": {

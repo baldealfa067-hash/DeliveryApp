@@ -1079,7 +1079,8 @@
     "prepTimeMinutes": "Minutes",
     "deliveryInfo": "Delivery Info",
     "copyAllDelivery": "Copy all delivery info",
-    "voiceDirection": "Customer directions"
+    "voiceDirection": "Customer directions",
+    "voiceDirectionFrom": "Address directions — {{name}}"
   },
   "myAppointments": {
     "title": "My Appointments",
@@ -1139,6 +1140,7 @@
     "qrInstruction": "The customer can validate delivery with this QR code.",
     "qrValidate": "Validate Delivery",
     "voiceDirection": "Customer directions",
+    "voiceDirectionFrom": "Address directions — {{name}}",
     "openGoogleMaps": "Open in Google Maps"
   },
   "notifications": {

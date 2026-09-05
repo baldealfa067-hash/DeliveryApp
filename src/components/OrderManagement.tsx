@@ -48,7 +48,6 @@ const STATUS_TABS = [
   { value: "em_preparacao", label: "orderStatus.em_preparacao", icon: ChefHat, color: "text-yellow-600" },
   { value: "pronto", label: "orderStatus.pronto", icon: UtensilsCrossed, color: "text-green-600" },
   { value: "em_entrega", label: "orderStatus.em_entrega", icon: Truck, color: "text-orange-500" },
-  { value: "saiu_para_entrega", label: "orderStatus.saiu_para_entrega", icon: Truck, color: "text-blue-600" },
   { value: "entregue", label: "orderStatus.entregue", icon: CheckCircle2, color: "text-green-600" },
   { value: "cancelado", label: "orderStatus.cancelado", icon: XCircle, color: "text-red-600" },
 ];
@@ -57,8 +56,7 @@ const NEXT_STATUS: Record<string, string[]> = {
   novo: ["confirmado", "cancelado"],
   confirmado: ["em_preparacao", "cancelado"],
   em_preparacao: ["pronto"],
-  pronto: ["saiu_para_entrega", "entregue"],
-  saiu_para_entrega: ["entregue"],
+  pronto: ["entregue"],
   aguardando_motorista: [],
   motorista_encontrado: ["pedido_recolhido"],
   pedido_recolhido: ["a_caminho"],
@@ -288,7 +286,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                     {selectedOrder.voice_note_url && (
                       <div className="flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
                         <Volume2 className="h-4 w-4 text-amber-600 shrink-0" />
-                        <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("orderManagement.voiceDirection")}</span>
+                        <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("orderManagement.voiceDirectionFrom", { name: selectedOrder.customer_name ?? t("orderManagement.voiceDirection") })}</span>
                         <audio src={selectedOrder.voice_note_url} controls className="h-8 flex-1 min-w-0" />
                       </div>
                     )}
@@ -366,7 +364,6 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                     disabled={updateStatus.isPending}
                     className="gap-1"
                   >
-                    {newStatus === "saiu_para_entrega" && <Truck className="h-3.5 w-3.5" />}
                     {t(`orderStatus.${newStatus}`, newStatus)}
                   </Button>
                 ))}
@@ -477,7 +474,6 @@ const OrderCard = ({
               onClick={() => onStatusChange(primaryAction)}
               className="flex-1 min-h-12 text-sm gap-1.5"
             >
-              {primaryAction === "saiu_para_entrega" && <Truck className="h-4 w-4" />}
               {t(`orderStatus.${primaryAction}`, primaryAction)}
             </Button>
           )}

@@ -382,7 +382,7 @@ const DriverDashboard = () => {
               {activeDelivery.voice_note_url && (
                 <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
                   <Volume2 className="h-4 w-4 text-amber-600 shrink-0" />
-                  <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirection")}</span>
+                  <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirectionFrom", { name: activeDelivery.customer_name ?? t("driverDashboard.voiceDirection") })}</span>
                   <audio src={activeDelivery.voice_note_url} controls className="h-8 flex-1 min-w-0" />
                 </div>
               )}
@@ -498,6 +498,7 @@ const DriverDashboard = () => {
                           {d.voice_note_url && (
                             <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 py-1.5">
                               <Volume2 className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                              <span className="text-[10px] font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirectionFrom", { name: d.customer_name ?? t("driverDashboard.voiceDirection") })}</span>
                               <audio src={d.voice_note_url} controls className="h-7 flex-1 min-w-0" />
                             </div>
                           )}
