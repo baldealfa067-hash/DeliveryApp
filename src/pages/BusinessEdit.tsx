@@ -54,6 +54,8 @@ type Form = {
   name: string;
   category: string;
   phone: string;
+  merchant_code: string;
+  payment_number: string;
   location: string;
   description: string;
   photo_url: string;
@@ -64,6 +66,8 @@ const empty: Form = {
   name: "",
   category: "",
   phone: "",
+  merchant_code: "",
+  payment_number: "",
   location: "",
   description: "",
   photo_url: "",
@@ -130,6 +134,8 @@ const BusinessDashboard = () => {
           name: data.name ?? "",
           category: data.category ?? "",
           phone: data.phone ?? "",
+          merchant_code: data.merchant_code ?? "",
+          payment_number: data.payment_number ?? "",
           location: data.location ?? "",
           description: data.description ?? "",
           photo_url: data.photo_url ?? "",
@@ -223,6 +229,8 @@ const BusinessDashboard = () => {
       name: form.name.trim(),
       category: form.category.trim(),
       phone: form.phone.trim(),
+      merchant_code: form.merchant_code.trim() || null,
+      payment_number: form.payment_number.trim() || null,
       location: form.location.trim(),
       description: form.description.trim() || null,
       photo_url: form.photo_url.trim() || null,
@@ -378,10 +386,20 @@ const BusinessDashboard = () => {
                   </SelectContent>
                 </Select>
               </Field>
+              <Field label={t("businessEdit.phoneRequired")}>
+                <Input placeholder={t("businessEdit.phonePlaceholder")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label={t("businessEdit.phoneRequired")}>
-                  <Input placeholder={t("businessEdit.phonePlaceholder")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                <Field label={t("businessEdit.merchantCode")}>
+                  <Input placeholder="#144#32*123456#" value={form.merchant_code} onChange={(e) => setForm({ ...form, merchant_code: e.target.value })} />
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{t("businessEdit.merchantCodeHint")}</p>
                 </Field>
+                <Field label={t("businessEdit.paymentNumber")}>
+                  <Input placeholder="955 123 456" value={form.payment_number} onChange={(e) => setForm({ ...form, payment_number: e.target.value })} />
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{t("businessEdit.paymentNumberHint")}</p>
+                </Field>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t("businessEdit.locationRequired")}>
                   <Select value={form.location} onValueChange={(v) => setForm({ ...form, location: v })}>
                     <SelectTrigger><SelectValue placeholder={t("businessEdit.select")} /></SelectTrigger>

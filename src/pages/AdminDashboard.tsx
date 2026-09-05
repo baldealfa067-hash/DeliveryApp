@@ -25,6 +25,7 @@ import {
   Scissors,
   Send,
   Bell,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,9 +40,13 @@ import ManageList from "@/components/ManageList";
 import ManageCategoryList from "@/components/ManageCategoryList";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import logo from "@/assets/logo.png";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useAllCommissions, useAllCommissionPayments, useValidateCommissionPayment, usePlatformSettings, useUpdatePlatformSetting } from "@/hooks/useCommission";
 
 type Provider = {
   id: string;
@@ -80,6 +85,7 @@ type MenuKey =
   | "bairros"
   | "stats"
   | "send_notification"
+  | "commissions"
   | "settings";
 
 type ProviderFilter = "todos" | "avaliacao" | "ativos" | "rejeitados";
@@ -179,6 +185,16 @@ const AdminDashboard = () => {
   const [notifGroups, setNotifGroups] = useState<string[]>([]);
   const [notifSending, setNotifSending] = useState(false);
   const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
+  const { data: allCommissions = [] } = useAllCommissions();
+  const { data: allCommissionPayments = [] } = useAllCommissionPayments();
+  const validateCommission = useValidateCommissionPayment();
+  const { data: platformSettings } = usePlatformSettings();
+  const updatePlatformSetting = useUpdatePlatformSetting();
+  const [commProofPreview, setCommProofPreview] = useState<string | null>(null);
+  const [editCommRate, setEditCommRate] = useState("");
+  const [editPlatformCode, setEditPlatformCode] = useState("");
+  const [editPlatformNumber, setEditPlatformNumber] = useState("");
+  const [commSettingsLoaded, setCommSettingsLoaded] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -265,6 +281,30 @@ const AdminDashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [user, isAdmin, loading]);
+
+  useEffect(() => {
+    if (platformSettings && !commSettingsLoaded) {
+      setEditCommRate(platformSettings.commission_rate ?? "5");
+      setEditPlatformCode(platformSettings.platform_merchant_code ?? "");
+      setEditPlatformNumber(platformSettings.platform_payment_number ?? "");
+      setCommSettingsLoaded(true);
+    }
+  }, [platformSettings, commSettingsLoaded]);
+
+  const savePlatformSettings = async () => {
+    try {
+      await Promise.all([
+        updatePlatformSetting.mutateAsync({ key: "commission_rate", value: editCommRate }),
+        updatePlatformSetting.mutateAsync({ key: "platform_merchant_code", value: editPlatformCode }),
+        updatePlatformSetting.mutateAsync({ key: "platform_payment_number", value: editPlatformNumber }),
+      ]);
+      toast.success(t("commission.settingsSaved"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const pendingCommPayments = allCommissionPayments.filter((p) => p.status === "pendente");
 
   const remove = async (table: "profiles" | "service_requests" | "reviews", id: string) => {
     const { error } = table === "profiles"
@@ -609,6 +649,7 @@ const AdminDashboard = () => {
     { key: "bairros", label: t("admin.neighborhoods"), icon: <MapPin className="h-4 w-4" />, count: bairros.length },
     { key: "stats", label: t("admin.statistics"), icon: <BarChart3 className="h-4 w-4" /> },
     { key: "send_notification", label: t("admin.sendNotification"), icon: <Bell className="h-4 w-4" /> },
+    { key: "commissions", label: t("admin.commissions"), icon: <Coins className="h-4 w-4" />, count: pendingCommPayments.length },
     { key: "settings", label: t("admin.settings"), icon: <Settings className="h-4 w-4" /> },
   ];
 
@@ -1142,6 +1183,130 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {menu === "commissions" && (
+            <div className="flex flex-col gap-4">
+              <h1 className="text-2xl font-bold">{t("admin.commissions")}</h1>
+
+              {/* Platform commission settings */}
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("commission.settings")}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("commission.rate")} (%)</Label>
+                      <Input type="number" min="0" max="100" step="0.5" value={editCommRate} onChange={(e) => setEditCommRate(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("commission.platformCode")}</Label>
+                      <Input placeholder="#144#32*..." value={editPlatformCode} onChange={(e) => setEditPlatformCode(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("commission.platformNumber")}</Label>
+                      <Input placeholder="955 123 456" value={editPlatformNumber} onChange={(e) => setEditPlatformNumber(e.target.value)} />
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={savePlatformSettings} disabled={updatePlatformSetting.isPending}>
+                    {t("common.save")}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Businesses with commissions */}
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("commission.businessList")}</p>
+                  {allCommissions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("commission.noData")}</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b text-xs text-muted-foreground">
+                            <th className="text-left py-2 px-1">{t("commission.restaurant")}</th>
+                            <th className="text-right py-2 px-1">{t("commission.totalSales")}</th>
+                            <th className="text-right py-2 px-1">{t("commission.due")}</th>
+                            <th className="text-right py-2 px-1">{t("commission.paid")}</th>
+                            <th className="text-right py-2 px-1">{t("commission.balance")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allCommissions.map((c) => (
+                            <tr key={c.business_id} className="border-b">
+                              <td className="py-2 px-1 font-medium">{c.business_name}</td>
+                              <td className="py-2 px-1 text-right">{formatCFA(c.total_sales)}</td>
+                              <td className="py-2 px-1 text-right">{formatCFA(c.commission_due)}</td>
+                              <td className="py-2 px-1 text-right text-green-600">{formatCFA(c.commission_paid)}</td>
+                              <td className={"py-2 px-1 text-right font-bold " + (c.commission_balance > 0 ? "text-orange-600" : "text-green-600")}>
+                                {formatCFA(c.commission_balance)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Pending commission payments */}
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    {t("commission.pendingPayments")} ({pendingCommPayments.length})
+                  </p>
+                  {pendingCommPayments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("commission.noPending")}</p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {pendingCommPayments.map((cp) => (
+                        <div key={cp.id} className="rounded-lg border p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">{(cp as unknown as Record<string, unknown>).business_name as string}</span>
+                            <span className="text-sm font-bold">{formatCFA(cp.amount)}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{new Date(cp.created_at).toLocaleString()}</span>
+                          {cp.proof_url && (
+                            <button type="button" onClick={() => setCommProofPreview(cp.proof_url)} className="block w-full">
+                              <img src={cp.proof_url} alt="Comprovativo" className="w-full max-h-40 object-contain rounded-md border cursor-pointer hover:opacity-90" />
+                            </button>
+                          )}
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="flex-1 gap-1 bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => validateCommission.mutate({ id: cp.id, status: "validado" })}
+                              disabled={validateCommission.isPending}
+                            >
+                              <Check className="h-3.5 w-3.5" /> {t("commission.validate")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="flex-1 gap-1"
+                              onClick={() => validateCommission.mutate({ id: cp.id, status: "rejeitado" })}
+                              disabled={validateCommission.isPending}
+                            >
+                              <X className="h-3.5 w-3.5" /> {t("commission.reject")}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Commission proof preview */}
+          <Dialog open={!!commProofPreview} onOpenChange={(o) => { if (!o) setCommProofPreview(null); }}>
+            <DialogContent className="p-0 border-0 bg-transparent max-w-[90vw] w-auto shadow-none">
+              {commProofPreview && (
+                <img src={commProofPreview} alt="Comprovativo" className="max-h-[80vh] max-w-full rounded-lg object-contain mx-auto" />
+              )}
+            </DialogContent>
+          </Dialog>
 
           {menu === "settings" && (
             <div className="flex flex-col gap-4 max-w-lg">

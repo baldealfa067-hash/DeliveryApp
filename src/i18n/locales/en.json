@@ -441,7 +441,11 @@
     "delete": "Delete",
     "removeItem": "Remove item",
     "removeItemConfirm": "Remove \"{{name}}\" from menu?",
-    "remove": "Remove"
+    "remove": "Remove",
+    "merchantCode": "Orange Money Code",
+    "merchantCodeHint": "Merchant USSD code (e.g. #144#32*123456#)",
+    "paymentNumber": "Phone number for payment",
+    "paymentNumberHint": "Alternative if you don't have a merchant code"
   },
   "businessDetail": {
     "loading": "Loading...",
@@ -529,7 +533,22 @@
     "reviewSent": "Review sent successfully and will be shown after validation.",
     "reviewError": "Error sending review",
     "selectStars": "Please select a star rating",
-    "anonymousReviewNote": "No account? Your review is anonymous and will be published after approval."
+    "anonymousReviewNote": "No account? Your review is anonymous and will be published after approval.",
+    "paymentMethod": "Payment method",
+    "payOnDelivery": "Pay on delivery",
+    "payNow": "Pay now (Orange Money)",
+    "transferTo": "Pay via Orange Money",
+    "tapToPayUssd": "Tap to pay via Orange Money",
+    "codeCopied": "Code copied",
+    "copyCode": "Copy code",
+    "copyNumber": "Copy number",
+    "numberCopied": "Number copied",
+    "paymentInstructions": "1. Tap the code to pay. 2. Confirm on your phone. 3. Take a screenshot of the confirmation and upload here.",
+    "proofAttached": "Proof attached",
+    "changeProof": "Change",
+    "attachProof": "Attach proof",
+    "paymentProofError": "Error uploading proof",
+    "amountToTransfer": "Amount to transfer"
   },
   "providerDetail": {
     "loading": "Loading...",
@@ -719,7 +738,37 @@
     "notifSent": "Notification sent to {{count}} users!",
     "notifHistory": "Notification History",
     "notifNoHistory": "No notifications sent yet.",
-    "notifRecipients": "recipients"
+    "notifRecipients": "recipients",
+    "commissions": "Commissions"
+  },
+  "commission": {
+    "title": "Platform Commission",
+    "due": "Due",
+    "paid": "Paid",
+    "balance": "Balance",
+    "rateInfo": "{{rate}}% rate on {{sales}} in sales",
+    "payCommission": "Pay commission",
+    "amount": "Amount to pay",
+    "enterAmount": "Enter the amount",
+    "paymentSent": "Commission payment sent! Will be validated soon.",
+    "submit": "Send payment",
+    "history": "Recent payments",
+    "status_pendente": "Pending",
+    "status_validado": "Validated",
+    "status_rejeitado": "Rejected",
+    "settings": "Commission Settings",
+    "rate": "Commission rate",
+    "platformCode": "Platform Orange Money code",
+    "platformNumber": "Platform phone number",
+    "settingsSaved": "Settings saved",
+    "businessList": "Restaurants — Commissions",
+    "restaurant": "Restaurant",
+    "totalSales": "Sales",
+    "noData": "No commission data.",
+    "pendingPayments": "Pending proofs",
+    "noPending": "No pending proofs.",
+    "validate": "Validate",
+    "reject": "Reject"
   },
   "requests": {
     "selectCategory": "Please select a category",
@@ -1088,7 +1137,14 @@
     "deliveryInfo": "Delivery Info",
     "copyAllDelivery": "Copy all delivery info",
     "voiceDirection": "Customer directions",
-    "voiceDirectionFrom": "Address directions — {{name}}"
+    "voiceDirectionFrom": "Address directions — {{name}}",
+    "onlinePayment": "Online Payment",
+    "paymentProof": "Payment proof",
+    "confirmPayment": "Payment confirmed",
+    "rejectPayment": "Invalid proof",
+    "paymentStatus_pendente": "Payment pending",
+    "paymentStatus_validado": "Payment confirmed",
+    "paymentStatus_rejeitado": "Payment rejected"
   },
   "myAppointments": {
     "title": "My Appointments",

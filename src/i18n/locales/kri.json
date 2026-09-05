@@ -482,7 +482,37 @@
     "notifSent": "Notifikason enviadu pa {{count}} utilizaduris!",
     "notifHistory": "Historiku di Notifikasons",
     "notifNoHistory": "Nenhum notifikason enviadu ainda.",
-    "notifRecipients": "diztinatarius"
+    "notifRecipients": "diztinatarius",
+    "commissions": "Komisons"
+  },
+  "commission": {
+    "title": "Komison di Plataforma",
+    "due": "Pa paga",
+    "paid": "Pagadu",
+    "balance": "Saldo",
+    "rateInfo": "Taxa di {{rate}}% sobri {{sales}} di vendas",
+    "payCommission": "Paga komison",
+    "amount": "Valor pa paga",
+    "enterAmount": "Indika valor",
+    "paymentSent": "Pagamentu di komison mandadu! Ta ser validadu.",
+    "submit": "Manda pagamentu",
+    "history": "Pagamentus resenti",
+    "status_pendente": "Pendenti",
+    "status_validado": "Validadu",
+    "status_rejeitado": "Rejeitadu",
+    "settings": "Konfigurason di Komison",
+    "rate": "Taxa di komison",
+    "platformCode": "Código Orange Money di plataforma",
+    "platformNumber": "Número di plataforma",
+    "settingsSaved": "Konfigurason guardadu",
+    "businessList": "Restaurantis — Komisons",
+    "restaurant": "Restauranti",
+    "totalSales": "Vendas",
+    "noData": "Sin dadus di komison.",
+    "pendingPayments": "Komprovativus pendenti",
+    "noPending": "Sin komprovativus pendenti.",
+    "validate": "Valida",
+    "reject": "Rejeita"
   },
   "landingExtra": {},
   "notFoundPage": {
@@ -535,7 +565,14 @@
     "deliveryInfo": "Informason di Entrega",
     "copyAllDelivery": "Kopia tudu informason",
     "voiceDirection": "Indikason di klienti",
-    "voiceDirectionFrom": "Indikason di morada — {{name}}"
+    "voiceDirectionFrom": "Indikason di morada — {{name}}",
+    "onlinePayment": "Pagamentu Online",
+    "paymentProof": "Komprovativu di pagamentu",
+    "confirmPayment": "Pagamentu konfirmadu",
+    "rejectPayment": "Komprovativu invalidu",
+    "paymentStatus_pendente": "Pagamentu pendenti",
+    "paymentStatus_validado": "Pagamentu konfirmadu",
+    "paymentStatus_rejeitado": "Pagamentu rejeitadu"
   },
   "beautyDetail": {
     "notFound": "Négoisiu na kuskutra.",
@@ -634,7 +671,11 @@
     "detectLocation": "Deteta",
     "locationDetected": "Lokalizason detetadu!",
     "locationError": "Ka konsigi deteta lokalizason.",
-    "locationConfirmed": "Lokalizason konfirmadu"
+    "locationConfirmed": "Lokalizason konfirmadu",
+    "merchantCode": "Código Orange Money",
+    "merchantCodeHint": "Código USSD di kumersanti (ex: #144#32*123456#)",
+    "paymentNumber": "Número pa pagamentu",
+    "paymentNumberHint": "Alternativa si ka ten código di kumersanti"
   },
   "businessDetail": {
     "detectLocation": "Deteta lokalizason",
@@ -643,7 +684,22 @@
     "voiceNoteHint": "Grava mensajen di voz pa splika undi ki bu kasa sta. Ex: \"N sta na Bairro Militar, kasa amarelu aladu di farmasia, pidi pa Alfa.\"",
     "voiceRecord": "Grava indikason di voz",
     "voiceRecorded": "Gravasion prontu",
-    "voiceRerecord": "Grava di nobu"
+    "voiceRerecord": "Grava di nobu",
+    "paymentMethod": "Manera di paga",
+    "payOnDelivery": "Paga na entrega",
+    "payNow": "Paga agora (Orange Money)",
+    "transferTo": "Paga ku Orange Money",
+    "tapToPayUssd": "Toka pa paga ku Orange Money",
+    "codeCopied": "Código kopiadu",
+    "copyCode": "Kopia código",
+    "copyNumber": "Kopia número",
+    "numberCopied": "Número kopiadu",
+    "paymentInstructions": "1. Toka na código pa paga. 2. Konfirma na bu tilifon. 3. Tira kaptura di konfirmason i manda li.",
+    "proofAttached": "Komprovativu anexadu",
+    "changeProof": "Troka",
+    "attachProof": "Anexa komprovativu",
+    "paymentProofError": "Eror na mandason di komprovativu",
+    "amountToTransfer": "Valor pa transferi"
   },
   "notifications": {
     "title": "Notifikasons",

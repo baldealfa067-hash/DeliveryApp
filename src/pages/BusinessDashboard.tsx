@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   LogOut,
@@ -30,9 +30,15 @@ import { useBusinessCategories } from "@/hooks/useProviders";
 import { translateCategoryName } from "@/lib/categoryI18n";
 import OrderManagement from "@/components/OrderManagement";
 import { useBusinessSalesStats, useBusinessDailySales } from "@/hooks/useBusinessSales";
+import { useBusinessCommission, useCommissionPayments, useCreateCommissionPayment, usePlatformSettings } from "@/hooks/useCommission";
 import { formatCFA } from "@/lib/format";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Upload, Copy, Check, Loader2, Phone } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useRef, useState } from "react";
 
 type DashboardProfile = {
   id: string;
@@ -55,6 +61,47 @@ const BusinessDashboard = () => {
   const { data: bizCats = [] } = useBusinessCategories();
   const { data: salesStats } = useBusinessSalesStats(profile?.id ?? null);
   const { data: dailySales = [] } = useBusinessDailySales(profile?.id ?? null);
+  const { data: commission } = useBusinessCommission(profile?.id ?? null);
+  const { data: commissionPayments = [] } = useCommissionPayments(profile?.id ?? null);
+  const createCommissionPayment = useCreateCommissionPayment();
+  const { data: platformSettings } = usePlatformSettings();
+  const [commProofUrl, setCommProofUrl] = useState<string | null>(null);
+  const [commProofUploading, setCommProofUploading] = useState(false);
+  const [commAmount, setCommAmount] = useState("");
+  const commProofRef = useRef<HTMLInputElement>(null);
+  const [commCopied, setCommCopied] = useState(false);
+
+  const platformMerchantCode = platformSettings?.platform_merchant_code ?? "";
+  const platformPaymentNumber = platformSettings?.platform_payment_number ?? "";
+
+  const handleCommProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error(t("common.imageTooLarge"));
+    setCommProofUploading(true);
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/commission/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("portfolio").upload(path, file, { contentType: file.type });
+    if (error) { setCommProofUploading(false); return toast.error(error.message); }
+    const { data } = supabase.storage.from("portfolio").getPublicUrl(path);
+    setCommProofUrl(data.publicUrl);
+    setCommProofUploading(false);
+  };
+
+  const submitCommissionPayment = async () => {
+    if (!profile?.id || !commProofUrl) return;
+    const amount = parseFloat(commAmount);
+    if (isNaN(amount) || amount <= 0) return toast.error(t("commission.enterAmount"));
+    try {
+      await createCommissionPayment.mutateAsync({ businessId: profile.id, amount, proofUrl: commProofUrl });
+      toast.success(t("commission.paymentSent"));
+      setCommAmount("");
+      setCommProofUrl(null);
+      if (commProofRef.current) commProofRef.current.value = "";
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    }
+  };
 
   const loadCounts = async (pid: string) => {
     const [{ count: orders }, { count: reviews }] = await Promise.all([
@@ -257,6 +304,149 @@ const BusinessDashboard = () => {
                     </Card>
                   )}
                 </>
+              )}
+
+              {/* Commission section */}
+              {commission && (
+                <Card className="border-orange-200 dark:border-orange-800">
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                      {t("commission.title")}
+                    </p>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.due")}</span>
+                        <span className="text-lg font-bold">{formatCFA(commission.commission_due)}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.paid")}</span>
+                        <span className="text-lg font-bold text-green-600">{formatCFA(commission.commission_paid)}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.balance")}</span>
+                        <span className={"text-lg font-bold " + (commission.commission_balance > 0 ? "text-orange-600" : "text-green-600")}>
+                          {formatCFA(commission.commission_balance)}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      {t("commission.rateInfo", { rate: commission.commission_rate, sales: formatCFA(commission.total_sales) })}
+                    </p>
+
+                    {/* Pay commission */}
+                    {commission.commission_balance > 0 && (platformMerchantCode || platformPaymentNumber) && (
+                      <div className="rounded-lg border p-3 space-y-2">
+                        <p className="text-xs font-semibold">{t("commission.payCommission")}</p>
+
+                        {platformMerchantCode && (
+                          <div className="space-y-1">
+                            <a
+                              href={`tel:${platformMerchantCode.replace(/#/g, "%23")}`}
+                              className="flex items-center justify-center gap-2 w-full rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-4 transition-colors"
+                            >
+                              <Phone className="h-4 w-4" />
+                              {platformMerchantCode}
+                            </a>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-muted-foreground">{t("businessDetail.tapToPayUssd")}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1 text-xs h-5"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(platformMerchantCode);
+                                  setCommCopied(true);
+                                  setTimeout(() => setCommCopied(false), 2000);
+                                }}
+                              >
+                                {commCopied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+                                {t("businessDetail.copyCode")}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {!platformMerchantCode && platformPaymentNumber && (
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold">{platformPaymentNumber}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1 text-xs"
+                              onClick={() => {
+                                navigator.clipboard.writeText(platformPaymentNumber);
+                                toast.success(t("businessDetail.numberCopied"));
+                              }}
+                            >
+                              <Copy className="h-3 w-3" /> {t("businessDetail.copyNumber")}
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">{t("commission.amount")}</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder={String(commission.commission_balance)}
+                            value={commAmount}
+                            onChange={(e) => setCommAmount(e.target.value)}
+                          />
+                        </div>
+
+                        <input ref={commProofRef} type="file" accept="image/*" className="hidden" onChange={handleCommProofUpload} />
+                        {commProofUrl ? (
+                          <div className="flex items-center gap-2">
+                            <Check className="h-4 w-4 text-green-600" />
+                            <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
+                            <Button variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setCommProofUrl(null); if (commProofRef.current) commProofRef.current.value = ""; }}>
+                              {t("businessDetail.changeProof")}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button variant="outline" className="w-full gap-2" onClick={() => commProofRef.current?.click()} disabled={commProofUploading}>
+                            {commProofUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            {t("businessDetail.attachProof")}
+                          </Button>
+                        )}
+
+                        <Button
+                          className="w-full"
+                          disabled={!commProofUrl || !commAmount || createCommissionPayment.isPending}
+                          onClick={submitCommissionPayment}
+                        >
+                          {createCommissionPayment.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                          {t("commission.submit")}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Recent commission payments */}
+                    {commissionPayments.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-semibold text-muted-foreground">{t("commission.history")}</p>
+                        {commissionPayments.slice(0, 5).map((cp) => (
+                          <div key={cp.id} className="flex items-center justify-between text-xs border rounded-md p-2">
+                            <span>{new Date(cp.created_at).toLocaleDateString()}</span>
+                            <span className="font-medium">{formatCFA(cp.amount)}</span>
+                            <Badge
+                              variant="secondary"
+                              className={
+                                cp.status === "validado" ? "bg-green-100 text-green-700" :
+                                cp.status === "rejeitado" ? "bg-red-100 text-red-700" :
+                                "bg-yellow-100 text-yellow-700"
+                              }
+                            >
+                              {t(`commission.status_${cp.status}`, cp.status)}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
 

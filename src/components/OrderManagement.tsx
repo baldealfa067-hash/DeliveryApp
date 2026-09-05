@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useBusinessOrders, useUpdateOrderStatus, type Order } from "@/hooks/useOrders";
+import { useBusinessOrders, useUpdateOrderStatus, useValidateOrderPayment, type Order } from "@/hooks/useOrders";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 
@@ -120,8 +120,10 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
   const { t } = useTranslation();
   const { data: allOrders = [], isLoading, refetch } = useBusinessOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
+  const validatePayment = useValidateOrderPayment();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [prepTimeDialogOpen, setPrepTimeDialogOpen] = useState(false);
   const [prepTimeInput, setPrepTimeInput] = useState("");
   const [pendingStatus, setPendingStatus] = useState("");
@@ -349,6 +351,65 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                     <p className="text-sm">{selectedOrder.preparation_time} min</p>
                   </div>
                 )}
+
+                {/* Payment info for online payments */}
+                {selectedOrder.payment_method === "online" && (
+                  <div className="rounded-lg border-2 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                        {t("orderManagement.onlinePayment")}
+                      </p>
+                      <Badge
+                        variant="secondary"
+                        className={
+                          selectedOrder.payment_status === "validado"
+                            ? "bg-green-100 text-green-700"
+                            : selectedOrder.payment_status === "rejeitado"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }
+                      >
+                        {t(`orderManagement.paymentStatus_${selectedOrder.payment_status}`, selectedOrder.payment_status)}
+                      </Badge>
+                    </div>
+                    {selectedOrder.payment_proof_url && (
+                      <button
+                        type="button"
+                        onClick={() => setProofPreviewUrl(selectedOrder.payment_proof_url)}
+                        className="block w-full"
+                      >
+                        <img
+                          src={selectedOrder.payment_proof_url}
+                          alt={t("orderManagement.paymentProof")}
+                          className="w-full max-h-48 object-contain rounded-md border cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                      </button>
+                    )}
+                    {selectedOrder.payment_status === "pendente" && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="flex-1 gap-1 bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => validatePayment.mutate({ orderId: selectedOrder.id, status: "validado" })}
+                          disabled={validatePayment.isPending}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          {t("orderManagement.confirmPayment")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1 gap-1"
+                          onClick={() => validatePayment.mutate({ orderId: selectedOrder.id, status: "rejeitado" })}
+                          disabled={validatePayment.isPending}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          {t("orderManagement.rejectPayment")}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <DialogFooter className="flex-row gap-2 flex-wrap">
@@ -369,6 +430,15 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                 ))}
               </DialogFooter>
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment proof preview */}
+      <Dialog open={!!proofPreviewUrl} onOpenChange={(o) => { if (!o) setProofPreviewUrl(null); }}>
+        <DialogContent className="p-0 border-0 bg-transparent max-w-[90vw] w-auto shadow-none">
+          {proofPreviewUrl && (
+            <img src={proofPreviewUrl} alt={t("orderManagement.paymentProof")} className="max-h-[80vh] max-w-full rounded-lg object-contain mx-auto" />
           )}
         </DialogContent>
       </Dialog>
@@ -436,6 +506,23 @@ const OrderCard = ({
           </div>
           <span className="text-base font-bold text-primary">{formatCFA(order.total)}</span>
         </div>
+
+        {/* Payment status indicator */}
+        {order.payment_method === "online" && (
+          <Badge
+            variant="secondary"
+            className={
+              "text-[10px] mb-1 " +
+              (order.payment_status === "validado"
+                ? "bg-green-100 text-green-700"
+                : order.payment_status === "rejeitado"
+                ? "bg-red-100 text-red-700"
+                : "bg-yellow-100 text-yellow-700")
+            }
+          >
+            {t(`orderManagement.paymentStatus_${order.payment_status}`, order.payment_status)}
+          </Badge>
+        )}
 
         {/* Items */}
         <p className="text-sm text-muted-foreground truncate mb-1.5">

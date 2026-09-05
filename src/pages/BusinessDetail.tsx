@@ -29,7 +29,7 @@ import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
 import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
 import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
-import { Mic, Square, Play, Pause, RotateCcw } from "lucide-react";
+import { Mic, Square, Play, Pause, RotateCcw, Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -83,6 +83,10 @@ const BusinessDetail = () => {
   const [customerLocation, setCustomerLocation] = useState<GeoPosition | null>(null);
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
   const [voiceUploading, setVoiceUploading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"entrega" | "online">("entrega");
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  const [paymentProofUploading, setPaymentProofUploading] = useState(false);
+  const paymentProofRef = useRef<HTMLInputElement>(null);
   const [voicePlaying, setVoicePlaying] = useState(false);
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const recorder = useVoiceRecorder();
@@ -219,6 +223,37 @@ const BusinessDetail = () => {
     }
   };
 
+  const uploadPaymentProof = async (file: File): Promise<string | null> => {
+    if (!user?.id) return null;
+    setPaymentProofUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const fileName = `${user.id}/orders/payment/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("portfolio").upload(fileName, file, { contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("portfolio").getPublicUrl(fileName);
+      setPaymentProofUrl(data.publicUrl);
+      return data.publicUrl;
+    } catch (err) {
+      console.error("[payment] upload error:", err);
+      toast.error(t("businessDetail.paymentProofError"));
+      return null;
+    } finally {
+      setPaymentProofUploading(false);
+    }
+  };
+
+  const handlePaymentProofChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error(t("common.imageTooLarge"));
+    await uploadPaymentProof(file);
+  };
+
+  const businessMerchantCode = business ? String((business as Record<string, unknown>).merchant_code ?? "") : "";
+  const businessPaymentNumber = business ? String((business as Record<string, unknown>).payment_number ?? "") : "";
+  const hasOnlinePayment = !!(businessMerchantCode || businessPaymentNumber);
+
   const sendOrder = async () => {
     if (!id) return;
     if (!cartItems.length) return toast.error(t("businessDetail.addItems"));
@@ -257,6 +292,8 @@ const BusinessDetail = () => {
         customerLat: activeConsumption === "entrega" ? customerLocation?.lat : undefined,
         customerLng: activeConsumption === "entrega" ? customerLocation?.lng : undefined,
         voiceNoteUrl: activeConsumption === "entrega" ? uploadedVoiceUrl || undefined : undefined,
+        paymentMethod: activeConsumption === "entrega" ? paymentMethod : "entrega",
+        paymentProofUrl: paymentMethod === "online" ? paymentProofUrl || undefined : undefined,
       });
       toast.success(t("businessDetail.orderSuccess"));
       setCart({});
@@ -269,6 +306,8 @@ const BusinessDetail = () => {
       setOrderConfirmOpen(false);
       setCustomerLocation(null);
       setVoiceNoteUrl(null);
+      setPaymentMethod("entrega");
+      setPaymentProofUrl(null);
       recorder.reset();
       voiceAudioRef.current = null;
     } catch (err) {
@@ -602,6 +641,125 @@ const BusinessDetail = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Payment method selection */}
+                <div className="mb-3">
+                  <Label className="text-xs">{t("businessDetail.paymentMethod")}</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    <Badge
+                      variant={paymentMethod === "entrega" ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1.5 text-xs gap-1"
+                      onClick={() => setPaymentMethod("entrega")}
+                    >
+                      <Banknote className="h-3.5 w-3.5" />
+                      {t("businessDetail.payOnDelivery")}
+                    </Badge>
+                    {hasOnlinePayment && (
+                      <Badge
+                        variant={paymentMethod === "online" ? "default" : "outline"}
+                        className="cursor-pointer px-3 py-1.5 text-xs gap-1"
+                        onClick={() => setPaymentMethod("online")}
+                      >
+                        <CreditCard className="h-3.5 w-3.5" />
+                        {t("businessDetail.payNow")}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {paymentMethod === "online" && hasOnlinePayment && (
+                  <div className="mb-3 rounded-lg border-2 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950 p-3 space-y-2">
+                    <p className="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                      {t("businessDetail.transferTo")}
+                    </p>
+
+                    {/* Amount */}
+                    <p className="text-lg font-bold text-orange-800 dark:text-orange-200">
+                      {formatCFA(cartTotal)}
+                    </p>
+
+                    {/* Merchant USSD code — preferred */}
+                    {businessMerchantCode && (
+                      <div className="space-y-1.5">
+                        <a
+                          href={`tel:${businessMerchantCode.replace(/#/g, "%23")}`}
+                          className="flex items-center justify-center gap-2 w-full rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg py-3 px-4 transition-colors"
+                        >
+                          <Phone className="h-5 w-5" />
+                          {businessMerchantCode}
+                        </a>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] text-muted-foreground">{t("businessDetail.tapToPayUssd")}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-xs h-6"
+                            onClick={() => {
+                              navigator.clipboard.writeText(businessMerchantCode);
+                              toast.success(t("businessDetail.codeCopied"));
+                            }}
+                          >
+                            <Copy className="h-3 w-3" /> {t("businessDetail.copyCode")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fallback: payment number */}
+                    {!businessMerchantCode && businessPaymentNumber && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold">{businessPaymentNumber}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs"
+                          onClick={() => {
+                            navigator.clipboard.writeText(businessPaymentNumber);
+                            toast.success(t("businessDetail.numberCopied"));
+                          }}
+                        >
+                          <Copy className="h-3.5 w-3.5" /> {t("businessDetail.copyNumber")}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Instructions */}
+                    <p className="text-[11px] text-muted-foreground">
+                      {t("businessDetail.paymentInstructions")}
+                    </p>
+
+                    {/* Proof upload */}
+                    <input
+                      ref={paymentProofRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePaymentProofChange}
+                    />
+                    {paymentProofUrl ? (
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
+                        <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setPaymentProofUrl(null); if (paymentProofRef.current) paymentProofRef.current.value = ""; }}>
+                          {t("businessDetail.changeProof")}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full gap-2"
+                        onClick={() => paymentProofRef.current?.click()}
+                        disabled={paymentProofUploading}
+                      >
+                        {paymentProofUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {t("businessDetail.attachProof")}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </>
             )}
 

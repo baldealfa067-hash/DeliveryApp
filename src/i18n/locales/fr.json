@@ -441,7 +441,11 @@
     "delete": "Supprimer",
     "removeItem": "Supprimer le plat",
     "removeItemConfirm": "Supprimer \"{{name}}\" du menu ?",
-    "remove": "Supprimer"
+    "remove": "Supprimer",
+    "merchantCode": "Code Orange Money",
+    "merchantCodeHint": "Code USSD du commerçant (ex : #144#32*123456#)",
+    "paymentNumber": "N° téléphone pour paiement",
+    "paymentNumberHint": "Alternative si vous n'avez pas de code commerçant"
   },
   "businessDetail": {
     "loading": "Chargement...",
@@ -529,7 +533,22 @@
     "reviewSent": "Avis envoyé avec succès, il sera affiché après validation.",
     "reviewError": "Erreur lors de l'envoi de l'avis",
     "selectStars": "Veuillez choisir une note",
-    "anonymousReviewNote": "Pas de compte ? Votre avis est anonyme et sera publié après validation."
+    "anonymousReviewNote": "Pas de compte ? Votre avis est anonyme et sera publié après validation.",
+    "paymentMethod": "Mode de paiement",
+    "payOnDelivery": "Payer à la livraison",
+    "payNow": "Payer maintenant (Orange Money)",
+    "transferTo": "Payer via Orange Money",
+    "tapToPayUssd": "Appuyez pour payer via Orange Money",
+    "codeCopied": "Code copié",
+    "copyCode": "Copier le code",
+    "copyNumber": "Copier le numéro",
+    "numberCopied": "Numéro copié",
+    "paymentInstructions": "1. Appuyez sur le code pour payer. 2. Confirmez sur votre téléphone. 3. Prenez une capture de la confirmation et envoyez-la ici.",
+    "proofAttached": "Justificatif joint",
+    "changeProof": "Changer",
+    "attachProof": "Joindre justificatif",
+    "paymentProofError": "Erreur lors de l'envoi du justificatif",
+    "amountToTransfer": "Montant à transférer"
   },
   "providerDetail": {
     "loading": "Chargement...",
@@ -719,7 +738,37 @@
     "notifSent": "Notification envoyée à {{count}} utilisateurs !",
     "notifHistory": "Historique des notifications",
     "notifNoHistory": "Aucune notification envoyée pour le moment.",
-    "notifRecipients": "destinataires"
+    "notifRecipients": "destinataires",
+    "commissions": "Commissions"
+  },
+  "commission": {
+    "title": "Commission de la Plateforme",
+    "due": "À payer",
+    "paid": "Payé",
+    "balance": "Solde",
+    "rateInfo": "Taux de {{rate}}% sur {{sales}} de ventes",
+    "payCommission": "Payer la commission",
+    "amount": "Montant à payer",
+    "enterAmount": "Indiquez le montant",
+    "paymentSent": "Paiement de commission envoyé ! Sera validé prochainement.",
+    "submit": "Envoyer le paiement",
+    "history": "Paiements récents",
+    "status_pendente": "En attente",
+    "status_validado": "Validé",
+    "status_rejeitado": "Rejeté",
+    "settings": "Paramètres de Commission",
+    "rate": "Taux de commission",
+    "platformCode": "Code Orange Money de la plateforme",
+    "platformNumber": "N° téléphone de la plateforme",
+    "settingsSaved": "Paramètres enregistrés",
+    "businessList": "Restaurants — Commissions",
+    "restaurant": "Restaurant",
+    "totalSales": "Ventes",
+    "noData": "Aucune donnée de commission.",
+    "pendingPayments": "Justificatifs en attente",
+    "noPending": "Aucun justificatif en attente.",
+    "validate": "Valider",
+    "reject": "Rejeter"
   },
   "requests": {
     "selectCategory": "Veuillez sélectionner une catégorie",
@@ -1088,7 +1137,14 @@
     "deliveryInfo": "Infos de livraison",
     "copyAllDelivery": "Copier toutes les infos",
     "voiceDirection": "Indication du client",
-    "voiceDirectionFrom": "Indication d'adresse — {{name}}"
+    "voiceDirectionFrom": "Indication d'adresse — {{name}}",
+    "onlinePayment": "Paiement en Ligne",
+    "paymentProof": "Justificatif de paiement",
+    "confirmPayment": "Paiement confirmé",
+    "rejectPayment": "Justificatif invalide",
+    "paymentStatus_pendente": "Paiement en attente",
+    "paymentStatus_validado": "Paiement confirmé",
+    "paymentStatus_rejeitado": "Paiement rejeté"
   },
   "myAppointments": {
     "title": "Mes Réservations",

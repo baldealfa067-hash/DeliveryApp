@@ -21,6 +21,9 @@ export interface Order {
   bairro: string | null;
   delivery_code: string | null;
   voice_note_url: string | null;
+  payment_method: string;
+  payment_proof_url: string | null;
+  payment_status: string;
 }
 
 export interface OrderHistoryEntry {
@@ -46,6 +49,8 @@ export const useCreateOrder = () => {
       customerLat?: number;
       customerLng?: number;
       voiceNoteUrl?: string;
+      paymentMethod?: string;
+      paymentProofUrl?: string;
     }) => {
       const { data, error } = await supabase.rpc("create_order", {
         p_business_id: params.businessId,
@@ -61,6 +66,8 @@ export const useCreateOrder = () => {
         p_customer_lat: params.customerLat ?? null,
         p_customer_lng: params.customerLng ?? null,
         p_voice_note_url: params.voiceNoteUrl ?? null,
+        p_payment_method: params.paymentMethod ?? "entrega",
+        p_payment_proof_url: params.paymentProofUrl ?? null,
       });
       if (error) throw error;
       return data as string;
@@ -125,6 +132,22 @@ export const useUpdateOrderStatus = () => {
       qc.invalidateQueries({ queryKey: ["business-orders"] });
       qc.invalidateQueries({ queryKey: ["customer-orders"] });
       qc.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+export const useValidateOrderPayment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { orderId: string; status: string }) => {
+      const { error } = await supabase.rpc("validate_order_payment", {
+        p_order_id: params.orderId,
+        p_status: params.status,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business-orders"] });
     },
   });
 };
