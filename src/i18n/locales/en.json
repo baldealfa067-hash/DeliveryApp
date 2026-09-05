@@ -1051,6 +1051,7 @@
     "em_preparacao": "Preparing",
     "na_cozinha": "In the Kitchen",
     "pronto": "Ready",
+    "em_entrega": "In Delivery",
     "saiu_para_entrega": "Out for Delivery",
     "aguardando_motorista": "Waiting for Driver",
     "motorista_encontrado": "Driver Found",

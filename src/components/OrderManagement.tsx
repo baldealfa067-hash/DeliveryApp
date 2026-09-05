@@ -34,11 +34,19 @@ import { useBusinessOrders, useUpdateOrderStatus, type Order } from "@/hooks/use
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 
+const DELIVERY_IN_PROGRESS_STATUSES = [
+  "aguardando_motorista",
+  "motorista_encontrado",
+  "pedido_recolhido",
+  "a_caminho",
+];
+
 const STATUS_TABS = [
   { value: "novo", label: "orderStatus.novo", icon: Package, color: "text-blue-600" },
   { value: "confirmado", label: "orderStatus.confirmado", icon: CheckCircle2, color: "text-green-600" },
   { value: "em_preparacao", label: "orderStatus.em_preparacao", icon: ChefHat, color: "text-yellow-600" },
   { value: "pronto", label: "orderStatus.pronto", icon: UtensilsCrossed, color: "text-green-600" },
+  { value: "em_entrega", label: "orderStatus.em_entrega", icon: Truck, color: "text-orange-500" },
   { value: "saiu_para_entrega", label: "orderStatus.saiu_para_entrega", icon: Truck, color: "text-blue-600" },
   { value: "entregue", label: "orderStatus.entregue", icon: CheckCircle2, color: "text-green-600" },
   { value: "cancelado", label: "orderStatus.cancelado", icon: XCircle, color: "text-red-600" },
@@ -125,7 +133,9 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
   }, [refetch]);
 
   const getOrdersByStatus = (status: string) =>
-    allOrders.filter((o) => o.status === status);
+    status === "em_entrega"
+      ? allOrders.filter((o) => DELIVERY_IN_PROGRESS_STATUSES.includes(o.status))
+      : allOrders.filter((o) => o.status === status);
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     if (newStatus === "em_preparacao") {
