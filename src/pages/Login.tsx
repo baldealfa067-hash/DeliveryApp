@@ -5,11 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Store, User, ArrowLeft, Bike } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { JUST_SIGNED_UP_KEY } from "@/lib/push";
+import {
+  PIN_LENGTH,
+  clientAuthErrorKey,
+  clientEmail,
+  derivePassword,
+  isValidPhone,
+  isValidPin,
+  normalizePhone,
+} from "@/lib/clientAuth";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getPostLoginDestination } from "@/lib/getPostLoginDestination";
@@ -35,6 +45,10 @@ const Login = () => {
   );
   const [profileType] = useState<ProfileType>("business");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [forgotPinOpen, setForgotPinOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -92,6 +106,70 @@ const Login = () => {
       navigate(dest, { replace: true });
     })();
   }, [user, isAdmin, isBusiness, isClient, rolesLoaded, loading, navigate, searchParams]);
+
+  // ── Cliente: telefone + PIN ──────────────────────────────────────────────
+  // A password vai derivada do telefone e do PIN, portanto o mesmo par
+  // reproduz sempre a mesma credencial e a conta sobrevive a trocar de
+  // telemóvel ou a limpar os dados do browser.
+  const entrarComPin = async (rawPhone: string, rawPin: string) => {
+    const password = await derivePassword(rawPhone, rawPin);
+    return supabase.auth.signInWithPassword({ email: clientEmail(rawPhone), password });
+  };
+
+  const handleClientLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidPhone(phone)) return toast.error(t("auth.enterValidPhone"));
+    if (!isValidPin(pin)) return toast.error(t("auth.pinFourDigits"));
+    setSubmitting(true);
+    try {
+      const { error } = await entrarComPin(phone, pin);
+      if (error) return toast.error(t(clientAuthErrorKey(error.message, "login")));
+      toast.success(t("auth.loginSuccess"));
+    } catch (err) {
+      console.error("[auth] client login:", err);
+      toast.error(t("auth.loginError"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleClientSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return toast.error(t("auth.enterName"));
+    if (!isValidPhone(phone)) return toast.error(t("auth.enterValidPhone"));
+    if (!isValidPin(pin)) return toast.error(t("auth.pinFourDigits"));
+    if (pin !== pinConfirm) return toast.error(t("auth.pinMismatch"));
+    signingUp.current = true;
+    setSubmitting(true);
+    try {
+      const password = await derivePassword(phone, pin);
+      const { data, error } = await supabase.auth.signUp({
+        email: clientEmail(phone),
+        password,
+        options: { data: { name: name.trim(), phone: normalizePhone(phone), profile_type: "client" } },
+      });
+      if (error || !data.user) {
+        const chave = clientAuthErrorKey(error?.message, "signup");
+        if (chave === "auth.phoneTaken") setTab("login");
+        return toast.error(t(chave));
+      }
+      if (!data.session) {
+        const { error: loginErr } = await entrarComPin(phone, pin);
+        if (loginErr) return toast.error(t(clientAuthErrorKey(loginErr.message, "login")));
+      }
+      const { error: roleErr } = await supabase.rpc("register_as_client");
+      if (roleErr) console.error("[auth] register_as_client:", roleErr.message);
+      toast.success(t("auth.accountCreated"));
+      sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
+      navigate("/inicio", { replace: true });
+    } catch (err) {
+      console.error("[auth] client signup:", err);
+      toast.error(t("auth.registerError"));
+    } finally {
+      signingUp.current = false;
+      setSubmitting(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,6 +320,125 @@ const Login = () => {
   // ─── TELA: Auth (Cliente / Restaurante / Motorista) ───
   const isClientFlow = mode === "client";
   const isDriverFlow = mode === "driver";
+
+  const campoPin = (id: string, valor: string, setter: (v: string) => void, etiqueta: string) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{etiqueta}</Label>
+      <Input
+        id={id}
+        type="password"
+        inputMode="numeric"
+        autoComplete="off"
+        pattern="\d*"
+        maxLength={PIN_LENGTH}
+        placeholder={"\u2022".repeat(PIN_LENGTH)}
+        value={valor}
+        onChange={(e) => setter(e.target.value.replace(/\D/g, "").slice(0, PIN_LENGTH))}
+        className="h-12 text-center text-title tracking-[0.5em]"
+      />
+    </div>
+  );
+
+  const campoTelefone = (id: string) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{t("auth.phone")}</Label>
+      <Input
+        id={id}
+        type="tel"
+        inputMode="tel"
+        autoComplete="tel"
+        placeholder={t("auth.phonePlaceholder")}
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        className="h-12 text-body"
+      />
+    </div>
+  );
+
+  // ─── ECRÃ: Cliente (telefone + PIN) ───
+  // Sem email e sem Google: o cliente identifica-se pelo telefone, que é o que
+  // ele sabe de cor. O PIN é escolhido por ele, e a credencial derivada dos dois
+  // é sempre a mesma — por isso entrar noutro telemóvel é só voltar a escrevê-los.
+  if (isClientFlow) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm space-y-5">
+          <div className="flex items-center justify-between">
+            <button onClick={() => setMode("choose")} className="-ml-1 p-1 text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <LanguageSelector />
+          </div>
+
+          <div className="space-y-1 text-center">
+            <img src={logo} alt="Bornaal" className="mx-auto h-10" />
+            <h1 className="text-title">{t("auth.clientLoginTitle")}</h1>
+            <p className="text-caption text-muted-foreground">{t("auth.clientLoginPinDesc")}</p>
+          </div>
+
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">{t("auth.loginTab")}</TabsTrigger>
+              <TabsTrigger value="signup">{t("auth.signupTab")}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <form onSubmit={handleClientLogin} className="mt-4 space-y-3">
+                {campoTelefone("cli-login-phone")}
+                {campoPin("cli-login-pin", pin, setPin, t("auth.pin"))}
+                <Button type="submit" disabled={submitting} className="h-12 w-full text-body font-semibold">
+                  {submitting ? t("auth.loggingIn") : t("auth.loginButton")}
+                </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setForgotPinOpen(true)}
+                    className="text-caption text-primary underline underline-offset-2"
+                  >
+                    {t("auth.forgotPin")}
+                  </button>
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup">
+              <form onSubmit={handleClientSignup} className="mt-4 space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="cli-name">{t("auth.name")}</Label>
+                  <Input
+                    id="cli-name"
+                    placeholder={t("auth.namePlaceholder")}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="h-12 text-body"
+                  />
+                </div>
+                {campoTelefone("cli-signup-phone")}
+                {campoPin("cli-signup-pin", pin, setPin, t("auth.choosePin"))}
+                {campoPin("cli-signup-pin-2", pinConfirm, setPinConfirm, t("auth.confirmPin"))}
+                <p className="text-caption text-muted-foreground">{t("auth.pinHint")}</p>
+                <Button type="submit" disabled={submitting} className="h-12 w-full text-body font-semibold">
+                  {submitting ? t("auth.creatingAccount") : t("auth.createClientAccount")}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <Dialog open={forgotPinOpen} onOpenChange={setForgotPinOpen}>
+          <DialogContent className="w-[calc(100vw-2rem)] max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t("auth.forgotPin")}</DialogTitle>
+              <DialogDescription>{t("auth.forgotPinDesc")}</DialogDescription>
+            </DialogHeader>
+            <Button onClick={() => setForgotPinOpen(false)} className="h-12 w-full text-body">
+              {t("common.close")}
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background">
