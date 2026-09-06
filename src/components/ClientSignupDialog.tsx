@@ -86,7 +86,9 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
       const { data, error } = await supabase.auth.signUp({
         email: clientEmail(phone),
         password,
-        options: { data: { name: name.trim(), phone: normalizePhone(phone) } },
+        // profile_type e' obrigatorio: sem ele o trigger handle_new_user usava o
+        // valor por defeito e a conta ficava com papel de restaurante.
+        options: { data: { name: name.trim(), phone: normalizePhone(phone), profile_type: "client" } },
       });
 
       if (error || !data.user) {

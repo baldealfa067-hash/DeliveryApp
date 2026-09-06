@@ -10,6 +10,8 @@ import InstallPrompt from "./components/InstallPrompt";
 import PushPrompt from "./components/PushPrompt";
 import PushRepair from "./components/PushRepair";
 import RequireAdmin from "./components/RequireAdmin";
+import RequireRole from "./components/RequireRole";
+import RequireClientArea from "./components/RequireClientArea";
 import { Loader2 } from "lucide-react";
 
 const Landing = lazy(() => import("./pages/Landing"));
@@ -68,23 +70,29 @@ const App = () => (
               <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
               <Route path="/admin-moderacao" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
               <Route path="/models" element={<Models />} />
-              <Route path="/painel-loja" element={<BusinessDashboard />} />
-              <Route path="/painel-loja/editar" element={<BusinessEdit />} />
-              <Route path="/painel-motorista" element={<DriverDashboard />} />
+              {/* Painéis de restaurante fechados ao papel business. A verificação
+                  dentro do próprio ecrã chegava tarde: o componente montava e
+                  corria as queries antes de redirecionar. */}
+              <Route path="/painel-loja" element={<RequireRole roles={["business"]}><BusinessDashboard /></RequireRole>} />
+              <Route path="/painel-loja/editar" element={<RequireRole roles={["business"]}><BusinessEdit /></RequireRole>} />
+              {/* O painel do motorista fica aberto a quem tem sessão: é aqui que
+                  um motorista novo se regista, e sem perfil de motorista o ecrã
+                  só mostra esse registo — nenhum dado de entregas. */}
+              <Route path="/painel-motorista" element={<RequireRole roles={["client"]} redirectTo="/painel-loja"><DriverDashboard /></RequireRole>} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/mensagem/:userId" element={<ChatPage />} />
               <Route element={<Layout />}>
                 {/* Início e Explorar são o mesmo ecrã: só existe uma categoria
                     (restaurantes), portanto não há passo intermédio a dar. As duas
                     rotas mantêm-se para não partir links nem marcadores existentes. */}
-                <Route path="/inicio" element={<Explore />} />
-                <Route path="/explorar" element={<Explore />} />
+                <Route path="/inicio" element={<RequireClientArea><Explore /></RequireClientArea>} />
+                <Route path="/explorar" element={<RequireClientArea><Explore /></RequireClientArea>} />
                 <Route path="/conversas" element={<ConversationsPage />} />
-                <Route path="/meus-pedidos" element={<MyOrdersPage />} />
-                <Route path="/pedido/:id" element={<OrderTrackingPage />} />
+                <Route path="/meus-pedidos" element={<RequireClientArea><MyOrdersPage /></RequireClientArea>} />
+                <Route path="/pedido/:id" element={<RequireClientArea><OrderTrackingPage /></RequireClientArea>} />
                 <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
                 <Route path="/perfil" element={<Profile />} />
-                <Route path="/loja/:id" element={<BusinessDetail />} />
+                <Route path="/loja/:id" element={<RequireClientArea><BusinessDetail /></RequireClientArea>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
