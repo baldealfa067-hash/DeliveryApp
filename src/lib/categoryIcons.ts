@@ -1,6 +1,5 @@
 import {
-  Beef, Cpu, Coffee, Croissant, Fish, Footprints, Ham, Pill, Sandwich, Scissors,
-  Shirt, ShoppingBasket, ShoppingCart, Smartphone, Store, UtensilsCrossed,
+  Beef, Coffee, Croissant, Sandwich, Store, UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
 
@@ -10,7 +9,11 @@ import {
  *
  * A chave é o nome em português, tal como está guardado em
  * business_categories.name — é esse valor que também vive em profiles.category.
- * Categorias novas caem no ícone genérico até alguém as acrescentar aqui.
+ *
+ * Só as categorias de restauração: a migração 20260906000012 tirou da tabela as
+ * de Serviços/Beleza e as de retalho, e manter aqui os ícones delas era guardar
+ * o mesmo lixo que causou o problema. Uma categoria nova criada no painel de
+ * administrador cai no ícone genérico até alguém a acrescentar a esta lista.
  */
 const ICONS: Record<string, LucideIcon> = {
   "Restaurante": UtensilsCrossed,
@@ -18,16 +21,6 @@ const ICONS: Record<string, LucideIcon> = {
   "Lanchonete": Sandwich,
   "Pastelaria e Padaria": Croissant,
   "Cafetaria": Coffee,
-  "Mercearia": ShoppingBasket,
-  "Supermercado": ShoppingCart,
-  "Talho": Ham,
-  "Peixaria": Fish,
-  "Loja de Roupa": Shirt,
-  "Loja de Calçado": Footprints,
-  "Loja de Eletrónica": Cpu,
-  "Loja de Telemóveis": Smartphone,
-  "Cabeleireiro e Salão": Scissors,
-  "Farmácia": Pill,
 };
 
 export const getCategoryIcon = (name: string): LucideIcon => ICONS[name] ?? Store;
