@@ -1,5 +1,6 @@
 {
   "common": {
+    "minutesShort": "{{minutes}} min",
     "tryAgain": "Try again",
     "searchPlaceholder": "Search by name, category or location...",
     "all": "All",
@@ -362,6 +363,10 @@
     "salesChart": "Sales per day"
   },
   "businessEdit": {
+    "prepTime": "Average preparation time (minutes)",
+    "prepTimeHint": "Optional. Only shows in the list if you fill it in.",
+    "prepTimeInvalid": "Enter a preparation time between 1 and 480 minutes.",
+    "prepTimeUnavailable": "Profile saved, but the preparation time could not be stored yet.",
     "imageTooLarge": "Image too large (max 5 MB)",
     "photoUploaded": "Photo uploaded",
     "itemPhotoUploaded": "Item photo uploaded",

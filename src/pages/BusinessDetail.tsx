@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, MessageSquare } from "lucide-react";
+import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, MessageSquare, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -166,10 +166,10 @@ const BusinessDetail = () => {
   const cartTotal = cartItems.reduce((sum, i) => sum + i.price * (cart[i.id] ?? 0), 0);
   const cartCount = cartItems.reduce((sum, i) => sum + (cart[i.id] ?? 0), 0);
 
-  const trackCall = () => {
+  const trackContact = (type: "call" | "whatsapp") => {
     if (!id) return;
-    supabase.rpc("record_provider_contact", { p_provider_id: id, contact_type: "call" }).then(({ error }) => {
-      if (error) console.error("[stats] record call error:", error.message);
+    supabase.rpc("record_provider_contact", { p_provider_id: id, contact_type: type }).then(({ error }) => {
+      if (error) console.error(`[stats] record ${type} error:`, error.message);
     });
   };
 
@@ -789,12 +789,29 @@ const BusinessDetail = () => {
             )}
           </Button>
         )}
-        <a href={`tel:${phone.replace(/\s/g, "")}`} className="block" onClick={trackCall}>
-          <Button variant="secondary" className="w-full gap-2">
-            <Phone className="h-5 w-5" />
-            {t("common.call")}
-          </Button>
-        </a>
+        {/* Telefone e WhatsApp desceram da lista para aqui: são acções
+            secundárias de quem já escolheu o restaurante, não a acção
+            principal de quem está a escolher. */}
+        <div className="grid grid-cols-2 gap-2">
+          <a href={`tel:${phone.replace(/\s/g, "")}`} className="block" onClick={() => trackContact("call")}>
+            <Button variant="secondary" className="h-12 w-full gap-2">
+              <Phone className="h-5 w-5" />
+              {t("common.call")}
+            </Button>
+          </a>
+          <a
+            href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("providerCardExtra.whatsappBusinessMsg", { name }))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+            onClick={() => trackContact("whatsapp")}
+          >
+            <Button variant="secondary" className="h-12 w-full gap-2">
+              <MessageCircle className="h-5 w-5" />
+              {t("common.whatsapp")}
+            </Button>
+          </a>
+        </div>
       </div>
 
       <section>

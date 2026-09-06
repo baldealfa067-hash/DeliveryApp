@@ -1,5 +1,6 @@
 {
   "common": {
+    "minutesShort": "{{minutes}} min",
     "tryAgain": "Tentar de novo",
     "searchPlaceholder": "Pesquisar por nome, categoria ou localização...",
     "all": "Todas",
@@ -365,6 +366,10 @@
     "salesChart": "Vendas por dia"
   },
   "businessEdit": {
+    "prepTime": "Tempo médio de preparação (minutos)",
+    "prepTimeHint": "Opcional. Só aparece na lista se preencheres.",
+    "prepTimeInvalid": "Indica um tempo de preparação entre 1 e 480 minutos.",
+    "prepTimeUnavailable": "Perfil guardado, mas o tempo de preparação ainda não pôde ser gravado.",
     "imageTooLarge": "Imagem demasiado grande (máx 5MB)",
     "photoUploaded": "Foto carregada",
     "itemPhotoUploaded": "Foto do item carregada",

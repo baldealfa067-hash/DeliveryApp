@@ -59,6 +59,7 @@ type Form = {
   location: string;
   description: string;
   photo_url: string;
+  prep_time_minutes: string;
   consumption_options: ConsumptionOption[];
 };
 
@@ -71,6 +72,7 @@ const empty: Form = {
   location: "",
   description: "",
   photo_url: "",
+  prep_time_minutes: "",
   consumption_options: [],
 };
 
@@ -139,6 +141,7 @@ const BusinessDashboard = () => {
           location: data.location ?? "",
           description: data.description ?? "",
           photo_url: data.photo_url ?? "",
+          prep_time_minutes: data.prep_time_minutes != null ? String(data.prep_time_minutes) : "",
           consumption_options: ((data.consumption_options ?? []) as ConsumptionOption[]).filter((o) =>
             ["comer_no_local", "para_levar", "entrega"].includes(o)
           ),
@@ -224,6 +227,10 @@ const BusinessDashboard = () => {
     if (!form.consumption_options.length) {
       return toast.error(t("businessEdit.needConsumption"));
     }
+    const prepTime = form.prep_time_minutes.trim() ? Number(form.prep_time_minutes) : null;
+    if (prepTime !== null && (!Number.isInteger(prepTime) || prepTime < 1 || prepTime > 480)) {
+      return toast.error(t("businessEdit.prepTimeInvalid"));
+    }
     setSaving(true);
     const payload = {
       name: form.name.trim(),
@@ -234,14 +241,27 @@ const BusinessDashboard = () => {
       location: form.location.trim(),
       description: form.description.trim() || null,
       photo_url: form.photo_url.trim() || null,
+      prep_time_minutes: prepTime,
       consumption_options: form.consumption_options,
       profile_type: "business",
       price_type: "combinar",
       user_id: user.id,
     };
-    const { error, data } = profileId
-      ? await supabase.from("profiles").update(payload).eq("id", profileId).select().single()
-      : await supabase.from("profiles").insert(payload).select().single();
+    const write = (body: typeof payload | Omit<typeof payload, "prep_time_minutes">) =>
+      profileId
+        ? supabase.from("profiles").update(body).eq("id", profileId).select().single()
+        : supabase.from("profiles").insert(body).select().single();
+
+    let { error, data } = await write(payload);
+    // A coluna prep_time_minutes chegou na migração 20260906000011. Se o front
+    // for para produção antes de a migração correr, o PostgREST devolve PGRST204
+    // e o restaurante ficava sem conseguir guardar o perfil. Guardamos o resto e
+    // avisamos. Este bloco pode desaparecer assim que a migração estiver aplicada.
+    if (error?.code === "PGRST204" && error.message.includes("prep_time_minutes")) {
+      const { prep_time_minutes: _omitted, ...withoutPrepTime } = payload;
+      ({ error, data } = await write(withoutPrepTime));
+      if (!error) toast.warning(t("businessEdit.prepTimeUnavailable"));
+    }
     setSaving(false);
     if (error) return toast.error(error.message);
     if (data) {
@@ -388,6 +408,18 @@ const BusinessDashboard = () => {
               </Field>
               <Field label={t("businessEdit.phoneRequired")}>
                 <Input placeholder={t("businessEdit.phonePlaceholder")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              </Field>
+              <Field label={t("businessEdit.prepTime")}>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={480}
+                  placeholder="25"
+                  value={form.prep_time_minutes}
+                  onChange={(e) => setForm({ ...form, prep_time_minutes: e.target.value })}
+                />
+                <p className="mt-0.5 text-caption text-muted-foreground">{t("businessEdit.prepTimeHint")}</p>
               </Field>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t("businessEdit.merchantCode")}>

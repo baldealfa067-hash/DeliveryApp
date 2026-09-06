@@ -886,6 +886,7 @@ export type Database = {
           name: string
           phone: string
           photo_url: string | null
+          prep_time_minutes: number | null
           price_type: string | null
           profile_type: string
           services: string[]
@@ -912,6 +913,7 @@ export type Database = {
           name: string
           phone: string
           photo_url?: string | null
+          prep_time_minutes?: number | null
           price_type?: string | null
           profile_type?: string
           services?: string[]
@@ -938,6 +940,7 @@ export type Database = {
           name?: string
           phone?: string
           photo_url?: string | null
+          prep_time_minutes?: number | null
           price_type?: string | null
           profile_type?: string
           services?: string[]

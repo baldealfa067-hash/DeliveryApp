@@ -13,7 +13,6 @@ import RequireAdmin from "./components/RequireAdmin";
 import { Loader2 } from "lucide-react";
 
 const Landing = lazy(() => import("./pages/Landing"));
-const Index = lazy(() => import("./pages/Index"));
 const Explore = lazy(() => import("./pages/Explore"));
 const About = lazy(() => import("./pages/About"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -75,7 +74,10 @@ const App = () => (
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/mensagem/:userId" element={<ChatPage />} />
               <Route element={<Layout />}>
-                <Route path="/inicio" element={<Index />} />
+                {/* Início e Explorar são o mesmo ecrã: só existe uma categoria
+                    (restaurantes), portanto não há passo intermédio a dar. As duas
+                    rotas mantêm-se para não partir links nem marcadores existentes. */}
+                <Route path="/inicio" element={<Explore />} />
                 <Route path="/explorar" element={<Explore />} />
                 <Route path="/conversas" element={<ConversationsPage />} />
                 <Route path="/meus-pedidos" element={<MyOrdersPage />} />

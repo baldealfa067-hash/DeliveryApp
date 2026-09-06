@@ -1,5 +1,6 @@
 {
   "common": {
+    "minutesShort": "{{minutes}} min",
     "tryAgain": "Réessayer",
     "searchPlaceholder": "Rechercher par nom, catégorie ou localisation...",
     "all": "Toutes",
@@ -362,6 +363,10 @@
     "salesChart": "Ventes par jour"
   },
   "businessEdit": {
+    "prepTime": "Temps moyen de préparation (minutes)",
+    "prepTimeHint": "Facultatif. N'apparaît dans la liste que si tu le remplis.",
+    "prepTimeInvalid": "Indique un temps de préparation entre 1 et 480 minutes.",
+    "prepTimeUnavailable": "Profil enregistré, mais le temps de préparation n'a pas encore pu être sauvegardé.",
     "imageTooLarge": "Image trop volumineuse (max 5 Mo)",
     "photoUploaded": "Photo importée",
     "itemPhotoUploaded": "Photo du plat importée",

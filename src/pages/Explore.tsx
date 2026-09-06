@@ -3,8 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin, SearchX, WifiOff } from "lucide-react";
-import { ProviderCard } from "@/components/ProviderCard";
-import { ProviderCardSkeleton } from "@/components/ProviderCardSkeleton";
+import { RestaurantCard } from "@/components/RestaurantCard";
+import { RestaurantCardSkeleton } from "@/components/RestaurantCardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { CategoryChips, type ChipCategory } from "@/components/CategoryChips";
 import { Pagination } from "@/components/Pagination";
@@ -124,7 +124,7 @@ const Explore = () => {
       {loadingProviders ? (
         <div className="flex flex-col gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <ProviderCardSkeleton key={i} />
+            <RestaurantCardSkeleton key={i} />
           ))}
         </div>
       ) : providersError ? (
@@ -146,7 +146,7 @@ const Explore = () => {
         <>
           <div className="flex flex-col gap-3">
             {paginated.map((p) => (
-              <ProviderCard key={p.id} {...p} />
+              <RestaurantCard key={p.id} {...p} />
             ))}
           </div>
           <Pagination page={page} pageCount={pageCount} total={filtered.length} onPageChange={setPage} />

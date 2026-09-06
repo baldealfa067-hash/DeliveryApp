@@ -12,6 +12,8 @@ export interface ProviderWithRating {
   photo_url: string | null;
   price_type: string;
   starting_price: number | null;
+  /** Declarado pelo restaurante. NULL = não declarado; o cartão não mostra nada. */
+  prep_time_minutes?: number | null;
   services?: string[] | null;
   is_verified?: boolean | null;
   profile_type?: string | null;

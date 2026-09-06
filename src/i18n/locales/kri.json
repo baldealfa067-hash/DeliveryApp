@@ -1,5 +1,6 @@
 {
   "common": {
+    "minutesShort": "{{minutes}} min",
     "tryAgain": "Tenta di nobu",
     "searchPlaceholder": "Buska pa nome, kategoria ou lokalizason…",
     "all": "Todus",
@@ -721,6 +722,10 @@
     "deliveries": "Entregas"
   },
   "businessEdit": {
+    "prepTime": "Tempu medju di prepara kumida (minutus)",
+    "prepTimeHint": "Opsional. I ta parsi na lista so si bu inxi el.",
+    "prepTimeInvalid": "Pui un tempu di preparason entri 1 i 480 minutus.",
+    "prepTimeUnavailable": "Perfil gardadu, ma tempu di preparason inda ka pudi ser gardadu.",
     "locationRequired": "Lokalizason *",
     "businessLocation": "Lokalizason di stabelesimentu",
     "businessLocationHint": "Uzadu pa kalkula distansa te na bu klientis.",
