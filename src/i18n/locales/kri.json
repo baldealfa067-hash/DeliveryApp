@@ -613,6 +613,10 @@
     "cancelado": "Anuladu"
   },
   "orderManagement": {
+    "itemCount": "{{count}} itens",
+    "paymentShort_pendente": "Pa valida",
+    "paymentShort_validado": "Pagadu",
+    "paymentShort_rejeitado": "Rejeitadu",
     "tab": {
       "novo": "Nobus",
       "confirmado": "Kofirmadus",
@@ -631,7 +635,6 @@
       "pedido_recolhido": "Marka suma rekolhidu",
       "a_caminho": "Marka suma na kaminhu"
     },
-    "selectOrder": "Skolhe un pedidu na lista pa bu odja detalhis.",
     "callCustomer": "Liga pa {{name}}",
     "empty": {
       "novo": "Ka tene pedidu nobu gosi.",
@@ -769,6 +772,11 @@
     "paymentNumberHint": "Alternativa si ka ten código di kumersanti"
   },
   "businessDetail": {
+    "consumption": {
+      "eatIn": "Kume na lugar",
+      "takeAway": "Pa leba",
+      "delivery": "Entrega"
+    },
     "viewCart": "Olha karriñu",
     "detectLocation": "Deteta lokalizason",
     "deliveryInfo": "Informason di Entrega",

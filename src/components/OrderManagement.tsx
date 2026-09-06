@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   ChefHat,
   UtensilsCrossed,
-  MessageSquare,
   Timer,
   XCircle,
   Copy,
@@ -13,6 +12,7 @@ import {
   MapPin,
   Phone,
   Volume2,
+  CreditCard,
   Inbox,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useBusinessOrders, useUpdateOrderStatus, useValidateOrderPayment, type Order } from "@/hooks/useOrders";
-import { useIsWideScreen } from "@/hooks/useMediaQuery";
 import { orderStatusTone, paymentStatusTone, TONE_SOFT, TONE_STRONG } from "@/lib/orderStatus";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
@@ -65,10 +64,13 @@ const NEXT_STATUS: Record<string, string[]> = {
   entregue: ["concluido"],
 };
 
-const CONSUMPTION_LABELS: Record<string, string> = {
-  comer_no_local: "🍽️ Local",
-  para_levar: "🥡 Levar",
-  entrega: "🛵 Entrega",
+// Chaves de tradução, não texto fixo: antes eram emoji + português no código,
+// o que deixava esta parte por traduzir e o emoji saía partido em alguns
+// sistemas. São as mesmas chaves que a página do restaurante já usa.
+const CONSUMPTION_LABEL_KEYS: Record<string, string> = {
+  comer_no_local: "businessDetail.consumption.eatIn",
+  para_levar: "businessDetail.consumption.takeAway",
+  entrega: "businessDetail.consumption.delivery",
 };
 
 const hora = (iso: string) =>
@@ -106,7 +108,7 @@ const PaymentBadge = ({ status }: { status: string | null | undefined }) => {
 
 interface CopyButtonProps {
   text: string;
-  label?: string;
+  label: string;
 }
 
 const CopyButton = ({ text, label }: CopyButtonProps) => {
@@ -130,9 +132,14 @@ const CopyButton = ({ text, label }: CopyButtonProps) => {
   };
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleCopy} className="h-8 gap-1 px-2 text-caption">
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleCopy}
+      className="h-9 shrink-0 gap-1 px-2 text-caption"
+    >
       {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
-      {label ?? text}
+      {label}
     </Button>
   );
 };
@@ -146,7 +153,7 @@ const VoiceNote = ({ url, customerName }: { url: string; customerName: string | 
         <Volume2 className="h-4 w-4 shrink-0" aria-hidden="true" />
         {t("orderManagement.voiceDirectionFrom", { name: customerName ?? t("orderManagement.voiceDirection") })}
       </p>
-      <audio src={url} controls className="h-9 w-full" />
+      <audio src={url} controls className="h-9 w-full min-w-0" />
     </div>
   );
 };
@@ -160,7 +167,6 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
   const { data: allOrders = [], isLoading, refetch } = useBusinessOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
   const validatePayment = useValidateOrderPayment();
-  const isWide = useIsWideScreen();
   const [activeTab, setActiveTab] = useState("novo");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -186,7 +192,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
 
   const openOrder = (order: Order) => {
     setSelectedOrder(order);
-    if (!isWide) setDetailOpen(true);
+    setDetailOpen(true);
   };
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
@@ -293,53 +299,14 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                   </p>
                 </div>
               ) : (
-                // A partir de 1024px o detalhe deixa de ser um diálogo e passa a
-                // painel fixo à direita (§5.7): gerir pedidos sem perder de vista
-                // a lista é o padrão dos painéis de gestão.
-                <div className="mt-3 lg:grid lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-start lg:gap-4">
-                  <div className="flex flex-col gap-3">
-                    {orders.map((order) => (
-                      <OrderCard
-                        key={order.id}
-                        order={order}
-                        selected={isWide && selected?.id === order.id}
-                        onView={() => openOrder(order)}
-                        {...statusActions(order)}
-                        pending={updateStatus.isPending}
-                      />
-                    ))}
-                  </div>
-
-                  <aside className="hidden lg:sticky lg:top-4 lg:block">
-                    {selected ? (
-                      <Card>
-                        <CardContent className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto p-4">
-                          <div className="flex items-center justify-between gap-2">
-                            <div>
-                              <p className="text-title">#{selected.order_number}</p>
-                              <p className="text-caption text-muted-foreground">
-                                {new Date(selected.created_at).toLocaleString()}
-                              </p>
-                            </div>
-                            <StatusBadge status={selected.status} />
-                          </div>
-                          {detailFor(selected)}
-                          <OrderActions {...statusActions(selected)} pending={updateStatus.isPending} />
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <Card>
-                        <CardContent className="flex flex-col items-center px-6 py-12 text-center">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                            <MessageSquare className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
-                          </div>
-                          <p className="mt-4 text-body text-muted-foreground">
-                            {t("orderManagement.selectOrder")}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </aside>
+                // Uma coluna. Em ecrã largo os cartões continuam compactos e
+                // repartem-se por colunas, para o espaço não ficar vazio — mas
+                // sem painel de detalhe fixo ao lado: o detalhe é sempre modal,
+                // igual em telemóvel e em computador.
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {orders.map((order) => (
+                    <OrderCard key={order.id} order={order} onOpen={() => openOrder(order)} />
+                  ))}
                 </div>
               )}
             </TabsContent>
@@ -347,9 +314,12 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
         })}
       </Tabs>
 
-      {/* Detalhe em diálogo — só em telemóvel; em ecrã largo vive no painel. */}
-      <Dialog open={detailOpen && !isWide} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto">
+      {/* Detalhe completo em diálogo, em qualquer tamanho de ecrã. */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        {/* [&>*]:min-w-0 — o DialogContent do shadcn e' uma grelha, e os filhos com
+            min-width:auto faziam a faixa crescer ate' ao conteudo mais largo (o
+            leitor de audio), empurrando tudo para fora do ecra em telemovel. */}
+        <DialogContent className="max-h-[85vh] w-[calc(100vw-2rem)] max-w-md overflow-y-auto [&>*]:min-w-0 sm:w-full sm:max-w-lg">
           {selected && (
             <>
               <DialogHeader>
@@ -427,38 +397,16 @@ const OrderActions = ({
   podeCancelar,
   agir,
   pending,
-  onView,
 }: {
   avancar?: string;
   podeCancelar: boolean;
   agir: (status: string) => void;
   pending: boolean;
-  onView?: () => void;
 }) => {
   const { t } = useTranslation();
-  const secundarias = [onView, podeCancelar].filter(Boolean).length;
 
   return (
     <div className="w-full space-y-2">
-      {secundarias > 0 && (
-        <div className="flex gap-2">
-          {onView && (
-            <Button variant="outline" onClick={onView} className="h-11 flex-1 text-body">
-              {t("common.view")}
-            </Button>
-          )}
-          {podeCancelar && (
-            <Button
-              variant="ghost"
-              onClick={() => agir("cancelado")}
-              disabled={pending}
-              className="h-11 flex-1 text-body text-destructive hover:text-destructive"
-            >
-              {t("common.cancel")}
-            </Button>
-          )}
-        </div>
-      )}
       {avancar && (
         <Button
           onClick={() => agir(avancar)}
@@ -466,6 +414,16 @@ const OrderActions = ({
           className="h-14 w-full text-body font-semibold"
         >
           {t(`orderManagement.advanceTo.${avancar}`, t(`orderStatus.${avancar}`, avancar))}
+        </Button>
+      )}
+      {podeCancelar && (
+        <Button
+          variant="ghost"
+          onClick={() => agir("cancelado")}
+          disabled={pending}
+          className="h-11 w-full text-body text-destructive hover:text-destructive"
+        >
+          {t("common.cancel")}
         </Button>
       )}
     </div>
@@ -486,90 +444,59 @@ const OrderCardSkeleton = () => (
   </Card>
 );
 
-const OrderCard = ({
-  order,
-  selected,
-  onView,
-  avancar,
-  podeCancelar,
-  agir,
-  pending,
-}: {
-  order: Order;
-  selected: boolean;
-  onView: () => void;
-  avancar?: string;
-  podeCancelar: boolean;
-  agir: (status: string) => void;
-  pending: boolean;
-}) => {
+/**
+ * Cartão da lista. Só o que serve para decidir se vale a pena abrir — sem
+ * botões de acção: essas vivem todas dentro do modal de detalhe.
+ */
+const OrderCard = ({ order, onOpen }: { order: Order; onOpen: () => void }) => {
   const { t } = useTranslation();
 
+  const consumo = t(CONSUMPTION_LABEL_KEYS[order.consumption_option] ?? "", order.consumption_option);
+  const resumo =
+    order.items.length === 1
+      ? `${order.items[0].name} x${order.items[0].qty}`
+      : t("orderManagement.itemCount", { count: order.items.length });
+
   return (
-    <Card className={cn("shadow-soft transition-colors", selected && "border-primary bg-primary-light")}>
-      <CardContent className="space-y-3 p-4">
-        {/* Número, hora e total: o que se lê primeiro, de longe. */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-title">#{order.order_number}</p>
-            <p className="text-caption text-muted-foreground">{hora(order.created_at)}</p>
-          </div>
-          <p className="shrink-0 text-price text-primary">{formatCFA(order.total)}</p>
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full flex-col items-stretch justify-start rounded-lg border bg-card p-4 text-left shadow-soft transition-all hover:shadow-elevated active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-title">#{order.order_number}</p>
+          <p className="text-caption text-muted-foreground">{hora(order.created_at)}</p>
         </div>
+        <p className="shrink-0 text-price text-primary">{formatCFA(order.total)}</p>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={order.status} />
-          <span className="rounded-full bg-muted px-2.5 py-1 text-caption text-muted-foreground">
-            {CONSUMPTION_LABELS[order.consumption_option] ?? order.consumption_option}
-          </span>
-          {order.payment_method === "online" && <PaymentBadge status={order.payment_status} />}
-        </div>
+      <div className="mt-2">
+        <StatusBadge status={order.status} />
+      </div>
 
-        {/* Itens em texto — é gestão, não venda: sem fotografias (§9). */}
-        <p className="text-body text-muted-foreground">
-          {order.items.map((i) => `${i.name} x${i.qty}`).join(", ")}
-        </p>
+      {/* Cliente e tipo de consumo: informação, não estado — sem badge próprio,
+          para não competir com o único badge que indica o estado do pedido. */}
+      <p className="mt-2 truncate text-body">
+        {order.customer_name}
+        <span className="text-muted-foreground"> · {consumo}</span>
+      </p>
 
-        {/* Cliente e telefone. O botão de ligar está sempre à vista, nunca
-            escondido num menu: com as mãos ocupadas na cozinha, procurá-lo
-            custa mais do que o espaço que ocupa. */}
-        <div className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
-          <div className="min-w-0">
-            <p className="truncate text-body font-medium">{order.customer_name}</p>
-            {order.bairro && (
-              <p className="flex items-center gap-1 text-caption text-muted-foreground">
-                <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{order.bairro}</span>
-              </p>
-            )}
-          </div>
-          {order.customer_phone && (
-            <a
-              href={`tel:${order.customer_phone.replace(/\s/g, "")}`}
-              aria-label={t("orderManagement.callCustomer", { name: order.customer_name ?? "" })}
-              className="shrink-0"
-            >
-              <Button variant="outline" className="h-12 gap-2 bg-card px-4">
-                <Phone className="h-5 w-5" />
-                {t("common.call")}
-              </Button>
-            </a>
+      <p className="mt-0.5 truncate text-caption text-muted-foreground">{resumo}</p>
+
+      {/* Pagamento online: discreto. Ícone e texto curto, nunca só a cor (§3). */}
+      {order.payment_method === "online" && (
+        <p
+          className={cn(
+            "mt-2 flex items-center gap-1.5 text-caption",
+            TONE_STRONG[paymentStatusTone(order.payment_status)]
           )}
-        </div>
-
-        {order.voice_note_url && (
-          <VoiceNote url={order.voice_note_url} customerName={order.customer_name} />
-        )}
-
-        <OrderActions
-          onView={onView}
-          avancar={avancar}
-          podeCancelar={podeCancelar}
-          agir={agir}
-          pending={pending}
-        />
-      </CardContent>
-    </Card>
+        >
+          <CreditCard className="h-4 w-4 shrink-0" aria-hidden="true" />
+          {t(`orderManagement.paymentShort_${order.payment_status}`, order.payment_status ?? "")}
+        </p>
+      )}
+    </button>
   );
 };
 
@@ -590,7 +517,7 @@ const OrderDetail = ({
   return (
     <div className="space-y-3">
       <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-caption">
-        {CONSUMPTION_LABELS[order.consumption_option] ?? order.consumption_option}
+        {t(CONSUMPTION_LABEL_KEYS[order.consumption_option] ?? "", order.consumption_option)}
       </span>
 
       <div>
@@ -604,25 +531,25 @@ const OrderDetail = ({
             <Truck className="h-4 w-4" aria-hidden="true" /> {t("orderManagement.deliveryInfo")}
           </p>
           {order.customer_phone && (
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center justify-between gap-2">
               <a href={`tel:${order.customer_phone.replace(/\s/g, "")}`} className="flex min-w-0 items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-progress-foreground" aria-hidden="true" />
                 <span className="truncate text-body font-bold">{order.customer_phone}</span>
               </a>
-              <CopyButton text={order.customer_phone} />
+              <CopyButton text={order.customer_phone} label={t("common.copy")} />
             </div>
           )}
           {order.bairro && (
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-2">
                 <MapPin className="h-4 w-4 shrink-0 text-progress-foreground" aria-hidden="true" />
                 <span className="truncate text-body font-semibold">{order.bairro}</span>
               </div>
-              <CopyButton text={order.bairro} />
+              <CopyButton text={order.bairro} label={t("common.copy")} />
             </div>
           )}
           {order.address && (
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-start justify-between gap-2">
               <div className="flex min-w-0 items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-progress-foreground" aria-hidden="true" />
                 <span className="break-words text-caption text-muted-foreground">{order.address}</span>
@@ -706,7 +633,9 @@ const OrderDetail = ({
             </button>
           )}
           {order.payment_status === "pendente" && (
-            <div className="flex gap-2">
+            // Empilhados em ecrã estreito: os rótulos são longos e os botões têm
+            // whitespace-nowrap, por isso lado a lado não encolhiam e saíam fora.
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 className="h-12 flex-1 gap-1.5 text-caption"
                 onClick={() => onValidatePayment("validado")}

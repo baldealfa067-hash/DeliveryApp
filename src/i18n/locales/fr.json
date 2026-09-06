@@ -1190,6 +1190,10 @@
     "cancelado": "Annulée"
   },
   "orderManagement": {
+    "itemCount": "{{count}} articles",
+    "paymentShort_pendente": "À valider",
+    "paymentShort_validado": "Payé",
+    "paymentShort_rejeitado": "Rejeté",
     "tab": {
       "novo": "Nouvelles",
       "confirmado": "Confirmées",
@@ -1208,7 +1212,6 @@
       "pedido_recolhido": "Marquer comme récupérée",
       "a_caminho": "Marquer en route"
     },
-    "selectOrder": "Choisis une commande dans la liste pour voir les détails.",
     "callCustomer": "Appeler {{name}}",
     "empty": {
       "novo": "Aucune nouvelle commande pour le moment.",

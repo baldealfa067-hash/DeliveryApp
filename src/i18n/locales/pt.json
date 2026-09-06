@@ -1193,6 +1193,10 @@
     "cancelado": "Cancelado"
   },
   "orderManagement": {
+    "itemCount": "{{count}} itens",
+    "paymentShort_pendente": "Por validar",
+    "paymentShort_validado": "Pago",
+    "paymentShort_rejeitado": "Rejeitado",
     "tab": {
       "novo": "Novos",
       "confirmado": "Confirmados",
@@ -1211,7 +1215,6 @@
       "pedido_recolhido": "Marcar como recolhido",
       "a_caminho": "Marcar como a caminho"
     },
-    "selectOrder": "Escolhe um pedido da lista para veres os detalhes.",
     "callCustomer": "Ligar a {{name}}",
     "empty": {
       "novo": "Sem pedidos novos de momento.",
