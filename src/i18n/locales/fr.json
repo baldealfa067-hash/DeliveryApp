@@ -772,7 +772,8 @@
     "rejectPayment": "Rejeter Paiement Commission",
     "rejectReason": "Indiquez une raison brève du rejet",
     "rejectionReason": "Raison du rejet",
-    "rejectionPlaceholder": "ex: Justificatif invalide, montant incorrect..."
+    "rejectionPlaceholder": "ex: Justificatif invalide, montant incorrect...",
+    "reasonRequired": "Veuillez fournir la raison du rejet"
   },
   "currentAccount": {
     "totalSales": "Total Vendu",

@@ -775,7 +775,8 @@
     "rejectPayment": "Rejeitar Pagamento de Comissão",
     "rejectReason": "Escreva um motivo curto para a rejeição",
     "rejectionReason": "Motivo da rejeição",
-    "rejectionPlaceholder": "ex: Comprovativo inválido, valor incorreto..."
+    "rejectionPlaceholder": "ex: Comprovativo inválido, valor incorreto...",
+    "reasonRequired": "Indique o motivo da rejeição"
   },
   "currentAccount": {
     "totalSales": "Total Vendido",

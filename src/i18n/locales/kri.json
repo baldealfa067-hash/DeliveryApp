@@ -516,7 +516,8 @@
     "rejectPayment": "Rejeita Pagamentu di Komison",
     "rejectReason": "Diba razón kurta pur rejisyon",
     "rejectionReason": "Razón di rejisyon",
-    "rejectionPlaceholder": "ex: Komprovativu invalidu, valor inkorretu..."
+    "rejectionPlaceholder": "ex: Komprovativu invalidu, valor inkorretu...",
+    "reasonRequired": "Plis diba razón di rejisyon"
   },
   "currentAccount": {
     "totalSales": "Total Vendidu",

@@ -1325,6 +1325,10 @@ const AdminDashboard = () => {
               onChange: setCommRejectReason,
             }}
             onConfirm={() => {
+              if (!commRejectReason.trim()) {
+                toast.error(t("commission.reasonRequired"));
+                return;
+              }
               if (commPaymentToReject) {
                 validateCommission.mutate({ id: commPaymentToReject, status: "rejeitado", reason: commRejectReason });
                 setCommPaymentToReject(null);

@@ -5,10 +5,42 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCFA } from "@/lib/format";
 import { useBusinessCommission, useCommissionPayments } from "@/hooks/useCommission";
-import { useBusinessSalesStats } from "@/hooks/useBusinessSales";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Calendar } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+
+const COMPLETE_ORDER_STATUSES = ["pronto", "aguardando_motorista", "motorista_encontrado", "pedido_recolhido", "a_caminho", "entregue", "concluido"] as const;
+
+const getPeriodDateRange = (period: "this_month" | "last_month" | "this_year" | "all"): Date => {
+  const now = new Date();
+  switch (period) {
+    case "this_month":
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    case "last_month":
+      return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    case "this_year":
+      return new Date(now.getFullYear(), 0, 1);
+    case "all":
+      return new Date("2000-01-01");
+  }
+};
+
+const isInPeriod = (date: Date, period: "this_month" | "last_month" | "this_year" | "all"): boolean => {
+  const checkDate = new Date(date);
+  const now = new Date();
+  switch (period) {
+    case "this_month":
+      return checkDate.getFullYear() === now.getFullYear() && checkDate.getMonth() === now.getMonth();
+    case "last_month": {
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+      return checkDate.getFullYear() === lastMonth.getFullYear() && checkDate.getMonth() === lastMonth.getMonth();
+    }
+    case "this_year":
+      return checkDate.getFullYear() === now.getFullYear();
+    case "all":
+      return true;
+  }
+};
 
 type PeriodFilter = "this_month" | "last_month" | "this_year" | "all";
 
@@ -34,29 +66,12 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
 
   const { data: commission } = useBusinessCommission(businessId);
   const { data: commissionPayments = [] } = useCommissionPayments(businessId);
-  const { data: salesStats } = useBusinessSalesStats(businessId);
 
   // Fetch orders to calculate movement history
   const { data: orders = [] } = useQuery({
     queryKey: ["business-orders-history", businessId, periodFilter],
     queryFn: async () => {
-      const now = new Date();
-      let startDate: Date;
-
-      switch (periodFilter) {
-        case "this_month":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case "last_month":
-          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          break;
-        case "this_year":
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-        case "all":
-          startDate = new Date("2000-01-01");
-          break;
-      }
+      const startDate = getPeriodDateRange(periodFilter);
 
       const { data, error } = await supabase
         .from("orders")
@@ -75,28 +90,7 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
 
     // Add commission payment movements
     commissionPayments.forEach((cp) => {
-      const filterDate = new Date(cp.created_at);
-      const now = new Date();
-      let include = false;
-
-      switch (periodFilter) {
-        case "this_month":
-          include = filterDate.getFullYear() === now.getFullYear() && filterDate.getMonth() === now.getMonth();
-          break;
-        case "last_month": {
-          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-          include = filterDate.getFullYear() === lastMonth.getFullYear() && filterDate.getMonth() === lastMonth.getMonth();
-          break;
-        }
-        case "this_year":
-          include = filterDate.getFullYear() === now.getFullYear();
-          break;
-        case "all":
-          include = true;
-          break;
-      }
-
-      if (include) {
+      if (isInPeriod(new Date(cp.created_at), periodFilter)) {
         items.push({
           id: `payment-${cp.id}`,
           date: cp.created_at,
@@ -112,7 +106,7 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
 
     // Add order movements (sales)
     orders.forEach((order) => {
-      if (["pronto", "aguardando_motorista", "motorista_encontrado", "pedido_recolhido", "a_caminho", "entregue", "concluido"].includes(order.status)) {
+      if (COMPLETE_ORDER_STATUSES.includes(order.status as any)) {
         items.push({
           id: `order-${order.id}`,
           date: order.created_at,
@@ -130,31 +124,10 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
     if (!commission) return null;
 
     // For filtered view, recalculate based on filtered orders
-    const filteredSalesTotal = orders.filter((o) => ["pronto", "aguardando_motorista", "motorista_encontrado", "pedido_recolhido", "a_caminho", "entregue", "concluido"].includes(o.status)).reduce((sum, o) => sum + o.total, 0);
+    const filteredSalesTotal = orders.filter((o) => COMPLETE_ORDER_STATUSES.includes(o.status as any)).reduce((sum, o) => sum + o.total, 0);
 
     const commissionDue = Math.round(filteredSalesTotal * commission.commission_rate / 100);
-    const paidFiltered = commissionPayments.filter((cp) => {
-      const cpDate = new Date(cp.created_at);
-      const now = new Date();
-      let include = false;
-      switch (periodFilter) {
-        case "this_month":
-          include = cpDate.getFullYear() === now.getFullYear() && cpDate.getMonth() === now.getMonth();
-          break;
-        case "last_month": {
-          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-          include = cpDate.getFullYear() === lastMonth.getFullYear() && cpDate.getMonth() === lastMonth.getMonth();
-          break;
-        }
-        case "this_year":
-          include = cpDate.getFullYear() === now.getFullYear();
-          break;
-        case "all":
-          include = true;
-          break;
-      }
-      return include && cp.status === "validado";
-    }).reduce((sum, cp) => sum + cp.amount, 0);
+    const paidFiltered = commissionPayments.filter((cp) => isInPeriod(new Date(cp.created_at), periodFilter) && cp.status === "validado").reduce((sum, cp) => sum + cp.amount, 0);
 
     return {
       ...commission,

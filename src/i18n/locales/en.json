@@ -772,7 +772,8 @@
     "rejectPayment": "Reject Commission Payment",
     "rejectReason": "Provide a brief reason for the rejection",
     "rejectionReason": "Reason for rejection",
-    "rejectionPlaceholder": "e.g. Invalid proof, incorrect amount..."
+    "rejectionPlaceholder": "e.g. Invalid proof, incorrect amount...",
+    "reasonRequired": "Please provide the reason for rejection"
   },
   "currentAccount": {
     "totalSales": "Total Sales",
