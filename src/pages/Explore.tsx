@@ -6,7 +6,7 @@ import { Search, MapPin, SearchX, WifiOff } from "lucide-react";
 import { RestaurantCard } from "@/components/RestaurantCard";
 import { RestaurantCardSkeleton } from "@/components/RestaurantCardSkeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { CategoryChips, type ChipCategory } from "@/components/CategoryChips";
+import { CategoryGrid, type GridCategory } from "@/components/CategoryGrid";
 import { Pagination } from "@/components/Pagination";
 import { useProviders, useBusinessCategories } from "@/hooks/useProviders";
 import { useBairros } from "@/hooks/useBairros";
@@ -40,7 +40,15 @@ const Explore = () => {
   const bairroOptions = bairros.length ? [BAIRROS_FILTER[0], ...bairros] : BAIRROS_FILTER;
   const displayBairro = (loc: string) => (loc === BAIRROS_FILTER[0] ? t("common.allNeighborhoods") : loc);
 
-  const categories = businessCategories as ChipCategory[];
+  const categories = businessCategories as GridCategory[];
+
+  // Quantos restaurantes tem cada categoria. Serve para pôr as mais usadas à
+  // frente na grelha — sem filtros aplicados, para a ordem não dançar enquanto
+  // se pesquisa. É o total real, não uma estimativa.
+  const categoryCounts = providers.reduce<Record<string, number>>((acc, p) => {
+    acc[p.category] = (acc[p.category] ?? 0) + 1;
+    return acc;
+  }, {});
 
   // Sync q param to search state on mount
   useEffect(() => {
@@ -117,7 +125,12 @@ const Explore = () => {
 
       {categories.length > 0 && (
         <div className="mb-4">
-          <CategoryChips categories={categories} active={activeCategory} onChange={setCategory} />
+          <CategoryGrid
+            categories={categories}
+            active={activeCategory}
+            onChange={setCategory}
+            counts={categoryCounts}
+          />
         </div>
       )}
 

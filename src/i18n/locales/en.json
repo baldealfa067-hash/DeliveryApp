@@ -1,5 +1,6 @@
 {
   "common": {
+    "seeAll": "See all",
     "minutesShort": "{{minutes}} min",
     "tryAgain": "Try again",
     "searchPlaceholder": "Search by name, category or location...",

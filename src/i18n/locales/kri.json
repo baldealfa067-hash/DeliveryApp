@@ -1,5 +1,6 @@
 {
   "common": {
+    "seeAll": "Olha tudu",
     "minutesShort": "{{minutes}} min",
     "tryAgain": "Tenta di nobu",
     "searchPlaceholder": "Buska pa nome, kategoria ou lokalizason…",
