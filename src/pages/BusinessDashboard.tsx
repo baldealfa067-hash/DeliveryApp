@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   ShieldX,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,12 +34,11 @@ import { useBusinessSalesStats, useBusinessDailySales } from "@/hooks/useBusines
 import { useBusinessCommission, useCommissionPayments, useCreateCommissionPayment, usePlatformSettings } from "@/hooks/useCommission";
 import { formatCFA } from "@/lib/format";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, Upload, Copy, Check, Loader2, Phone } from "lucide-react";
+import { TrendingUp, Upload, Copy, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useRef, useState } from "react";
+import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
 
 type DashboardProfile = {
   id: string;
@@ -230,6 +230,10 @@ const BusinessDashboard = () => {
               <TabsTrigger value="vendas" className="flex-1 text-sm min-h-10 gap-1.5">
                 <TrendingUp className="h-4 w-4" />
                 {t("businessDashboard.salesTab")}
+              </TabsTrigger>
+              <TabsTrigger value="conta" className="flex-1 text-sm min-h-10 gap-1.5">
+                <DollarSign className="h-4 w-4" />
+                {t("businessDashboard.accountTab")}
               </TabsTrigger>
               <TabsTrigger value="perfil" className="flex-1 text-sm min-h-10 gap-1.5">
                 <Store className="h-4 w-4" />
@@ -448,6 +452,10 @@ const BusinessDashboard = () => {
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            <TabsContent value="conta" className="mt-0">
+              <BusinessCurrentAccount businessId={profile.id} />
             </TabsContent>
 
             <TabsContent value="perfil" className="mt-0 space-y-4">

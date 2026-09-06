@@ -109,10 +109,11 @@ export const useAllCommissionPayments = () =>
 export const useValidateCommissionPayment = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { id: string; status: "validado" | "rejeitado" }) => {
+    mutationFn: async (params: { id: string; status: "validado" | "rejeitado"; reason?: string }) => {
       const { error } = await supabase.rpc("validate_commission_payment", {
         p_id: params.id,
         p_status: params.status,
+        p_note: params.status === "rejeitado" ? params.reason : null,
       });
       if (error) throw error;
     },

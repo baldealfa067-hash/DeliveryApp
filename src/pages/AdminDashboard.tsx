@@ -195,6 +195,8 @@ const AdminDashboard = () => {
   const [editPlatformCode, setEditPlatformCode] = useState("");
   const [editPlatformNumber, setEditPlatformNumber] = useState("");
   const [commSettingsLoaded, setCommSettingsLoaded] = useState(false);
+  const [commPaymentToReject, setCommPaymentToReject] = useState<string | null>(null);
+  const [commRejectReason, setCommRejectReason] = useState("");
 
   useEffect(() => {
     if (loading) return;
@@ -1284,7 +1286,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="destructive"
                               className="flex-1 gap-1"
-                              onClick={() => validateCommission.mutate({ id: cp.id, status: "rejeitado" })}
+                              onClick={() => setCommPaymentToReject(cp.id)}
                               disabled={validateCommission.isPending}
                             >
                               <X className="h-3.5 w-3.5" /> {t("commission.reject")}
@@ -1307,6 +1309,29 @@ const AdminDashboard = () => {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Commission rejection reason dialog */}
+          <ConfirmDialog
+            open={commPaymentToReject !== null}
+            onOpenChange={(o) => { if (!o) { setCommPaymentToReject(null); setCommRejectReason(""); } }}
+            title={t("commission.rejectPayment")}
+            description={t("commission.rejectReason")}
+            confirmLabel={t("commission.reject")}
+            destructive
+            input={{
+              label: t("commission.rejectionReason"),
+              placeholder: t("commission.rejectionPlaceholder"),
+              value: commRejectReason,
+              onChange: setCommRejectReason,
+            }}
+            onConfirm={() => {
+              if (commPaymentToReject) {
+                validateCommission.mutate({ id: commPaymentToReject, status: "rejeitado", reason: commRejectReason });
+                setCommPaymentToReject(null);
+                setCommRejectReason("");
+              }
+            }}
+          />
 
           {menu === "settings" && (
             <div className="flex flex-col gap-4 max-w-lg">
