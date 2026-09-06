@@ -76,6 +76,7 @@ const BusinessDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const cartRef = useRef<HTMLDivElement | null>(null);
+  const [typing, setTyping] = useState(false);
   const [consumptionOption, setConsumptionOption] = useState("");
   const [bairro, setBairro] = useState("");
   const [referencePoint, setReferencePoint] = useState("");
@@ -143,6 +144,24 @@ const BusinessDetail = () => {
     }
   }, [recorder.state, recorder.duration]);
 
+
+  // A barra desaparece enquanto se escreve. O padding do fim da pagina resolve o
+  // fim do scroll, mas a meio a barra passava por cima da caixa "Deixe a sua
+  // avaliacao" e do formulario do pedido — e em telemovel o teclado ainda encolhe
+  // o ecra e agrava isto. Volta assim que o campo perde o foco.
+  useEffect(() => {
+    const isField = (el: EventTarget | null) =>
+      el instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(el.tagName);
+    const onFocus = (e: FocusEvent) => { if (isField(e.target)) setTyping(true); };
+    const onBlur = (e: FocusEvent) => { if (isField(e.target)) setTyping(false); };
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onBlur);
+    return () => {
+      document.removeEventListener("focusin", onFocus);
+      document.removeEventListener("focusout", onBlur);
+    };
+  }, []);
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen text-muted-foreground">{t("businessDetail.loading")}</div>;
   }
@@ -166,6 +185,9 @@ const BusinessDetail = () => {
   const cartItems = menuItems.filter((i) => (cart[i.id] ?? 0) > 0);
   const cartTotal = cartItems.reduce((sum, i) => sum + i.price * (cart[i.id] ?? 0), 0);
   const cartCount = cartItems.reduce((sum, i) => sum + (cart[i.id] ?? 0), 0);
+
+
+  const showCartBar = cartItems.length > 0 && !typing;
 
   const trackContact = (type: "call" | "whatsapp") => {
     if (!id) return;
@@ -397,8 +419,11 @@ const BusinessDetail = () => {
     }
   };
 
+  // pb-[8.5rem] enquanto a barra esta' visivel: navegacao inferior (4rem) +
+  // altura da barra (3.5rem) + 1rem de margem, para nada ficar escondido por
+  // baixo dela no fim do scroll sem depender do padding do Layout.
   return (
-    <div className={cn("max-w-lg mx-auto px-4 pt-6", cartItems.length > 0 && "pb-24")}>
+    <div className={cn("max-w-lg mx-auto px-4 pt-6", showCartBar && "pb-[8.5rem]")}>
       {/* Foto de destaque. Mesmo padrão do RestaurantCard da lista — incluindo a
           máscara verde quando não há foto — para os dois ecrãs se reconhecerem
           um ao outro. É aqui e no item de menu que a fotografia se justifica (§9). */}
@@ -1070,7 +1095,7 @@ const BusinessDetail = () => {
           e' longo (entrega, nota de voz, pagamento) e sem isto era preciso
           descer a pagina toda para saber quanto ja' se gastou.
           Assenta por cima da navegacao inferior (4rem) e do indicador de ecra. */}
-      {cartItems.length > 0 && (
+      {showCartBar && (
         <div
           className="fixed inset-x-0 z-40 px-4"
           style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
