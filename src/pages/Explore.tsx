@@ -1,24 +1,25 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, MapPin, Loader2 } from "lucide-react";
+import { Search, MapPin, SearchX, WifiOff } from "lucide-react";
 import { ProviderCard } from "@/components/ProviderCard";
+import { ProviderCardSkeleton } from "@/components/ProviderCardSkeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { CategoryChips, type ChipCategory } from "@/components/CategoryChips";
 import { Pagination } from "@/components/Pagination";
 import { useProviders, useBusinessCategories } from "@/hooks/useProviders";
 import { useBairros } from "@/hooks/useBairros";
 import { BAIRROS_FILTER } from "@/lib/locations";
 import { getPageCount, paginateArray } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
-import { getCategoryName } from "@/lib/categoryI18n";
 
 const PAGE_SIZE = 10;
 
 type SectionKey = "lojas";
 
 const Explore = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const SECTIONS = [
     { key: "lojas" as const, label: t("explore.shopsTitle"), short: t("explore.shopsShort") },
   ] as const;
@@ -33,13 +34,13 @@ const Explore = () => {
   const [location, setLocation] = useState(BAIRROS_FILTER[0]);
   const [page, setPage] = useState(1);
 
-  const { data: providers = [], isLoading: loadingProviders, error: providersError } = useProviders("business");
+  const { data: providers = [], isLoading: loadingProviders, error: providersError, refetch } = useProviders("business");
   const { data: businessCategories = [] } = useBusinessCategories();
   const { data: bairros = [] } = useBairros();
   const bairroOptions = bairros.length ? [BAIRROS_FILTER[0], ...bairros] : BAIRROS_FILTER;
   const displayBairro = (loc: string) => (loc === BAIRROS_FILTER[0] ? t("common.allNeighborhoods") : loc);
 
-  const categories = businessCategories;
+  const categories = businessCategories as ChipCategory[];
 
   // Sync q param to search state on mount
   useEffect(() => {
@@ -51,18 +52,20 @@ const Explore = () => {
     setPage(1);
   }, [search, location, activeCategory, section]);
 
-  const goSection = (key: SectionKey) => {
-    const params: Record<string, string> = { tipo: key };
-    if (search) params.q = search;
-    setSearchParams(params);
-  };
-
   const setCategory = (cat: string) => {
     const params: Record<string, string> = { tipo: section };
     if (cat) params.categoria = cat;
     if (search) params.q = search;
     setSearchParams(params);
   };
+
+  const clearFilters = () => {
+    setSearch("");
+    setLocation(BAIRROS_FILTER[0]);
+    setSearchParams({ tipo: section });
+  };
+
+  const hasFilters = Boolean(search || activeCategory) || location !== BAIRROS_FILTER[0];
 
   const current = SECTIONS.find((s) => s.key === section)!;
 
@@ -83,26 +86,25 @@ const Explore = () => {
   const paginated = paginateArray(filtered, page, PAGE_SIZE);
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6">
-      <h1 className="text-xl font-bold mb-3">{current.label}</h1>
-
-      {/* Título único - só restaurantes (Yango/Glovo style) */}
+    <div className="mx-auto max-w-lg px-4 pt-6 sm:px-6">
+      <h1 className="mb-4 text-display">{current.label}</h1>
 
       <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
         <Input
           placeholder={t("common.searchPlaceholder")}
+          aria-label={t("common.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 bg-card"
+          className="h-12 rounded-full bg-card pl-12 text-body"
         />
       </div>
 
-      {/* Location filter */}
-      <div className="flex items-center gap-2 mb-4">
-        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+      {/* Filtro de bairro */}
+      <div className="mb-4 flex items-center gap-2">
+        <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <Select value={location} onValueChange={setLocation}>
-          <SelectTrigger className="h-9 text-sm bg-card">
+          <SelectTrigger className="h-12 bg-card text-body" aria-label={t("common.location")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -114,44 +116,32 @@ const Explore = () => {
       </div>
 
       {categories.length > 0 && (
-        <div className="flex gap-2 flex-wrap mb-4">
-          <Badge
-            variant={!activeCategory ? "default" : "outline"}
-            className="cursor-pointer px-3 py-1"
-            onClick={() => setCategory("")}
-          >
-            {t("common.all")}
-          </Badge>
-          {categories.map((cat) => {
-            const ptName = (cat as unknown as string) as string | null ?? (cat as { name: string }).name;
-            // cat may be object {name, name_en, name_fr}
-            const catObj = typeof cat === "string" ? { id: cat, name: cat, name_en: null, name_fr: null } : cat as { id: string; name: string; name_en: string | null; name_fr: string | null };
-            const display = getCategoryName(catObj, i18n.language);
-            const value = catObj.name;
-            return (
-              <Badge
-                key={catObj.id ?? value}
-                variant={activeCategory === value ? "default" : "outline"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setCategory(value)}
-              >
-                {display}
-              </Badge>
-            );
-          })}
+        <div className="mb-4">
+          <CategoryChips categories={categories} active={activeCategory} onChange={setCategory} />
         </div>
       )}
 
       {loadingProviders ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <ProviderCardSkeleton key={i} />
+          ))}
         </div>
       ) : providersError ? (
-        <p className="text-center text-destructive py-12 text-sm">{t("common.errorLoading")}</p>
+        <EmptyState
+          icon={WifiOff}
+          tone="problem"
+          title={t("explore.errorTitle")}
+          description={t("explore.errorHint")}
+          action={{ label: t("common.tryAgain"), onClick: () => refetch() }}
+        />
       ) : filtered.length === 0 ? (
-        <p className="text-center text-muted-foreground py-12 text-sm">
-          {t("common.noResults")}
-        </p>
+        <EmptyState
+          icon={SearchX}
+          title={t("explore.emptyTitle")}
+          description={t("explore.emptyHint")}
+          action={hasFilters ? { label: t("explore.clearFilters"), onClick: clearFilters } : undefined}
+        />
       ) : (
         <>
           <div className="flex flex-col gap-3">

@@ -1,5 +1,6 @@
 {
   "common": {
+    "tryAgain": "Tenta di nobu",
     "searchPlaceholder": "Buska pa nome, kategoria ou lokalizason…",
     "all": "Todus",
     "allNeighborhoods": "Buska bairo..",
@@ -137,6 +138,11 @@
     "locationLabel": "Bissau, Gine-Bisau"
   },
   "explore": {
+    "emptyTitle": "Ka kuskutra nada",
+    "emptyHint": "Tenta buska otu kusa, muda di bairo ou skolhe otu kategoria.",
+    "clearFilters": "Limpa filtrus",
+    "errorTitle": "Ka pudi karrega",
+    "errorHint": "Kunfiri bu ligason di internet i tenta di nobu.",
     "providersTitle": "Prestaduris di Servisu",
     "shopsTitle": "Restorantis",
     "providersShort": "Servisus",

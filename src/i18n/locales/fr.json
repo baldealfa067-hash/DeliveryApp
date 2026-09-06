@@ -1,5 +1,6 @@
 {
   "common": {
+    "tryAgain": "Réessayer",
     "searchPlaceholder": "Rechercher par nom, catégorie ou localisation...",
     "all": "Toutes",
     "allNeighborhoods": "Tous les quartiers",
@@ -142,6 +143,11 @@
     "locationLabel": "Bissau, Guinée-Bissau"
   },
   "explore": {
+    "emptyTitle": "Aucun résultat",
+    "emptyHint": "Essaie une autre recherche, change de quartier ou choisis une autre catégorie.",
+    "clearFilters": "Effacer les filtres",
+    "errorTitle": "Chargement impossible",
+    "errorHint": "Vérifie ta connexion internet et réessaie.",
     "providersTitle": "Prestataires de services",
     "shopsTitle": "Restaurants",
     "providersShort": "Services",

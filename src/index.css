@@ -144,3 +144,20 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+@layer utilities {
+  /* Scroll horizontal sem barra visível — chips de categoria (§5.3) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* A navegação inferior já usava esta classe, mas ela nunca chegou a existir:
+     a barra ficava por baixo do indicador de ecrã em telemóveis com entalhe. */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

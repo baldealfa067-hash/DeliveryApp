@@ -1,9 +1,6 @@
 import { Link } from "react-router-dom";
-import { MapPin, MessageCircle, Phone, BadgeCheck } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { StarRating } from "./StarRating";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { MapPin, MessageCircle, Phone, BadgeCheck, Star } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCFA } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +25,7 @@ interface ProviderCardProps {
 }
 
 export const ProviderCard = ({
-  id, name, category, location, phone, photo_url, price_type, starting_price, services, is_verified, profile_type, avgRating, reviewCount
+  id, name, category, location, phone, photo_url, price_type, starting_price, services, is_verified, avgRating, reviewCount
 }: ProviderCardProps) => {
   const { t, i18n } = useTranslation();
   const { data: businessCats = [] } = useBusinessCategories();
@@ -45,85 +42,105 @@ export const ProviderCard = ({
     });
   };
 
+  const priceLabel =
+    price_type === "fixo" && starting_price != null ? formatCFA(starting_price)
+    : price_type === "negociavel" ? t("common.negotiable")
+    : price_type === "combinar" ? t("common.toCombine")
+    : null;
+
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow border-border/60">
-      <CardContent className="p-4 flex gap-3 items-center">
-        <Link to={detailUrl} className="flex gap-3 items-center flex-1 min-w-0">
-          <Avatar className="h-14 w-14 rounded-lg">
-            {photo_url ? (
-              <AvatarImage src={photo_url} alt={name} className="object-cover" />
-            ) : null}
-            <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-semibold text-lg">
-              {name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground flex items-center gap-1 min-w-0">
-              <span className="truncate">{name}</span>
-              {is_verified && (
-                <BadgeCheck
-                  className="h-4 w-4 text-primary shrink-0"
-                  aria-label={t("providerCardExtra.verifiedLabel")}
-                />
-              )}
-            </h3>
-            <Badge variant="secondary" className="text-[11px] mt-0.5 font-medium">{displayCategory}</Badge>
-            {services && services.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {services.slice(0, 3).map((s) => (
-                  <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {s}
-                  </span>
-                ))}
-                {services.length > 3 && (
-                  <span className="text-[10px] text-muted-foreground">+{services.length - 3}</span>
-                )}
-              </div>
-            )}
-            <div className="flex items-center gap-2 mt-1">
-              <StarRating rating={Math.round(avgRating)} />
-              <span className="text-xs text-muted-foreground">({reviewCount})</span>
-            </div>
-            <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3" />
-              <span className="truncate">{location}</span>
-            </div>
-            {price_type === "fixo" && starting_price != null && (
-              <div className="mt-1 text-xs font-semibold text-primary">
-                {formatCFA(starting_price)}
-              </div>
-            )}
-            {price_type === "negociavel" && (
-              <div className="mt-1 text-xs font-semibold text-primary">
-                {t("common.negotiable")}
-              </div>
-            )}
-            {price_type === "combinar" && (
-              <div className="mt-1 text-xs text-muted-foreground">
-                {t("common.toCombine")}
-              </div>
-            )}
+    <Card className="relative overflow-hidden shadow-soft transition-all duration-200 hover:shadow-elevated active:scale-[0.99]">
+      {/* Foto 16:9. O fundo sólido serve de placeholder enquanto carrega, para o
+          cartão não saltar nem piscar em ligações lentas. */}
+      <div className="aspect-video w-full bg-muted">
+        {photo_url ? (
+          <img
+            src={photo_url}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-primary-light">
+            <span className="text-4xl font-bold text-primary">{name.charAt(0)}</span>
           </div>
-        </Link>
-        <div className="flex flex-col gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+        )}
+      </div>
+
+      <div className="flex items-start gap-3 p-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="flex min-w-0 items-center gap-1 text-title text-foreground">
+            <span className="truncate">{name}</span>
+            {is_verified && (
+              <BadgeCheck
+                className="h-5 w-5 shrink-0 text-primary"
+                aria-label={t("providerCardExtra.verifiedLabel")}
+              />
+            )}
+          </h3>
+
+          <p className="mt-0.5 truncate text-caption text-muted-foreground">{displayCategory}</p>
+
+          <div className="mt-1.5 flex items-center gap-1 text-caption text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">{location}</span>
+          </div>
+
+          {reviewCount > 0 && (
+            <div className="mt-1.5 flex items-center gap-1 text-caption">
+              <Star className="h-4 w-4 shrink-0 fill-secondary text-secondary" aria-hidden="true" />
+              <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
+              <span className="text-muted-foreground">({reviewCount})</span>
+            </div>
+          )}
+
+          {services && services.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {services.slice(0, 2).map((s) => (
+                <span key={s} className="rounded-full bg-muted px-2 py-0.5 text-caption text-muted-foreground">
+                  {s}
+                </span>
+              ))}
+              {services.length > 2 && (
+                <span className="px-1 py-0.5 text-caption text-muted-foreground">+{services.length - 2}</span>
+              )}
+            </div>
+          )}
+
+          {priceLabel && <p className="mt-2 text-price text-primary">{priceLabel}</p>}
+        </div>
+
+        {/* Contactos acima da camada clicável do cartão (z-20 > z-10). */}
+        <div className="relative z-20 flex shrink-0 flex-col gap-2">
           <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={t("providerCard.contactWhatsapp", { name })}
-          onClick={() => trackContact("whatsapp")}
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("providerCard.contactWhatsapp", { name })}
+            onClick={() => trackContact("whatsapp")}
           >
-            <Button size="icon" className="h-10 w-10 bg-[#25D366] hover:bg-[#1ebe57] text-white">
+            <Button size="icon" className="h-12 w-12 bg-[#25D366] text-white hover:bg-[#1ebe57]">
               <MessageCircle className="h-5 w-5" />
             </Button>
           </a>
           <a href={telUrl} aria-label={t("providerCard.call", { name })} onClick={() => trackContact("call")}>
-            <Button size="icon" variant="secondary" className="h-10 w-10">
+            <Button size="icon" variant="secondary" className="h-12 w-12">
               <Phone className="h-5 w-5" />
             </Button>
           </a>
         </div>
-      </CardContent>
+      </div>
+
+      {/* Cartão inteiro clicável: um único link por cima de tudo, para o alvo de
+          toque ser o cartão e não só o nome. */}
+      <Link
+        to={detailUrl}
+        className="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      >
+        <span className="sr-only">{name}</span>
+      </Link>
     </Card>
   );
 };

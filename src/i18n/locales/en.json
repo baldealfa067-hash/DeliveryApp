@@ -1,5 +1,6 @@
 {
   "common": {
+    "tryAgain": "Try again",
     "searchPlaceholder": "Search by name, category or location...",
     "all": "All",
     "allNeighborhoods": "All neighborhoods",
@@ -142,6 +143,11 @@
     "locationLabel": "Bissau, Guinea-Bissau"
   },
   "explore": {
+    "emptyTitle": "Nothing found",
+    "emptyHint": "Try another search, change neighbourhood or pick another category.",
+    "clearFilters": "Clear filters",
+    "errorTitle": "Couldn't load",
+    "errorHint": "Check your internet connection and try again.",
     "providersTitle": "Service Providers",
     "shopsTitle": "Restaurants",
     "providersShort": "Services",

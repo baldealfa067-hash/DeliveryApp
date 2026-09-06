@@ -97,8 +97,11 @@ export default {
         caption: ["0.8125rem", { lineHeight: "1.125rem", fontWeight: "500" }],
         price: ["1.125rem", { lineHeight: "1.5rem", fontWeight: "700" }],
       },
+      // `soft` e não `card`: o Tailwind gera utilities de cor de sombra a partir
+      // das cores do tema, e `shadow-card` colidia com a cor `card` — a sombra
+      // saía pintada de branco e ficava invisível.
       boxShadow: {
-        card: "var(--shadow-card)",
+        soft: "var(--shadow-card)",
         elevated: "var(--shadow-elevated)",
       },
       keyframes: {
