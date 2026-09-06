@@ -1193,6 +1193,35 @@
     "cancelado": "Cancelado"
   },
   "orderManagement": {
+    "tab": {
+      "novo": "Novos",
+      "confirmado": "Confirmados",
+      "em_preparacao": "Preparação",
+      "pronto": "Prontos",
+      "em_entrega": "Entrega",
+      "entregue": "Entregues",
+      "cancelado": "Cancelados"
+    },
+    "advanceTo": {
+      "confirmado": "Confirmar pedido",
+      "em_preparacao": "Começar a preparar",
+      "pronto": "Marcar como pronto",
+      "entregue": "Marcar como entregue",
+      "concluido": "Concluir",
+      "pedido_recolhido": "Marcar como recolhido",
+      "a_caminho": "Marcar como a caminho"
+    },
+    "selectOrder": "Escolhe um pedido da lista para veres os detalhes.",
+    "callCustomer": "Ligar a {{name}}",
+    "empty": {
+      "novo": "Sem pedidos novos de momento.",
+      "confirmado": "Nenhum pedido confirmado à espera.",
+      "em_preparacao": "Nada em preparação agora.",
+      "pronto": "Nenhum pedido pronto a sair.",
+      "em_entrega": "Nenhum pedido a caminho.",
+      "entregue": "Ainda nenhum pedido entregue.",
+      "cancelado": "Nenhum pedido cancelado."
+    },
     "noOrders": "Sem pedidos nesta secção.",
     "customer": "Cliente",
     "notDelivery": "Retirada no local",

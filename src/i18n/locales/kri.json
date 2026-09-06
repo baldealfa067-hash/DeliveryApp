@@ -613,6 +613,35 @@
     "cancelado": "Anuladu"
   },
   "orderManagement": {
+    "tab": {
+      "novo": "Nobus",
+      "confirmado": "Kofirmadus",
+      "em_preparacao": "Preparason",
+      "pronto": "Prontus",
+      "em_entrega": "Entrega",
+      "entregue": "Entreges",
+      "cancelado": "Anuladus"
+    },
+    "advanceTo": {
+      "confirmado": "Kofirma pedidu",
+      "em_preparacao": "Kumsa prepara",
+      "pronto": "Marka suma prontu",
+      "entregue": "Marka suma entregadu",
+      "concluido": "Kaba",
+      "pedido_recolhido": "Marka suma rekolhidu",
+      "a_caminho": "Marka suma na kaminhu"
+    },
+    "selectOrder": "Skolhe un pedidu na lista pa bu odja detalhis.",
+    "callCustomer": "Liga pa {{name}}",
+    "empty": {
+      "novo": "Ka tene pedidu nobu gosi.",
+      "confirmado": "Ka tene pedidu kofirmadu na spera.",
+      "em_preparacao": "Nada na prepara gosi.",
+      "pronto": "Ka tene pedidu prontu pa sai.",
+      "em_entrega": "Ka tene pedidu na kaminhu.",
+      "entregue": "Inda ka entrega nenhun pedidu.",
+      "cancelado": "Ka tene pedidu anuladu."
+    },
     "noOrders": "Nenhum pedidu na esison.",
     "customer": "Klienti",
     "notDelivery": "Tiradi na lokal",

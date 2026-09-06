@@ -1190,6 +1190,35 @@
     "cancelado": "Annulée"
   },
   "orderManagement": {
+    "tab": {
+      "novo": "Nouvelles",
+      "confirmado": "Confirmées",
+      "em_preparacao": "Préparation",
+      "pronto": "Prêtes",
+      "em_entrega": "Livraison",
+      "entregue": "Livrées",
+      "cancelado": "Annulées"
+    },
+    "advanceTo": {
+      "confirmado": "Confirmer la commande",
+      "em_preparacao": "Commencer la préparation",
+      "pronto": "Marquer comme prête",
+      "entregue": "Marquer comme livrée",
+      "concluido": "Terminer",
+      "pedido_recolhido": "Marquer comme récupérée",
+      "a_caminho": "Marquer en route"
+    },
+    "selectOrder": "Choisis une commande dans la liste pour voir les détails.",
+    "callCustomer": "Appeler {{name}}",
+    "empty": {
+      "novo": "Aucune nouvelle commande pour le moment.",
+      "confirmado": "Aucune commande confirmée en attente.",
+      "em_preparacao": "Rien en préparation en ce moment.",
+      "pronto": "Aucune commande prête à partir.",
+      "em_entrega": "Aucune commande en route.",
+      "entregue": "Aucune commande livrée pour l’instant.",
+      "cancelado": "Aucune commande annulée."
+    },
     "noOrders": "Pas de commandes dans cette section.",
     "customer": "Client",
     "notDelivery": "Retrait sur place",
