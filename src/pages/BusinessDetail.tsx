@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, MessageSquare, MessageCircle } from "lucide-react";
+import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -189,10 +189,10 @@ const BusinessDetail = () => {
 
   const showCartBar = cartItems.length > 0 && !typing;
 
-  const trackContact = (type: "call" | "whatsapp") => {
+  const trackCall = () => {
     if (!id) return;
-    supabase.rpc("record_provider_contact", { p_provider_id: id, contact_type: type }).then(({ error }) => {
-      if (error) console.error(`[stats] record ${type} error:`, error.message);
+    supabase.rpc("record_provider_contact", { p_provider_id: id, contact_type: "call" }).then(({ error }) => {
+      if (error) console.error("[stats] record call error:", error.message);
     });
   };
 
@@ -483,7 +483,7 @@ const BusinessDetail = () => {
         </div>
         <div className="flex items-center gap-3 text-body">
           <Phone className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <a href={`tel:${phone.replace(/\s/g, "")}`} className="min-w-0 break-words" onClick={() => trackContact("call")}>
+          <a href={`tel:${phone.replace(/\s/g, "")}`} className="min-w-0 break-words" onClick={() => trackCall()}>
             {phone}
           </a>
         </div>
@@ -840,32 +840,16 @@ const BusinessDetail = () => {
             )}
           </Button>
         )}
-        {/* Telefone e WhatsApp desceram da lista para aqui: são acções
-            secundárias de quem já escolheu o restaurante, não a acção
-            principal de quem está a escolher. */}
-        <div className="grid grid-cols-2 gap-2">
-          {/* outline e nao secondary: --secondary e' ambar, cor que o sistema (§3)
-              reserva para "pendente/a espera". Aqui sao accoes secundarias
-              normais, e o contorno ja' as poe abaixo de "Mensagem". */}
-          <a href={`tel:${phone.replace(/\s/g, "")}`} className="block" onClick={() => trackContact("call")}>
-            <Button variant="outline" className="h-12 w-full gap-2 bg-card">
-              <Phone className="h-5 w-5" />
-              {t("common.call")}
-            </Button>
-          </a>
-          <a
-            href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(t("providerCardExtra.whatsappBusinessMsg", { name }))}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-            onClick={() => trackContact("whatsapp")}
-          >
-            <Button variant="outline" className="h-12 w-full gap-2 bg-card">
-              <MessageCircle className="h-5 w-5" />
-              {t("common.whatsapp")}
-            </Button>
-          </a>
-        </div>
+        {/* Ligar e' accao secundaria de quem ja' escolheu o restaurante, nao a
+            accao principal de quem esta' a escolher. outline e nao secondary:
+            --secondary e' ambar, cor que o sistema (§3) reserva para
+            "pendente/a espera". */}
+        <a href={`tel:${phone.replace(/\s/g, "")}`} className="block" onClick={() => trackCall()}>
+          <Button variant="outline" className="h-12 w-full gap-2 bg-card">
+            <Phone className="h-5 w-5" />
+            {t("common.call")}
+          </Button>
+        </a>
 
         {/* Denunciar e' uma accao rara: link discreto, nao um botao com o mesmo
             peso visual de Mensagem ou Ligar. */}
