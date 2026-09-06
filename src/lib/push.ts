@@ -1,9 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
 import i18n from "@/i18n";
 
-export const VAPID_PUBLIC_KEY =
-  import.meta.env.VITE_VAPID_PUBLIC_KEY ??
+/**
+ * Chave pública VAPID deste projeto. É pública por definição — vive no código de
+ * propósito, para a app funcionar mesmo que a variável de ambiente falte.
+ *
+ * O par correspondente está na edge function push-send. Se esta chave e a de lá
+ * deixarem de ser o mesmo par, o serviço de push rejeita todos os envios com 403.
+ */
+const VAPID_FALLBACK =
   "BBQoeiYfzexfniUOWa1nfiFhXRNukxs2uYvNldVhhI-Q40H7yxtskD6FfpaENkcb5dDirTE2ea6MZh_yxeLEd-A";
+
+/**
+ * `||` e não `??`: em produção a variável estava DEFINIDA MAS VAZIA, e `??` só
+ * recorre ao fallback com null/undefined. O resultado era applicationServerKey
+ * vazio, subscribe() a rebentar, e nenhuma subscrição criada desde 2026-09-03 —
+ * sem erro visível em lado nenhum. O trim apanha também o caso do espaço.
+ */
+export const VAPID_PUBLIC_KEY =
+  (import.meta.env.VITE_VAPID_PUBLIC_KEY ?? "").trim() || VAPID_FALLBACK;
 
 const ASKED_KEY = "bornaal:push-asked";
 export const JUST_SIGNED_UP_KEY = "bornaal:just-signed-up";
@@ -59,6 +74,11 @@ export const getExistingSubscription = async (): Promise<PushSubscription | null
 
 export const subscribeToPush = async (): Promise<PushSubscription | null> => {
   if (!isPushSupported()) return null;
+  // Guarda explícita: uma chave vazia produzia um erro opaco do browser, que os
+  // try/catch a montante engoliam. Assim, se voltar a acontecer, vê-se.
+  if (!VAPID_PUBLIC_KEY) {
+    throw new Error("VAPID_PUBLIC_KEY vazia — subscrição de push impossível");
+  }
   const reg = await withTimeout(navigator.serviceWorker.ready, 15000);
   return reg.pushManager.subscribe({
     userVisibleOnly: true,
