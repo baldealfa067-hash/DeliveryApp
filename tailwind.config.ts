@@ -23,6 +23,29 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "hsl(var(--primary-light))",
+        },
+        // Estados do pedido/pagamento. Usar `-soft` como fundo de badge
+        // e `-foreground` como texto sobre esse fundo.
+        pending: {
+          DEFAULT: "hsl(var(--pending))",
+          soft: "hsl(var(--pending-soft))",
+          foreground: "hsl(var(--pending-foreground))",
+        },
+        progress: {
+          DEFAULT: "hsl(var(--progress))",
+          soft: "hsl(var(--progress-soft))",
+          foreground: "hsl(var(--progress-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          soft: "hsl(var(--success-soft))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        problem: {
+          DEFAULT: "hsl(var(--problem))",
+          soft: "hsl(var(--problem-soft))",
+          foreground: "hsl(var(--problem-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -63,6 +86,20 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      // Escala tipográfica do sistema. Peso incluído para não haver
+      // `text-title` sem `font-semibold` espalhado pelo código.
+      // Nada abaixo de 13px, e nada abaixo de 14px em texto de leitura.
+      fontSize: {
+        display: ["1.75rem", { lineHeight: "2.125rem", fontWeight: "700" }],
+        title: ["1.25rem", { lineHeight: "1.625rem", fontWeight: "600" }],
+        body: ["1rem", { lineHeight: "1.5rem", fontWeight: "400" }],
+        caption: ["0.8125rem", { lineHeight: "1.125rem", fontWeight: "500" }],
+        price: ["1.125rem", { lineHeight: "1.5rem", fontWeight: "700" }],
+      },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        elevated: "var(--shadow-elevated)",
       },
       keyframes: {
         "accordion-down": {

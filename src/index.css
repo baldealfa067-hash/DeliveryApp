@@ -15,6 +15,8 @@
 
     --primary: 145 63% 32%;
     --primary-foreground: 0 0% 100%;
+    /* Fundo de destaque suave: cartão selecionado, chip ativo */
+    --primary-light: 145 45% 94%;
 
     --secondary: 45 90% 50%;
     --secondary-foreground: 150 30% 8%;
@@ -33,6 +35,37 @@
     --ring: 145 63% 32%;
 
     --radius: 0.75rem;
+
+    /* --- Estados do pedido / pagamento ---
+       Cada estado tem 3 valores:
+         base        cor forte (pontos, anéis, barras)
+         -soft       fundo do badge
+         -foreground texto sobre o fundo soft
+       A cor NUNCA é o único indicador — acompanhar sempre de texto ou ícone. */
+
+    /* Pendente / à espera — pedido novo, comprovativo por validar */
+    --pending: 38 92% 50%;
+    --pending-soft: 38 92% 92%;
+    --pending-foreground: 38 95% 24%;
+
+    /* Em curso — em preparação, a caminho */
+    --progress: 217 91% 60%;
+    --progress-soft: 217 91% 94%;
+    --progress-foreground: 217 91% 30%;
+
+    /* Concluído — entregue, pagamento validado */
+    --success: 145 63% 32%;
+    --success-soft: 145 45% 92%;
+    --success-foreground: 145 63% 22%;
+
+    /* Problema — cancelado, comprovativo rejeitado */
+    --problem: 0 72% 45%;
+    --problem-soft: 0 72% 95%;
+    --problem-foreground: 0 72% 33%;
+
+    /* Sombras — suaves, nunca pesadas */
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+    --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.08);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -56,6 +89,7 @@
 
     --primary: 145 63% 40%;
     --primary-foreground: 0 0% 100%;
+    --primary-light: 145 40% 16%;
 
     --secondary: 45 90% 45%;
     --secondary-foreground: 150 30% 8%;
@@ -72,6 +106,26 @@
     --border: 150 15% 18%;
     --input: 150 15% 18%;
     --ring: 145 63% 40%;
+
+    /* Estados — fundo escurece, texto clareia */
+    --pending: 38 92% 58%;
+    --pending-soft: 38 50% 16%;
+    --pending-foreground: 38 92% 72%;
+
+    --progress: 217 91% 66%;
+    --progress-soft: 217 45% 18%;
+    --progress-foreground: 217 91% 76%;
+
+    --success: 145 63% 45%;
+    --success-soft: 145 40% 15%;
+    --success-foreground: 145 60% 66%;
+
+    --problem: 0 72% 58%;
+    --problem-soft: 0 45% 17%;
+    --problem-foreground: 0 80% 74%;
+
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.2);
+    --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.4);
   }
 }
 
