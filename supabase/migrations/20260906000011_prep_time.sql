@@ -9,16 +9,15 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS prep_time_minutes integer;
 
 -- Limites de sanidade: nem 0 minutos, nem um valor absurdo por engano no teclado.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'profiles_prep_time_minutes_range'
-  ) THEN
-    ALTER TABLE public.profiles
-      ADD CONSTRAINT profiles_prep_time_minutes_range
-      CHECK (prep_time_minutes IS NULL OR (prep_time_minutes BETWEEN 1 AND 480));
-  END IF;
-END $$;
+-- DROP seguido de ADD em vez de um bloco DO $$: o editor SQL do Supabase parte o
+-- script nos ponto-e-vírgula e rebenta o bloco a meio ("syntax error at end of
+-- input"). Assim continua a poder correr-se mais do que uma vez.
+ALTER TABLE public.profiles
+  DROP CONSTRAINT IF EXISTS profiles_prep_time_minutes_range;
+
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_prep_time_minutes_range
+  CHECK (prep_time_minutes IS NULL OR (prep_time_minutes BETWEEN 1 AND 480));
 
 COMMENT ON COLUMN public.profiles.prep_time_minutes IS
   'Tempo médio de preparação em minutos, declarado pelo restaurante. NULL = não declarado, não mostrar.';
