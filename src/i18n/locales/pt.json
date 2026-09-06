@@ -463,6 +463,7 @@
     "paymentNumberHint": "Alternativa se não tiver código de comerciante"
   },
   "businessDetail": {
+    "viewCart": "Ver carrinho",
     "loading": "A carregar...",
     "notFound": "Estabelecimento não encontrado.",
     "addItems": "Adicione itens ao pedido.",

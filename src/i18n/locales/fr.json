@@ -460,6 +460,7 @@
     "paymentNumberHint": "Alternative si vous n'avez pas de code commerçant"
   },
   "businessDetail": {
+    "viewCart": "Voir le panier",
     "loading": "Chargement...",
     "notFound": "Établissement introuvable.",
     "addItems": "Ajoutez des plats à la commande.",

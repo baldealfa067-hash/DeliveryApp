@@ -740,6 +740,7 @@
     "paymentNumberHint": "Alternativa si ka ten código di kumersanti"
   },
   "businessDetail": {
+    "viewCart": "Olha karriñu",
     "detectLocation": "Deteta lokalizason",
     "deliveryInfo": "Informason di Entrega",
     "voiceNoteLabel": "Indikason di voz (undi pa entrega)",

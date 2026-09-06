@@ -460,6 +460,7 @@
     "paymentNumberHint": "Alternative if you don't have a merchant code"
   },
   "businessDetail": {
+    "viewCart": "View cart",
     "loading": "Loading...",
     "notFound": "Business not found.",
     "addItems": "Add items to the order.",

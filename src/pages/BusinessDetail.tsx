@@ -3,12 +3,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, MessageSquare, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "@/components/StarRating";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { formatCFA } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -75,6 +75,7 @@ const BusinessDetail = () => {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
+  const cartRef = useRef<HTMLDivElement | null>(null);
   const [consumptionOption, setConsumptionOption] = useState("");
   const [bairro, setBairro] = useState("");
   const [referencePoint, setReferencePoint] = useState("");
@@ -397,56 +398,81 @@ const BusinessDetail = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-6">
-      <div className="flex items-start gap-4 mb-6">
-        <Avatar className="h-20 w-20 rounded-xl">
-          {photoUrl ? (
-            <AvatarImage src={photoUrl} alt={name} className="object-cover" />
-          ) : null}
-          <AvatarFallback className="rounded-xl bg-primary/10 text-primary text-2xl font-bold">
-            {name.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold flex items-center gap-1.5">
-            {name}
+    <div className={cn("max-w-lg mx-auto px-4 pt-6", cartItems.length > 0 && "pb-24")}>
+      {/* Foto de destaque. Mesmo padrão do RestaurantCard da lista — incluindo a
+          máscara verde quando não há foto — para os dois ecrãs se reconhecerem
+          um ao outro. É aqui e no item de menu que a fotografia se justifica (§9). */}
+      <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg bg-muted">
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-primary-light">
+            <span className="text-5xl font-bold text-primary">{name.charAt(0).toUpperCase()}</span>
+          </div>
+        )}
+        {/* A máscara envolve o nome em vez de ter altura fixa: um nome longo
+            quebra em duas ou três linhas e assim continua sempre sobre gradiente. */}
+        <div
+          className={cn(
+            "absolute inset-x-0 bottom-0 bg-gradient-to-t pt-16",
+            photoUrl ? "from-black/85 via-black/45 to-transparent" : "from-primary via-primary/60 to-transparent"
+          )}
+        >
+          <h1 className="flex items-end gap-1.5 p-4 text-display text-white drop-shadow-sm">
+            <span className="min-w-0 break-words">{name}</span>
             {isVerified && (
-              <BadgeCheck className="h-5 w-5 text-primary" aria-label={t("businessDetailExtra.verifiedLabel")} />
+              <BadgeCheck className="mb-1 h-6 w-6 shrink-0 text-white" aria-label={t("businessDetailExtra.verifiedLabel")} />
             )}
           </h1>
-          <Badge variant="secondary" className="mt-1 flex items-center gap-1">
-            <Store className="h-3 w-3" /> {translateCategoryName(category, bizCats as { id: string; name: string; name_en: string | null; name_fr: string | null }[], i18n.language)}
-          </Badge>
-          {consumptionOptions.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {consumptionOptions.map((o) => (
-                <Badge key={o} variant="outline" className="text-[11px]">{t(CONSUMPTION_LABEL_KEYS[o] ?? o)}</Badge>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center gap-2 mt-2">
-            <StarRating rating={Math.round(avgRating)} size="md" />
-            <span className="text-sm text-muted-foreground">
-              {avgRating.toFixed(1)} ({reviews.length})
-            </span>
-          </div>
         </div>
       </div>
 
-      <div className="space-y-2 mb-6 text-sm">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <MapPin className="h-4 w-4" />
-          <span>{location}</span>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        {/* Chip neutro. Antes era um badge âmbar, cor que o sistema (§3) reserva
+            para "pendente/à espera" — numa categoria estática parecia um aviso. */}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-light px-3 py-1.5 text-caption text-primary">
+          <Store className="h-4 w-4" aria-hidden="true" />
+          {translateCategoryName(category, bizCats as { id: string; name: string; name_en: string | null; name_fr: string | null }[], i18n.language)}
+        </span>
+        {reviews.length > 0 && (
+          <div className="flex items-center gap-2">
+            <StarRating rating={Math.round(avgRating)} size="md" />
+            <span className="text-caption text-muted-foreground">
+              {avgRating.toFixed(1)} ({reviews.length})
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Informação prática agrupada num bloco só, em vez de linhas soltas. */}
+      <div className="mb-6 rounded-lg bg-muted p-4 space-y-3">
+        <div className="flex items-center gap-3 text-body">
+          <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="min-w-0 break-words">{location}</span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Phone className="h-4 w-4" />
-          <span>{phone}</span>
+        <div className="flex items-center gap-3 text-body">
+          <Phone className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <a href={`tel:${phone.replace(/\s/g, "")}`} className="min-w-0 break-words" onClick={() => trackContact("call")}>
+            {phone}
+          </a>
         </div>
-        {String((business as Record<string, unknown>).user_id ?? "") !== (user?.id ?? "") && (
-          <Button variant="outline" className="w-full gap-2" onClick={openReport}>
-            <AlertCircle className="h-5 w-5" />
-            {t("businessDetail.report")}
-          </Button>
+        {consumptionOptions.length > 0 && (
+          <div className="flex items-start gap-3">
+            <UtensilsCrossed className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <div className="flex flex-wrap gap-1.5">
+              {consumptionOptions.map((o) => (
+                <span key={o} className="rounded-full bg-card px-2.5 py-1 text-caption text-foreground">
+                  {t(CONSUMPTION_LABEL_KEYS[o] ?? o)}
+                </span>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -468,8 +494,8 @@ const BusinessDetail = () => {
               if (!items.length) return null;
               return (
                 <div key={cat.id}>
-                  <h3 className="text-sm font-semibold text-primary mb-2 border-b pb-1">{cat.name}</h3>
-                  <div className="flex flex-col gap-2">
+                  <h3 className="mb-2 border-b pb-1 text-caption font-semibold text-primary">{cat.name}</h3>
+                  <div className="flex flex-col gap-3">
                     {items.map((item) => (
                       <MenuItemRow key={item.id} item={item} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
                     ))}
@@ -479,8 +505,8 @@ const BusinessDetail = () => {
             })}
             {uncategorized.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-primary mb-2 border-b pb-1">{t("businessDetail.others")}</h3>
-                <div className="flex flex-col gap-2">
+                <h3 className="mb-2 border-b pb-1 text-caption font-semibold text-primary">{t("businessDetail.others")}</h3>
+                <div className="flex flex-col gap-3">
                   {uncategorized.map((item) => (
                     <MenuItemRow key={item.id} item={item} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
                   ))}
@@ -492,7 +518,7 @@ const BusinessDetail = () => {
       )}
 
       {cartItems.length > 0 && (
-        <Card className="mb-6 border-primary/40">
+        <Card ref={cartRef} className="mb-6 border-primary/40 scroll-mt-20">
           <CardContent className="p-4">
             <h2 className="font-semibold mb-2 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-primary" /> {t("businessDetail.orderTitle", { count: cartCount })}
@@ -793,8 +819,11 @@ const BusinessDetail = () => {
             secundárias de quem já escolheu o restaurante, não a acção
             principal de quem está a escolher. */}
         <div className="grid grid-cols-2 gap-2">
+          {/* outline e nao secondary: --secondary e' ambar, cor que o sistema (§3)
+              reserva para "pendente/a espera". Aqui sao accoes secundarias
+              normais, e o contorno ja' as poe abaixo de "Mensagem". */}
           <a href={`tel:${phone.replace(/\s/g, "")}`} className="block" onClick={() => trackContact("call")}>
-            <Button variant="secondary" className="h-12 w-full gap-2">
+            <Button variant="outline" className="h-12 w-full gap-2 bg-card">
               <Phone className="h-5 w-5" />
               {t("common.call")}
             </Button>
@@ -806,12 +835,25 @@ const BusinessDetail = () => {
             className="block"
             onClick={() => trackContact("whatsapp")}
           >
-            <Button variant="secondary" className="h-12 w-full gap-2">
+            <Button variant="outline" className="h-12 w-full gap-2 bg-card">
               <MessageCircle className="h-5 w-5" />
               {t("common.whatsapp")}
             </Button>
           </a>
         </div>
+
+        {/* Denunciar e' uma accao rara: link discreto, nao um botao com o mesmo
+            peso visual de Mensagem ou Ligar. */}
+        {!isOwnProfile && (
+          <button
+            type="button"
+            onClick={openReport}
+            className="mx-auto mt-4 flex items-center gap-1.5 rounded-md px-3 py-2 text-caption text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            {t("businessDetail.report")}
+          </button>
+        )}
       </div>
 
       <section>
@@ -1023,6 +1065,32 @@ const BusinessDetail = () => {
       </Dialog>
 
       <ClientSignupDialog open={signupOpen} onOpenChange={setSignupOpen} onSuccess={onSignupSuccess} />
+
+      {/* Resumo do carrinho, fixo assim que ha' um item: o formulario do pedido
+          e' longo (entrega, nota de voz, pagamento) e sem isto era preciso
+          descer a pagina toda para saber quanto ja' se gastou.
+          Assenta por cima da navegacao inferior (4rem) e do indicador de ecra. */}
+      {cartItems.length > 0 && (
+        <div
+          className="fixed inset-x-0 z-40 px-4"
+          style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+        >
+          <button
+            type="button"
+            onClick={() => cartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="mx-auto flex h-14 w-full max-w-lg items-center justify-between gap-3 rounded-lg bg-primary px-4 text-primary-foreground shadow-elevated transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <span className="relative flex shrink-0 items-center">
+              <ShoppingCart className="h-6 w-6" aria-hidden="true" />
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-accent px-1 text-caption font-bold text-accent-foreground">
+                {cartCount}
+              </span>
+            </span>
+            <span className="min-w-0 truncate text-body font-semibold">{t("businessDetail.viewCart")}</span>
+            <span className="shrink-0 text-price">{formatCFA(cartTotal)}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -1030,30 +1098,32 @@ const BusinessDetail = () => {
 const MenuItemRow = ({ item, qty, onAdd, onRemove }: { item: MenuItem; qty: number; onAdd: () => void; onRemove: () => void }) => {
   const { t } = useTranslation();
   return (
-  <div className="flex items-center gap-3 rounded-lg border bg-card p-2.5">
+  <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
     {item.photo_url ? (
       <ImagePreviewModal src={item.photo_url} alt={item.name} />
     ) : (
-      <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
         <UtensilsCrossed className="h-5 w-5" />
       </div>
     )}
     <div className="min-w-0 flex-1">
-      <div className="text-sm font-medium">{item.name}</div>
-      <div className="text-sm font-semibold text-primary">{formatCFA(item.price)}</div>
+      <div className="text-body font-medium">{item.name}</div>
+      <div className="text-price text-primary">{formatCFA(item.price)}</div>
     </div>
+    {/* 44px: e' o controlo mais usado da pagina e o minimo do plano (§5.2).
+        Estava a 32px. */}
     {qty === 0 ? (
-      <Button size="sm" variant="outline" className="shrink-0 gap-1" onClick={onAdd}>
-        <Plus className="h-3.5 w-3.5" /> {t("common.add")}
+      <Button variant="outline" className="h-11 shrink-0 gap-1 px-4" onClick={onAdd}>
+        <Plus className="h-4 w-4" /> {t("common.add")}
       </Button>
     ) : (
-      <div className="flex items-center gap-1 shrink-0">
-        <Button size="icon" variant="outline" className="h-8 w-8" onClick={onRemove}>
-          <Minus className="h-3.5 w-3.5" />
+      <div className="flex shrink-0 items-center gap-1">
+        <Button size="icon" variant="outline" className="h-11 w-11 rounded-full" onClick={onRemove}>
+          <Minus className="h-4 w-4" />
         </Button>
-        <span className="w-6 text-center font-semibold text-sm">{qty}</span>
-        <Button size="icon" className="h-8 w-8" onClick={onAdd}>
-          <Plus className="h-3.5 w-3.5" />
+        <span className="w-7 text-center text-body font-semibold">{qty}</span>
+        <Button size="icon" className="h-11 w-11 rounded-full" onClick={onAdd}>
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
     )}
