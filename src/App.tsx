@@ -59,8 +59,13 @@ const App = () => (
             <InstallPrompt />
             <PushPrompt />
             <Routes>
-              <Route path="/" element={<HomeRoute />} />
-              <Route path="/landing" element={<Landing />} />
+              {/* A raiz é a porta da área de cliente: um restaurante ou um
+                  motorista que abra o site não tem nada a fazer na página de
+                  marketing (explorar e pedir estão fechados à conta de
+                  trabalho), vai directo para o seu painel. Visitante sem
+                  sessão continua a ver a Landing. */}
+              <Route path="/" element={<RequireClientArea><HomeRoute /></RequireClientArea>} />
+              <Route path="/landing" element={<RequireClientArea><Landing /></RequireClientArea>} />
               <Route path="/sobre" element={<About />} />
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />

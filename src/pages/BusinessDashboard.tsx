@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   LogOut,
-  ArrowLeft,
   Loader2,
   Settings,
   Eye,
@@ -39,6 +38,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
+import logo from "@/assets/logo.png";
 
 type DashboardProfile = {
   id: string;
@@ -194,9 +194,11 @@ const BusinessDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground p-2 -m-2 rounded-md">
-            <ArrowLeft className="h-4 w-4" /> {t("common.home")}
-          </Link>
+          {/* Logótipo, não uma ligação ao início do cliente: a Landing e tudo o
+              que dela se alcança (explorar, pedir) está fechado a esta conta,
+              portanto o link levava a um sítio sem saída útil. Sair continua
+              disponível à direita. */}
+          <img src={logo} alt="Bornaal" className="h-8 w-auto" />
           <div className="flex items-center gap-2">
             <LanguageSelector />
             {isAdmin && (
