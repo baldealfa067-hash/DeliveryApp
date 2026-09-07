@@ -97,7 +97,16 @@ const App = () => (
               {/* O painel do motorista fica aberto a quem tem sessão: é aqui que
                   um motorista novo se regista, e sem perfil de motorista o ecrã
                   só mostra esse registo — nenhum dado de entregas. */}
-              <Route path="/painel-motorista" element={<RequireRole roles={["client"]} redirectTo="/painel-loja"><DriverDashboard /></RequireRole>} />
+              {/* O destino de recurso é /perfil, e não /painel-loja: uma conta
+                  antiga com registo em `drivers` mas sem papel client nem
+                  business entrava em ciclo infinito — a área de cliente
+                  mandava-a para cá, daqui ia para /painel-loja, de lá para
+                  /inicio, e /inicio devolvia-a para cá. Medido: /painel-motorista
+                  -> /painel-loja -> /inicio, a repetir sem fim, com o ecrã em
+                  branco e sem um único elemento clicável. /perfil não
+                  redireciona ninguém de volta para a área de cliente, portanto
+                  a cadeia termina sempre. */}
+              <Route path="/painel-motorista" element={<RequireRole roles={["client"]} redirectTo="/perfil"><DriverDashboard /></RequireRole>} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/mensagem/:userId" element={<ChatPage />} />
               <Route element={<Layout />}>
