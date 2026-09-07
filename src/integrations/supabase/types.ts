@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       admin_notifications: {
@@ -308,6 +283,50 @@ export type Database = {
           name_fr?: string | null
         }
         Relationships: []
+      }
+      commission_payments: {
+        Row: {
+          amount: number
+          business_id: string
+          created_at: string
+          id: string
+          note: string | null
+          proof_url: string
+          status: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          proof_url: string
+          status?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          proof_url?: string
+          status?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_payments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       complaints: {
         Row: {
@@ -780,14 +799,19 @@ export type Database = {
           customer_lng: number | null
           customer_name: string | null
           customer_phone: string | null
+          delivery_code: string | null
           id: string
           items: Json
           notes: string | null
           order_number: number
+          payment_method: string | null
+          payment_proof_url: string | null
+          payment_status: string | null
           preparation_time: number | null
           status: string
           total: number
           updated_at: string
+          voice_note_url: string | null
         }
         Insert: {
           address?: string | null
@@ -800,14 +824,19 @@ export type Database = {
           customer_lng?: number | null
           customer_name?: string | null
           customer_phone?: string | null
+          delivery_code?: string | null
           id?: string
           items?: Json
           notes?: string | null
           order_number?: number
+          payment_method?: string | null
+          payment_proof_url?: string | null
+          payment_status?: string | null
           preparation_time?: number | null
           status?: string
           total?: number
           updated_at?: string
+          voice_note_url?: string | null
         }
         Update: {
           address?: string | null
@@ -820,14 +849,19 @@ export type Database = {
           customer_lng?: number | null
           customer_name?: string | null
           customer_phone?: string | null
+          delivery_code?: string | null
           id?: string
           items?: Json
           notes?: string | null
           order_number?: number
+          payment_method?: string | null
+          payment_proof_url?: string | null
+          payment_status?: string | null
           preparation_time?: number | null
           status?: string
           total?: number
           updated_at?: string
+          voice_note_url?: string | null
         }
         Relationships: [
           {
@@ -838,6 +872,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: []
       }
       portfolio_images: {
         Row: {
@@ -883,7 +938,9 @@ export type Database = {
           lat: number | null
           lng: number | null
           location: string
+          merchant_code: string | null
           name: string
+          payment_number: string | null
           phone: string
           photo_url: string | null
           prep_time_minutes: number | null
@@ -910,7 +967,9 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           location: string
+          merchant_code?: string | null
           name: string
+          payment_number?: string | null
           phone: string
           photo_url?: string | null
           prep_time_minutes?: number | null
@@ -937,7 +996,9 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           location?: string
+          merchant_code?: string | null
           name?: string
+          payment_number?: string | null
           phone?: string
           photo_url?: string | null
           prep_time_minutes?: number | null
@@ -1327,6 +1388,10 @@ export type Database = {
     Functions: {
       accept_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
       admin_delete_user: { Args: { p_profile_id: string }; Returns: undefined }
+      assert_can_order_for: {
+        Args: { p_business_id: string; p_customer_id: string }
+        Returns: undefined
+      }
       calculate_quality_score: {
         Args: { p_provider_id: string }
         Returns: number
@@ -1426,7 +1491,38 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              p_address?: string
+              p_bairro?: string
+              p_business_id: string
+              p_consumption_option: string
+              p_customer_id: string
+              p_customer_lat?: number
+              p_customer_lng?: number
+              p_customer_name: string
+              p_customer_phone: string
+              p_items: Json
+              p_notes?: string
+              p_payment_method?: string
+              p_payment_proof_url?: string
+              p_total: number
+              p_voice_note_url?: string
+            }
+            Returns: string
+          }
       generate_bornaal_id: { Args: never; Returns: string }
+      get_all_commissions: {
+        Args: never
+        Returns: {
+          business_id: string
+          business_name: string
+          commission_balance: number
+          commission_due: number
+          commission_paid: number
+          total_sales: number
+        }[]
+      }
       get_anon_key: { Args: never; Returns: string }
       get_available_deliveries: {
         Args: never
@@ -1438,7 +1534,10 @@ export type Database = {
           id: string
           order_id: string
           restaurant_address: string
+          restaurant_lat: number
+          restaurant_lng: number
           restaurant_name: string
+          voice_note_url: string
         }[]
       }
       get_business_appointments: {
@@ -1457,23 +1556,60 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_business_commission: {
+        Args: { p_business_id: string }
+        Returns: {
+          commission_balance: number
+          commission_due: number
+          commission_paid: number
+          commission_rate: number
+          total_sales: number
+        }[]
+      }
+      get_business_daily_sales: {
+        Args: { p_business_id: string; p_days?: number }
+        Returns: {
+          day: string
+          order_count: number
+          total: number
+        }[]
+      }
       get_business_orders: {
         Args: { p_business_id: string; p_status?: string }
         Returns: {
           address: string
           bairro: string
+          business_id: string
+          business_name: string
           consumption_option: string
           created_at: string
+          customer_id: string
           customer_name: string
           customer_phone: string
+          delivery_code: string
           id: string
           items: Json
           notes: string
           order_number: number
+          payment_method: string
+          payment_proof_url: string
+          payment_status: string
           preparation_time: number
           status: string
           total: number
-          updated_at: string
+          voice_note_url: string
+        }[]
+      }
+      get_business_sales_stats: {
+        Args: { p_business_id: string }
+        Returns: {
+          avg_ticket: number
+          month_count: number
+          month_total: number
+          today_count: number
+          today_total: number
+          week_count: number
+          week_total: number
         }[]
       }
       get_customer_appointments: {
@@ -1501,14 +1637,21 @@ export type Database = {
           business_name: string
           consumption_option: string
           created_at: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          delivery_code: string
           id: string
           items: Json
           notes: string
           order_number: number
+          payment_method: string
+          payment_proof_url: string
+          payment_status: string
           preparation_time: number
           status: string
           total: number
-          updated_at: string
+          voice_note_url: string
         }[]
       }
       get_delivery_orders: {
@@ -1532,6 +1675,25 @@ export type Database = {
           status: string
         }[]
       }
+      get_driver_daily_stats: {
+        Args: { p_days?: number; p_driver_id: string }
+        Returns: {
+          day: string
+          delivery_count: number
+          distance: number
+        }[]
+      }
+      get_driver_delivery_stats: {
+        Args: { p_driver_id: string }
+        Returns: {
+          month_count: number
+          month_distance: number
+          today_count: number
+          today_distance: number
+          week_count: number
+          week_distance: number
+        }[]
+      }
       get_my_bornaal_id: { Args: never; Returns: string }
       get_my_deliveries: {
         Args: never
@@ -1539,6 +1701,8 @@ export type Database = {
           accepted_at: string
           created_at: string
           customer_address: string
+          customer_lat: number
+          customer_lng: number
           customer_name: string
           customer_phone: string
           delivered_at: string
@@ -1548,9 +1712,13 @@ export type Database = {
           order_id: string
           order_number: number
           picked_up_at: string
+          restaurant_address: string
+          restaurant_lat: number
+          restaurant_lng: number
           restaurant_name: string
           restaurant_phone: string
           status: string
+          voice_note_url: string
         }[]
       }
       get_my_notifications: {
@@ -1589,6 +1757,7 @@ export type Database = {
         Args: { p_provider_id: string }
         Returns: undefined
       }
+      is_business_owner: { Args: { p_business_id: string }; Returns: boolean }
       lookup_by_bornaal_id: {
         Args: { p_bornaal_id: string }
         Returns: {
@@ -1676,6 +1845,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_platform_setting: {
+        Args: { p_key: string; p_value: string }
+        Returns: undefined
+      }
       upsert_push_subscription: {
         Args: {
           p_endpoint: string
@@ -1700,9 +1873,21 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      validate_commission_payment: {
+        Args: { p_id: string; p_status: string }
+        Returns: undefined
+      }
+      validate_delivery_code: {
+        Args: { p_code: string; p_delivery_id: string }
+        Returns: boolean
+      }
       validate_delivery_qr: {
         Args: { p_delivery_id: string; p_order_id: string }
         Returns: boolean
+      }
+      validate_order_payment: {
+        Args: { p_order_id: string; p_status: string }
+        Returns: undefined
       }
     }
     Enums: {
@@ -1832,9 +2017,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: ["client", "provider", "admin", "business", "beleza"],
