@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -251,7 +251,18 @@ const Login = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background">
         <div className="w-full max-w-sm space-y-6">
+          {/* Sem esta saída o ecrã era um beco: quem chegava aqui a partir de
+              uma aba protegida (Perfil, Pedidos) ficava sem forma de voltar a
+              navegar — e num telemóvel instalado como PWA nem há botão de
+              retroceder do browser. Leva a /inicio, não a -1, porque a rota de
+              origem volta a redirecionar para cá. */}
           <div className="flex items-center justify-between">
+            <Link
+              to="/inicio"
+              className="-ml-1 inline-flex items-center gap-1 p-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" /> {t("common.back")}
+            </Link>
             <LanguageSelector />
           </div>
 

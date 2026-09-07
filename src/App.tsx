@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import InstallPrompt from "./components/InstallPrompt";
@@ -13,6 +13,7 @@ import RequireAdmin from "./components/RequireAdmin";
 import RequireRole from "./components/RequireRole";
 import RequireClientArea from "./components/RequireClientArea";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Explore = lazy(() => import("./pages/Explore"));
@@ -45,7 +46,20 @@ const Loading = () => (
   </div>
 );
 
-const HomeRoute = () => <Landing />;
+/**
+ * A raiz mostrava sempre a Landing, mesmo a quem já tinha sessão iniciada: um
+ * cliente que abrisse o site pelo endereço ou pelo ícone da PWA caía na página
+ * de marketing e tinha de a atravessar para chegar ao que já é seu. Com sessão
+ * vai directo a /inicio; a Landing continua acessível em /landing e volta a ser
+ * a raiz assim que a sessão termina. Contas de trabalho nem chegam aqui — o
+ * RequireClientArea que envolve esta rota manda-as antes para o seu painel.
+ */
+const HomeRoute = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <Loading />;
+  if (user) return <Navigate to="/inicio" replace />;
+  return <Landing />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

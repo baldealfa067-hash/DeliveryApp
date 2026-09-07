@@ -54,7 +54,7 @@ const ConversationsPage = () => {
           <MessageSquare className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <p className="text-muted-foreground">{t("chat.loginRequired")}</p>
           <Button onClick={() => navigate("/login")} className="mt-4">
-            {t("auth.login")}
+            {t("auth.loginButton")}
           </Button>
         </div>
       </div>
