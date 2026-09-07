@@ -43,6 +43,7 @@ import {
   useCreateDeliveryProof,
   useValidateDeliveryCode,
   useUpdateDeliveryTracking,
+  useUpdateDriverLocation,
 } from "@/hooks/useDrivers";
 
 import { useDriverDeliveryStats, useDriverDailyStats } from "@/hooks/useDriverDeliveryStats";
@@ -68,6 +69,7 @@ const DriverDashboard = () => {
   const pickupDelivery = usePickupDelivery();
   const completeDelivery = useCompleteDelivery();
   const updateTracking = useUpdateDeliveryTracking();
+  const updateDriverLocation = useUpdateDriverLocation();
 
   const { data: deliveryStats } = useDriverDeliveryStats(driver?.id ?? null);
   const { data: dailyStats = [] } = useDriverDailyStats(driver?.id ?? null);
@@ -85,6 +87,7 @@ const DriverDashboard = () => {
   const [codeError, setCodeError] = useState(false);
   const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number } | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const lastLocationPushRef = useRef(0);
   const createProof = useCreateDeliveryProof();
   const validateCode = useValidateDeliveryCode();
 
@@ -95,6 +98,16 @@ const DriverDashboard = () => {
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setDriverPosition(coords);
+
+        // Publicar a posicao mesmo sem entrega atribuida — e assim que a loja
+        // sabe que motoristas tem por perto. watchPosition dispara muitas vezes,
+        // por isso guardamos no maximo de 30 em 30 segundos.
+        const now = Date.now();
+        if (now - lastLocationPushRef.current > 30000) {
+          lastLocationPushRef.current = now;
+          updateDriverLocation.mutate(coords);
+        }
+
         const deliveryId = myDeliveries.find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
         if (deliveryId) {
           updateTracking.mutate({ ...coords, deliveryId });
