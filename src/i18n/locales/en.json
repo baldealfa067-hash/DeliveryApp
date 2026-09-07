@@ -210,6 +210,7 @@
     "afterBusiness": "After signing in, complete your business profile and add the menu.",
     "afterClient": "Post requests and track the status of services.",
     "passwordMin": "Password must be at least 8 characters",
+    "passwordBreached": "This password has appeared in a data breach. Please choose another.",
     "enterName": "Please enter your name",
     "registerError": "Registration error",
     "loginSuccess": "Signed in",
@@ -248,6 +249,7 @@
     "resetButton": "Reset password",
     "backToLogin": "Back to login",
     "passwordMin": "Password must be at least 8 characters",
+    "passwordBreached": "This password has appeared in a data breach. Please choose another.",
     "passwordMismatch": "Passwords do not match",
     "success": "Password reset successfully!"
   },

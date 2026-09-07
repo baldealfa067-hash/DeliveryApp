@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { isPasswordBreached } from "@/lib/passwordBreach";
 import logo from "@/assets/logo.png";
 
 const ResetPassword = () => {
@@ -38,6 +39,12 @@ const ResetPassword = () => {
     if (password.length < 8) return toast.error(t("resetPassword.passwordMin"));
     if (password !== confirmPassword) return toast.error(t("resetPassword.passwordMismatch"));
     setSubmitting(true);
+    // Quem está a repor a palavra-passe é muitas vezes quem já perdeu o acesso
+    // uma vez. Não vale a pena deixar reciclar uma que já esteja divulgada.
+    if (await isPasswordBreached(password)) {
+      setSubmitting(false);
+      return toast.error(t("resetPassword.passwordBreached"));
+    }
     const { error: updateError } = await supabase.auth.updateUser({ password });
     setSubmitting(false);
     if (updateError) {

@@ -205,6 +205,7 @@
     "afterBusiness": "Depu di entra, kompleta o perfil i ajunta o menu.",
     "afterClient": "Publika pedidos e kontrata serviços",
     "passwordMin": "Palavra-pasi minimu di 8 karakteris",
+    "passwordBreached": "Es palavra-pasi ja parsi na fuga di dadus. Skoji utru.",
     "enterName": "Indika o nom",
     "registerError": "Eru na registo",
     "loginSuccess": "Sesaun abertu",
@@ -243,6 +244,7 @@
     "resetButton": "Redefine palavra-pasi",
     "backToLogin": "Volta pa entra",
     "passwordMin": "Palavra-pasi minimu di 8 karakteris",
+    "passwordBreached": "Es palavra-pasi ja parsi na fuga di dadus. Skoji utru.",
     "passwordMismatch": "Palavra-pasis nu korespondi",
     "success": "Palavra-pasi redefinidu ku sukesu!"
   },

@@ -23,6 +23,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getPostLoginDestination } from "@/lib/getPostLoginDestination";
+import { isPasswordBreached } from "@/lib/passwordBreach";
 import logo from "@/assets/logo.png";
 
 type ProfileType = "business";
@@ -184,8 +185,14 @@ const Login = () => {
     e.preventDefault();
     if (password.length < 8) return toast.error(t("auth.passwordMin"));
     if (!name.trim()) return toast.error(t("auth.enterName"));
-    signingUp.current = true;
     setSubmitting(true);
+    // Antes de criar a conta: esta palavra-passe já apareceu numa fuga pública?
+    // Contas de restaurante e motorista veem dados de clientes e de vendas.
+    if (await isPasswordBreached(password)) {
+      setSubmitting(false);
+      return toast.error(t("auth.passwordBreached"));
+    }
+    signingUp.current = true;
     try {
       const isClientFlow = mode === "client";
       const isDriverFlow = mode === "driver";

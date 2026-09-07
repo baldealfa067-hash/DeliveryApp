@@ -210,6 +210,7 @@
     "afterBusiness": "Depois de entrar, complete o perfil do seu estabelecimento e adicione o menu.",
     "afterClient": "Publique pedidos e acompanhe o estado dos serviços.",
     "passwordMin": "Palavra-passe mínima de 8 caracteres",
+    "passwordBreached": "Esta palavra-passe já apareceu em fugas de dados. Escolha outra.",
     "enterName": "Indique o seu nome",
     "registerError": "Erro no registo",
     "loginSuccess": "Sessão iniciada",
@@ -251,6 +252,7 @@
     "resetButton": "Redefinir palavra-passe",
     "backToLogin": "Voltar ao login",
     "passwordMin": "Palavra-passe mínima de 8 caracteres",
+    "passwordBreached": "Esta palavra-passe já apareceu em fugas de dados. Escolha outra.",
     "passwordMismatch": "As palavras-passe não coincidem",
     "success": "Palavra-passe redefinida com sucesso!"
   },
