@@ -4,22 +4,24 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDriverProfile } from "@/hooks/useDrivers";
 
 /**
- * Escolhe o destino por omissão de quem tem conta de trabalho: raiz do site e
- * área de pedidos pessoais. Manda restaurantes e motoristas para o seu painel,
- * que é o que quase sempre querem ao abrir a app.
+ * Escolhe o destino por omissão na raiz do site, e mais nada.
  *
- * NÃO é uma guarda de navegação. /inicio, /explorar e /loja/:id são conteúdo
- * para ver e estão abertos a qualquer conta — um dono de restaurante tem de
- * poder olhar à volta como qualquer pessoa. Já esteve a envolver essas rotas e
- * bloqueava-as; foi retirado de lá de propósito, não voltar a pôr.
+ * Quem tem conta de trabalho e abre a app pelo endereço ou pelo ícone da PWA
+ * quer quase sempre o seu painel, por isso é para lá que vai. É uma
+ * conveniência, não uma barreira.
+ *
+ * NÃO é uma guarda. Apesar do nome, não há "área de cliente": navegar, ver
+ * menus, pedir e acompanhar (/inicio, /explorar, /loja/:id, /meus-pedidos,
+ * /pedido/:id) são a app pública e estão abertos a qualquer conta. Um dono de
+ * restaurante encomenda o almoço como qualquer pessoa. Este componente já
+ * esteve a envolver essas rotas e bloqueava-as — foi retirado de lá de
+ * propósito, não voltar a pôr.
  *
  * O isolamento a sério — o que impede um cliente de ver o painel de gestão de
  * um restaurante ou de um motorista — é o RequireRole, e é esse que não se
- * mexe.
- *
- * Fica de fora de propósito: conversas, mensagens, notificações e perfil.
- * Essas são partilhadas — o restaurante fala com os clientes por lá, e
- * fechá-las tirava-lhe funcionalidade que hoje tem.
+ * mexe. Do lado do servidor a regra é a mesma: as RPCs de pedidos decidem por
+ * posse (quem fez o pedido, quem é dono do restaurante, quem faz a entrega) e
+ * nunca por tipo de conta.
  *
  * Visitante sem sessão passa sempre: a conta só é exigida ao encomendar.
  */

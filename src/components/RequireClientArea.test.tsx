@@ -12,8 +12,8 @@ import { resolve } from "node:path";
  *
  *  - RequireRole fecha os painéis de gestão. É o isolamento a sério.
  *  - RequireClientArea só escolhe o destino por omissão de quem tem conta de
- *    trabalho (raiz e pedidos pessoais). Navegar e ver menus não passa por
- *    aqui — ver o bloco "rotas de navegação" no fim do ficheiro.
+ *    trabalho, e só na raiz do site. Navegar, pedir e acompanhar não passam
+ *    por aqui — ver o bloco "área pública" no fim do ficheiro.
  */
 
 let authMock = {
@@ -34,9 +34,9 @@ import RequireRole from "./RequireRole";
 
 const montar = (guarda: React.ReactNode) =>
   render(
-    <MemoryRouter initialEntries={["/meus-pedidos"]}>
+    <MemoryRouter initialEntries={["/rota-com-guarda"]}>
       <Routes>
-        <Route path="/meus-pedidos" element={guarda} />
+        <Route path="/rota-com-guarda" element={guarda} />
         <Route path="/painel-loja" element={<div>PAINEL LOJA</div>} />
         <Route path="/painel-motorista" element={<div>PAINEL MOTORISTA</div>} />
         <Route path="/login" element={<div>LOGIN</div>} />
@@ -144,17 +144,20 @@ describe("raiz do site", () => {
 });
 
 /**
- * Rotas de navegação: abertas a qualquer conta.
+ * Área pública: aberta a qualquer conta autenticada.
  *
- * Esta regra já foi ao contrário uma vez — /inicio, /explorar e /loja/:id
- * estiveram envolvidas em RequireClientArea e uma conta de restaurante era
- * atirada para o painel ao tentar navegar. Ver menus é conteúdo, não gestão.
+ * Navegar, ver menus, pedir e acompanhar o pedido. Não é "área de cliente" —
+ * é a app, e um dono de restaurante usa-a como qualquer pessoa, além de ter o
+ * seu painel de gestão. A regra já foi ao contrário uma vez: estas rotas
+ * estiveram envolvidas em RequireClientArea e uma conta de trabalho era
+ * atirada para o painel ao tentar usá-las. Pior ainda em /meus-pedidos, onde
+ * o servidor deixava fazer o pedido e a interface não deixava vê-lo.
  *
  * O teste lê a tabela de rotas em vez de montar a App inteira: o que interessa
  * garantir é precisamente que nenhuma guarda de tipo de conta lá volta a ser
  * posta, e é isso que se lê na tabela. Se alguém reintroduzir a guarda, falha.
  */
-describe("rotas de navegação", () => {
+describe("área pública", () => {
   // A raiz do vitest é a raiz do repo (vitest.config.ts), portanto o caminho
   // relativo ao cwd é estável.
   const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf-8");
@@ -165,7 +168,7 @@ describe("rotas de navegação", () => {
     return linha!;
   };
 
-  it.each(["/inicio", "/explorar", "/loja/:id"])(
+  it.each(["/inicio", "/explorar", "/loja/:id", "/meus-pedidos", "/pedido/:id"])(
     "%s não tem guarda de tipo de conta",
     (caminho) => {
       expect(linhaDaRota(caminho)).not.toContain("RequireClientArea");

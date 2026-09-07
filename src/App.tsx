@@ -124,8 +124,16 @@ const App = () => (
                 <Route path="/inicio" element={<Explore />} />
                 <Route path="/explorar" element={<Explore />} />
                 <Route path="/conversas" element={<ConversationsPage />} />
-                <Route path="/meus-pedidos" element={<RequireClientArea><MyOrdersPage /></RequireClientArea>} />
-                <Route path="/pedido/:id" element={<RequireClientArea><OrderTrackingPage /></RequireClientArea>} />
+                {/* Pedir e acompanhar tambem e' area publica: quem faz um
+                    pedido tem de o poder ver, seja qual for o tipo de conta.
+                    Estiveram fechadas, e uma conta de trabalho conseguia
+                    encomendar mas nao conseguia acompanhar o que encomendou.
+                    O servidor ja' decidia por posse e nao por tipo:
+                    get_customer_orders so' devolve os pedidos de quem os fez, e
+                    get_order_history so' abre ao cliente, ao dono do
+                    restaurante ou ao motorista da entrega. */}
+                <Route path="/meus-pedidos" element={<MyOrdersPage />} />
+                <Route path="/pedido/:id" element={<OrderTrackingPage />} />
                 <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
                 <Route path="/perfil" element={<Profile />} />
                 {/* Ver o menu de um restaurante é visualização, aberta a
