@@ -4,18 +4,24 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDriverProfile } from "@/hooks/useDrivers";
 
 /**
- * Guarda da área de cliente: explorar, restaurantes, carrinho, pedidos.
+ * Escolhe o destino por omissão de quem tem conta de trabalho: raiz do site e
+ * área de pedidos pessoais. Manda restaurantes e motoristas para o seu painel,
+ * que é o que quase sempre querem ao abrir a app.
  *
- * Um restaurante ou um motorista não pedem comida a partir da conta de
- * trabalho — quem quiser as duas coisas cria contas separadas. Cada um é
- * mandado para o seu próprio painel em vez de ver a interface do outro.
+ * NÃO é uma guarda de navegação. /inicio, /explorar e /loja/:id são conteúdo
+ * para ver e estão abertos a qualquer conta — um dono de restaurante tem de
+ * poder olhar à volta como qualquer pessoa. Já esteve a envolver essas rotas e
+ * bloqueava-as; foi retirado de lá de propósito, não voltar a pôr.
+ *
+ * O isolamento a sério — o que impede um cliente de ver o painel de gestão de
+ * um restaurante ou de um motorista — é o RequireRole, e é esse que não se
+ * mexe.
  *
  * Fica de fora de propósito: conversas, mensagens, notificações e perfil.
  * Essas são partilhadas — o restaurante fala com os clientes por lá, e
  * fechá-las tirava-lhe funcionalidade que hoje tem.
  *
- * Visitante sem sessão continua a poder explorar: a conta só é exigida na
- * altura de encomendar.
+ * Visitante sem sessão passa sempre: a conta só é exigida ao encomendar.
  */
 const RequireClientArea = ({ children }: { children: React.ReactNode }) => {
   const { user, isBusiness, rolesLoaded, loading } = useAuth();

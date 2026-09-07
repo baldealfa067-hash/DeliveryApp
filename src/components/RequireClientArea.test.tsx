@@ -1,10 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
- * Guardas de isolamento por tipo de conta. Cada papel só vê a sua interface;
- * quem quiser outro cria uma conta separada.
+ * Guardas por tipo de conta.
+ *
+ * Duas regras diferentes, que já se confundiram uma vez e por isso ficam aqui
+ * separadas:
+ *
+ *  - RequireRole fecha os painéis de gestão. É o isolamento a sério.
+ *  - RequireClientArea só escolhe o destino por omissão de quem tem conta de
+ *    trabalho (raiz e pedidos pessoais). Navegar e ver menus não passa por
+ *    aqui — ver o bloco "rotas de navegação" no fim do ficheiro.
  */
 
 let authMock = {
@@ -25,12 +34,14 @@ import RequireRole from "./RequireRole";
 
 const montar = (guarda: React.ReactNode) =>
   render(
-    <MemoryRouter initialEntries={["/inicio"]}>
+    <MemoryRouter initialEntries={["/meus-pedidos"]}>
       <Routes>
-        <Route path="/inicio" element={guarda} />
+        <Route path="/meus-pedidos" element={guarda} />
         <Route path="/painel-loja" element={<div>PAINEL LOJA</div>} />
         <Route path="/painel-motorista" element={<div>PAINEL MOTORISTA</div>} />
         <Route path="/login" element={<div>LOGIN</div>} />
+        {/* Destino de quem e' recusado num painel: a navegacao aberta. */}
+        <Route path="/inicio" element={<div>NAVEGACAO ABERTA</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -72,9 +83,10 @@ describe("RequireClientArea", () => {
 });
 
 describe("RequireRole", () => {
-  it("bloqueia um cliente no painel de restaurante", () => {
+  it("bloqueia um cliente no painel de restaurante e devolve-o a navegação", () => {
     montar(<RequireRole roles={["business"]}><div>PAINEL PRIVADO</div></RequireRole>);
     expect(screen.queryByText("PAINEL PRIVADO")).toBeNull();
+    expect(screen.getByText("NAVEGACAO ABERTA")).toBeTruthy();
   });
 
   it("deixa entrar quem tem o papel", () => {
@@ -129,4 +141,44 @@ describe("raiz do site", () => {
     montarRaiz();
     expect(screen.getByText("LANDING")).toBeTruthy();
   });
+});
+
+/**
+ * Rotas de navegação: abertas a qualquer conta.
+ *
+ * Esta regra já foi ao contrário uma vez — /inicio, /explorar e /loja/:id
+ * estiveram envolvidas em RequireClientArea e uma conta de restaurante era
+ * atirada para o painel ao tentar navegar. Ver menus é conteúdo, não gestão.
+ *
+ * O teste lê a tabela de rotas em vez de montar a App inteira: o que interessa
+ * garantir é precisamente que nenhuma guarda de tipo de conta lá volta a ser
+ * posta, e é isso que se lê na tabela. Se alguém reintroduzir a guarda, falha.
+ */
+describe("rotas de navegação", () => {
+  // A raiz do vitest é a raiz do repo (vitest.config.ts), portanto o caminho
+  // relativo ao cwd é estável.
+  const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf-8");
+
+  const linhaDaRota = (caminho: string) => {
+    const linha = app.split("\n").find((l) => l.includes(`path="${caminho}"`));
+    expect(linha, `rota ${caminho} não encontrada em App.tsx`).toBeTruthy();
+    return linha!;
+  };
+
+  it.each(["/inicio", "/explorar", "/loja/:id"])(
+    "%s não tem guarda de tipo de conta",
+    (caminho) => {
+      expect(linhaDaRota(caminho)).not.toContain("RequireClientArea");
+      expect(linhaDaRota(caminho)).not.toContain("RequireRole");
+    },
+  );
+
+  // O contraponto: os painéis de gestão continuam fechados. Se isto falhar,
+  // a correção foi longe de mais e abriu o que nunca podia abrir.
+  it.each(["/painel-loja", "/painel-loja/editar", "/painel-motorista"])(
+    "%s continua fechado por RequireRole",
+    (caminho) => {
+      expect(linhaDaRota(caminho)).toContain("RequireRole");
+    },
+  );
 });

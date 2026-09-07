@@ -52,7 +52,8 @@ const Loading = () => (
  * de marketing e tinha de a atravessar para chegar ao que já é seu. Com sessão
  * vai directo a /inicio; a Landing continua acessível em /landing e volta a ser
  * a raiz assim que a sessão termina. Contas de trabalho nem chegam aqui — o
- * RequireClientArea que envolve esta rota manda-as antes para o seu painel.
+ * RequireClientArea que envolve esta rota manda-as antes para o seu painel, por
+ * ser o destino mais útil, não por lhes estar vedado navegar.
  */
 const HomeRoute = () => {
   const { user, loading } = useAuth();
@@ -73,11 +74,12 @@ const App = () => (
             <InstallPrompt />
             <PushPrompt />
             <Routes>
-              {/* A raiz é a porta da área de cliente: um restaurante ou um
-                  motorista que abra o site não tem nada a fazer na página de
-                  marketing (explorar e pedir estão fechados à conta de
-                  trabalho), vai directo para o seu painel. Visitante sem
-                  sessão continua a ver a Landing. */}
+              {/* A raiz escolhe o destino por omissão, não bloqueia nada: quem
+                  tem conta de trabalho e abre o site pelo endereço ou pelo
+                  ícone da PWA quer quase sempre o seu painel, não a página de
+                  marketing. Se quiser navegar como cliente, /inicio, /explorar
+                  e /loja/:id estão abertos e alcançáveis a partir do painel.
+                  Visitante sem sessão continua a ver a Landing. */}
               <Route path="/" element={<RequireClientArea><HomeRoute /></RequireClientArea>} />
               <Route path="/landing" element={<RequireClientArea><Landing /></RequireClientArea>} />
               <Route path="/sobre" element={<About />} />
@@ -112,15 +114,23 @@ const App = () => (
               <Route element={<Layout />}>
                 {/* Início e Explorar são o mesmo ecrã: só existe uma categoria
                     (restaurantes), portanto não há passo intermédio a dar. As duas
-                    rotas mantêm-se para não partir links nem marcadores existentes. */}
-                <Route path="/inicio" element={<RequireClientArea><Explore /></RequireClientArea>} />
-                <Route path="/explorar" element={<RequireClientArea><Explore /></RequireClientArea>} />
+                    rotas mantêm-se para não partir links nem marcadores existentes.
+
+                    Sem guarda de tipo de conta, de propósito: navegar e ver
+                    menus é conteúdo, não é gestão. Um dono de restaurante ou um
+                    motorista tem de poder abrir a app e olhar à volta como
+                    qualquer pessoa. O que continua fechado são os painéis de
+                    gestão, e esses são guardados por RequireRole. */}
+                <Route path="/inicio" element={<Explore />} />
+                <Route path="/explorar" element={<Explore />} />
                 <Route path="/conversas" element={<ConversationsPage />} />
                 <Route path="/meus-pedidos" element={<RequireClientArea><MyOrdersPage /></RequireClientArea>} />
                 <Route path="/pedido/:id" element={<RequireClientArea><OrderTrackingPage /></RequireClientArea>} />
                 <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
                 <Route path="/perfil" element={<Profile />} />
-                <Route path="/loja/:id" element={<RequireClientArea><BusinessDetail /></RequireClientArea>} />
+                {/* Ver o menu de um restaurante é visualização, aberta a
+                    qualquer conta — ver o comentário de /inicio. */}
+                <Route path="/loja/:id" element={<BusinessDetail />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
