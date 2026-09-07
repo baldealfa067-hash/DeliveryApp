@@ -35,7 +35,7 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) return toast.error(t("resetPassword.passwordMin"));
+    if (password.length < 8) return toast.error(t("resetPassword.passwordMin"));
     if (password !== confirmPassword) return toast.error(t("resetPassword.passwordMismatch"));
     setSubmitting(true);
     const { error: updateError } = await supabase.auth.updateUser({ password });
@@ -89,7 +89,7 @@ const ResetPassword = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 placeholder={t("resetPassword.minChars")}
               />
             </div>
@@ -101,7 +101,7 @@ const ResetPassword = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 placeholder={t("resetPassword.repeatPassword")}
               />
             </div>

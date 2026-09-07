@@ -182,7 +182,7 @@ const Login = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) return toast.error(t("auth.passwordMin"));
+    if (password.length < 8) return toast.error(t("auth.passwordMin"));
     if (!name.trim()) return toast.error(t("auth.enterName"));
     signingUp.current = true;
     setSubmitting(true);
@@ -536,7 +536,7 @@ const Login = () => {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="password-s">{t("auth.password")}</Label>
-                <Input id="password-s" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                <Input id="password-s" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
               </div>
               <Button type="submit" disabled={submitting} className="w-full h-11">
                 {submitting
