@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   LogOut,
   Trash2,
   BadgeCheck,
@@ -701,10 +702,18 @@ const AdminDashboard = () => {
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="border-b md:hidden">
           <div className="px-4 py-2 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
+            {/* /inicio e nao "/": a raiz devolve contas de trabalho ao seu
+                painel, e um admin que tambem seja motorista era atirado de
+                volta para /painel-motorista sem forma de sair. */}
+            <Link to="/inicio" className="flex items-center gap-2">
               <img src={logo} alt="Bornaal" className="h-7 w-auto" />
             </Link>
             <div className="flex items-center gap-2">
+              <Link to="/inicio">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <ArrowLeft className="h-4 w-4" /> {t("common.viewSite")}
+                </Button>
+              </Link>
               <LanguageSelector />
               <Badge variant="secondary">{t("admin.admin")}</Badge>
               <Button variant="ghost" size="icon" onClick={() => signOut().then(() => navigate("/"))}>
@@ -716,7 +725,7 @@ const AdminDashboard = () => {
         </header>
         <header className="hidden md:flex border-b px-6 py-3 items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-foreground inline-flex items-center gap-1">
+            <Link to="/inicio" className="hover:text-foreground inline-flex items-center gap-1">
               {t("common.home")}
             </Link>
             <ChevronRight className="h-3.5 w-3.5" />

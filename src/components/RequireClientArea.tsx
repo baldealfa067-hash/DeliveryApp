@@ -26,7 +26,7 @@ import { useDriverProfile } from "@/hooks/useDrivers";
  * Visitante sem sessão passa sempre: a conta só é exigida ao encomendar.
  */
 const RequireClientArea = ({ children }: { children: React.ReactNode }) => {
-  const { user, isBusiness, rolesLoaded, loading } = useAuth();
+  const { user, isBusiness, isAdmin, rolesLoaded, loading } = useAuth();
   const { data: driver, isLoading: driverLoading } = useDriverProfile(user?.id ?? null);
 
   if (loading || (user && (!rolesLoaded || driverLoading))) {
@@ -36,6 +36,14 @@ const RequireClientArea = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
+
+  // O admin passa sempre, antes de tudo o resto. Os papéis acumulam-se em
+  // user_roles e um perfil de motorista é independente deles, portanto uma
+  // conta de admin que também se tenha registado como motorista para testar
+  // caía no ramo de baixo: clicava em "Início", vinha parar aqui e era
+  // devolvida ao painel de motorista, sem forma de sair. Ao clicar em "Início"
+  // um admin quer a área pública, nunca gerir uma loja ou uma entrega.
+  if (user && isAdmin) return <>{children}</>;
 
   if (user && isBusiness) return <Navigate to="/painel-loja" replace />;
   if (user && driver) return <Navigate to="/painel-motorista" replace />;

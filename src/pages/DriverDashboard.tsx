@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   LogOut,
   Settings,
   MapPin,
@@ -295,12 +296,16 @@ const DriverDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logótipo, não uma ligação ao início do cliente: a Landing e tudo o
-              que dela se alcança (explorar, pedir) está fechado a esta conta,
-              portanto o link levava a um sítio sem saída útil. Sair continua
-              disponível à direita. */}
           <img src={logo} alt="Bornaal" className="h-8 w-auto" />
           <div className="flex items-center gap-2">
+            {/* Saída para a app pública. Já não há "sítio sem saída útil": um
+                motorista navega e encomenda como qualquer pessoa. Vai a
+                /inicio e não a "/", que devolveria a conta a este painel. */}
+            <Link to="/inicio">
+              <Button variant="outline" size="sm" className="gap-1 min-h-11">
+                <ArrowLeft className="h-4 w-4" /> {t("common.viewSite")}
+              </Button>
+            </Link>
             <LanguageSelector />
             <Button variant="ghost" size="sm" onClick={() => signOut().then(() => navigate("/"))} className="gap-1 min-h-11">
               <LogOut className="h-4 w-4" /> {t("common.logout")}

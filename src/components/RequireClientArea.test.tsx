@@ -75,6 +75,26 @@ describe("RequireClientArea", () => {
     expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
   });
 
+  /**
+   * Os papéis acumulam-se em user_roles, e um perfil de motorista é
+   * independente deles. Uma conta de admin que também se registou como
+   * motorista para testar era devolvida ao painel de motorista sempre que
+   * clicava em "Início" — e ficava lá presa. Medido em produção:
+   * emitayschool5@gmail.com, admin + client, com perfil de motorista.
+   */
+  it("deixa passar um admin que também é motorista, em vez de o prender no painel", () => {
+    authMock = { ...authMock, roles: ["admin", "client"], isAdmin: true };
+    driverMock = { data: { id: "d1" }, isLoading: false };
+    montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
+    expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
+  });
+
+  it("deixa passar um admin que também tem loja", () => {
+    authMock = { ...authMock, roles: ["admin", "business"], isAdmin: true, isBusiness: true };
+    montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
+    expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
+  });
+
   it("espera pelos papéis antes de decidir, para não mostrar a área errada", () => {
     authMock = { ...authMock, rolesLoaded: false };
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
@@ -184,4 +204,29 @@ describe("área pública", () => {
       expect(linhaDaRota(caminho)).toContain("RequireRole");
     },
   );
+});
+
+/**
+ * Saídas dos painéis de gestão.
+ *
+ * O link tem de ir a /inicio e nunca a "/": a raiz é exactamente a rota que
+ * devolve contas de trabalho ao seu próprio painel, portanto um botão "Ver
+ * site" apontado a "/" não sai do sítio. Foi assim que o painel de admin
+ * ficou sem saída aparente.
+ */
+describe("saídas dos painéis", () => {
+  const paineis = ["AdminDashboard", "BusinessDashboard", "DriverDashboard"];
+
+  it.each(paineis)("%s tem uma saída visível para a área pública", (painel) => {
+    const src = readFileSync(resolve(process.cwd(), `src/pages/${painel}.tsx`), "utf-8");
+    expect(src).toContain('to="/inicio"');
+    expect(src).toContain("common.viewSite");
+  });
+
+  it.each(paineis)("%s não usa \"/\" como saída, que devolveria ao painel", (painel) => {
+    const src = readFileSync(resolve(process.cwd(), `src/pages/${painel}.tsx`), "utf-8");
+    // Sair da sessão pode ir a "/" — aí não há sessão e a raiz mostra a
+    // Landing. O que não pode é um <Link to="/"> de navegação.
+    expect(src).not.toContain('<Link to="/"');
+  });
 });

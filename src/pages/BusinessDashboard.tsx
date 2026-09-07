@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   LogOut,
   Loader2,
   Settings,
@@ -194,12 +195,16 @@ const BusinessDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logótipo, não uma ligação ao início do cliente: a Landing e tudo o
-              que dela se alcança (explorar, pedir) está fechado a esta conta,
-              portanto o link levava a um sítio sem saída útil. Sair continua
-              disponível à direita. */}
           <img src={logo} alt="Bornaal" className="h-8 w-auto" />
           <div className="flex items-center gap-2">
+            {/* Saída para a app pública. Vai a /inicio e não a "/": a raiz
+                devolve contas de trabalho ao seu painel, portanto usá-la aqui
+                dava um botão que não saía do sítio. */}
+            <Link to="/inicio">
+              <Button variant="outline" size="sm" className="gap-1 min-h-11">
+                <ArrowLeft className="h-4 w-4" /> {t("common.viewSite")}
+              </Button>
+            </Link>
             <LanguageSelector />
             {isAdmin && (
               <Link to="/admin"><Button variant="outline" size="sm">{t("common.admin")}</Button></Link>
