@@ -9,7 +9,6 @@ export interface ServiceRequest {
   status: string;
   created_at: string;
   requester_name: string | null;
-  requester_phone: string | null;
   user_id: string | null;
   deadline: string | null;
   budget_type: string;
@@ -22,7 +21,9 @@ export const useRequests = () =>
     queryFn: async (): Promise<ServiceRequest[]> => {
       const { data, error } = await supabase
         .from("service_requests")
-        .select("id, category, description, location, status, created_at, requester_name, requester_phone, user_id, deadline, budget_type, budget_amount")
+        // requester_phone NAO entra aqui: anon nao tem SELECT nessa coluna.
+        // Quem tem legitimidade obtem-no por useRequestContactPhone().
+        .select("id, category, description, location, status, created_at, requester_name, user_id, deadline, budget_type, budget_amount")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ServiceRequest[];
@@ -59,6 +60,25 @@ export const useCreateRequest = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["service_requests"] }),
   });
 };
+
+/**
+ * Telefone de contacto do autor do pedido.
+ * A coluna requester_phone nao e legivel diretamente (nem por anon nem por
+ * authenticated); o RPC devolve-a apenas ao autor do pedido, a um prestador
+ * candidatado a esse pedido, ou a um admin. Para os restantes devolve null.
+ */
+export const useRequestContactPhone = (requestId: string | null) =>
+  useQuery({
+    queryKey: ["request_contact_phone", requestId],
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase.rpc("get_request_contact_phone", {
+        p_request_id: requestId,
+      });
+      if (error) throw error;
+      return (data as string | null) ?? null;
+    },
+    enabled: !!requestId,
+  });
 
 export interface RequestBid {
   id: string;

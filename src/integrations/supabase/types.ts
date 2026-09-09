@@ -1444,73 +1444,26 @@ export type Database = {
         }
         Returns: string
       }
-      create_order:
-        | {
-            Args: {
-              p_address?: string
-              p_business_id: string
-              p_consumption_option: string
-              p_customer_id: string
-              p_customer_name: string
-              p_customer_phone: string
-              p_items: Json
-              p_notes?: string
-              p_total: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_address?: string
-              p_bairro?: string
-              p_business_id: string
-              p_consumption_option: string
-              p_customer_id: string
-              p_customer_name: string
-              p_customer_phone: string
-              p_items: Json
-              p_notes?: string
-              p_total: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_address?: string
-              p_bairro?: string
-              p_business_id: string
-              p_consumption_option: string
-              p_customer_id: string
-              p_customer_lat?: number
-              p_customer_lng?: number
-              p_customer_name: string
-              p_customer_phone: string
-              p_items: Json
-              p_notes?: string
-              p_total: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_address?: string
-              p_bairro?: string
-              p_business_id: string
-              p_consumption_option: string
-              p_customer_id: string
-              p_customer_lat?: number
-              p_customer_lng?: number
-              p_customer_name: string
-              p_customer_phone: string
-              p_items: Json
-              p_notes?: string
-              p_payment_method?: string
-              p_payment_proof_url?: string
-              p_total: number
-              p_voice_note_url?: string
-            }
-            Returns: string
-          }
+      create_order: {
+        Args: {
+          p_address?: string
+          p_bairro?: string
+          p_business_id: string
+          p_consumption_option: string
+          p_customer_id: string
+          p_customer_lat?: number
+          p_customer_lng?: number
+          p_customer_name: string
+          p_customer_phone: string
+          p_items: Json
+          p_notes?: string
+          p_payment_method?: string
+          p_payment_proof_url?: string
+          p_total: number
+          p_voice_note_url?: string
+        }
+        Returns: string
+      }
       generate_bornaal_id: { Args: never; Returns: string }
       get_all_commissions: {
         Args: never
@@ -1744,6 +1697,10 @@ export type Database = {
           note: string
           status: string
         }[]
+      }
+      get_request_contact_phone: {
+        Args: { p_request_id: string }
+        Returns: string
       }
       get_unread_notifications_count: { Args: never; Returns: number }
       has_role: {
