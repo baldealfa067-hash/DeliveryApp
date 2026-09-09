@@ -34,6 +34,7 @@ import { orderStatusTone, paymentStatusTone, TONE_SOFT, TONE_STRONG } from "@/li
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
 
 const DELIVERY_IN_PROGRESS_STATUSES = [
   "aguardando_motorista",
@@ -48,21 +49,17 @@ const STATUS_TABS = [
   { value: "em_preparacao", label: "orderStatus.em_preparacao", icon: ChefHat },
   { value: "pronto", label: "orderStatus.pronto", icon: UtensilsCrossed },
   { value: "em_entrega", label: "orderStatus.em_entrega", icon: Truck },
-  { value: "entregue", label: "orderStatus.entregue", icon: CheckCircle2 },
+  // Era `entregue`. Depois da fusao da Fase 1 esse filtro nunca encontrava
+  // nada e os pedidos concluidos ficavam invisiveis ao restaurante.
+  { value: "concluido", label: "orderStatus.concluido", icon: CheckCircle2 },
   { value: "cancelado", label: "orderStatus.cancelado", icon: XCircle },
 ];
 
-const NEXT_STATUS: Record<string, string[]> = {
-  novo: ["confirmado", "cancelado"],
-  confirmado: ["em_preparacao", "cancelado"],
-  em_preparacao: ["pronto"],
-  pronto: ["entregue"],
-  aguardando_motorista: [],
-  motorista_encontrado: ["pedido_recolhido"],
-  pedido_recolhido: ["a_caminho"],
-  a_caminho: ["entregue"],
-  entregue: ["concluido"],
-};
+// A tabela do painel vive agora em @/lib/orderTransitions, ao lado da matriz
+// que espelha o servidor, e ha um teste que garante que uma e subconjunto da
+// outra. Aqui ficava uma copia solta que ainda apontava para `entregue` --
+// estado fundido em `concluido` na Fase 1 -- e que por isso oferecia ao
+// restaurante um botao que o servidor ja recusava.
 
 // Chaves de tradução, não texto fixo: antes eram emoji + português no código,
 // o que deixava esta parte por traduzir e o emoji saía partido em alguns
@@ -237,7 +234,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
 
   // A accao que faz avancar o pedido e' a principal; cancelar e' rara e fica
   // discreta ao lado de "Ver" (§5.5: uma accao principal larga, em baixo).
-  const nextSteps = (order: Order) => NEXT_STATUS[order.status] ?? [];
+  const nextSteps = (order: Order) => RESTAURANT_PANEL_STEPS[order.status] ?? [];
 
   const statusActions = (order: Order, onBefore?: () => void) => {
     const steps = nextSteps(order);

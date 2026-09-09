@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 
-const COMPLETE_ORDER_STATUSES = ["pronto", "aguardando_motorista", "motorista_encontrado", "pedido_recolhido", "a_caminho", "entregue", "concluido"] as const;
+const COMPLETE_ORDER_STATUSES = ["pronto", "aguardando_motorista", "motorista_encontrado", "pedido_recolhido", "a_caminho", "concluido"] as const;
 
 const getPeriodDateRange = (period: "this_month" | "last_month" | "this_year" | "all"): Date => {
   const now = new Date();

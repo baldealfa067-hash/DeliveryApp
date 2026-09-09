@@ -1,0 +1,12 @@
+-- FASE 1 (Fundacao) -- papel `driver` no enum app_role.
+--
+-- Ate' aqui um motorista identificava-se apenas por existir uma linha em
+-- `drivers`, sem papel proprio. O documento mestre (§7) define quatro papeis:
+-- Cliente, Restaurante, Frota/Motorista, Administrador. Sem `driver` no enum
+-- nao e' possivel escrever politicas de RLS nem guardas por papel para a
+-- operacao logistica.
+--
+-- Migracao isolada de proposito: em Postgres um valor novo de enum nao pode ser
+-- usado na mesma transacao em que e' criado. Quem o usar vem em migracoes
+-- seguintes.
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'driver';

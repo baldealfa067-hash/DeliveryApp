@@ -30,39 +30,41 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 import Login from "./Login";
 
-describe("Login - Motorista card", () => {
+/**
+ * Estes testes afirmavam que o ecra' de escolha tinha um cartao "Motorista" e
+ * que clica-lo abria o registo independente. O Aditamento 1 do documento
+ * mestre reverteu essa funcionalidade: na V1 so' frotas se registam como
+ * operadores logisticos, e e' a frota que cadastra os seus motoristas
+ * (§11, §12).
+ *
+ * Passam agora a afirmar o contrario, de proposito. Nao foram apagados: e' a
+ * rede que apanha alguem a repor o auto-registo por engano numa fase futura,
+ * e deixa escrito no codigo que a remocao foi uma decisao, nao um descuido.
+ */
+describe("Login - registo de motorista foi revertido (Aditamento 1)", () => {
   beforeEach(() => { mockNavigate.mockClear(); });
 
-  it("should render 3 cards: Cliente, Restaurante, Motorista", async () => {
+  it("nao mostra o cartao Motorista no ecra de escolha", () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    expect(screen.getByText("Motorista")).toBeInTheDocument();
-    expect(screen.getByText("Entregar pedidos e ganhar dinheiro")).toBeInTheDocument();
-    // Cliente label is via i18n - check that Motorista card exists
+    expect(screen.queryByText("Motorista")).not.toBeInTheDocument();
+    expect(screen.queryByText("Entregar pedidos e ganhar dinheiro")).not.toBeInTheDocument();
   });
 
-  it("clicking Motorista shows driver signup form (independent flow)", async () => {
+  it("nao ha caminho no ecra de escolha que abra o registo de motorista", () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    const card = screen.getByText("Motorista").closest(".cursor-pointer") as HTMLElement;
-    expect(card).toBeTruthy();
-    fireEvent.click(card!);
-    expect(screen.getByText("Conta de Motorista")).toBeInTheDocument();
-    expect(mockNavigate).not.toHaveBeenCalledWith("/painel-motorista");
+    expect(screen.queryByText("Conta de Motorista")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cria a tua conta para comecar a entregar")).not.toBeInTheDocument();
   });
 
-  it("clicking Cliente does NOT navigate to motorista, it switches mode", async () => {
+  it("continua a oferecer Restaurante, que e o unico perfil profissional da V1", () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    // We can't easily test setMode, but we verify navigate not called with motorista path
+    expect(screen.getByText("Restaurante")).toBeInTheDocument();
+  });
+
+  it("clicar em Cliente nao atira ninguem para o painel de motorista", () => {
+    render(<MemoryRouter><Login /></MemoryRouter>);
     const clienteCard = screen.getByText(/Cliente/i).closest(".cursor-pointer") as HTMLElement;
-    // There are multiple Cliente texts - pick the card one
     fireEvent.click(clienteCard);
     expect(mockNavigate).not.toHaveBeenCalledWith("/painel-motorista");
-  });
-
-  it("driver signup form has correct CTA", async () => {
-    render(<MemoryRouter><Login /></MemoryRouter>);
-    const card = screen.getByText("Motorista").closest(".cursor-pointer") as HTMLElement;
-    fireEvent.click(card!);
-    expect(screen.getByText("Cria a tua conta para começar a entregar")).toBeInTheDocument();
-    expect(screen.getByText("Conta de Motorista")).toBeInTheDocument();
   });
 });

@@ -1,0 +1,21 @@
+-- FASE 1 (complemento) -- tirar ao `anon` a escrita em profiles.
+--
+-- Apareceu ao verificar o trabalho da migracao anterior: alem do SELECT, o
+-- papel `anon` tinha INSERT, UPDATE e DELETE ao nivel da tabela.
+--
+-- Hoje nao e' explorável: nenhuma policy de INSERT/UPDATE/DELETE de `profiles`
+-- se aplica ao anonimo, e sem policy o RLS nega. Mas e' a mesma folga que se
+-- fechou nos RPCs -- deixa o RLS a ser a UNICA coisa entre um visitante sem
+-- conta e a tabela de perfis. Uma policy futura escrita sem `TO authenticated`
+-- passaria a valer tambem para o anonimo, sem ninguem dar por isso.
+--
+-- Ninguem anonimo escreve em profiles: o perfil e' criado pelo trigger
+-- handle_new_user (SECURITY DEFINER, nao passa por estes GRANTs) e editado
+-- pelo dono, que tem sessao.
+--
+-- AMBITO: so' `profiles`. O mesmo padrao existe nas 32 tabelas -- e' a postura
+-- por omissao do Supabase, em que os GRANTs sao largos e o RLS e' o portao.
+-- Rever as outras exige decidir tabela a tabela quais escritas anonimas sao
+-- intencionais (complaints, reviews e service_requests tem policies de INSERT
+-- para anon de proposito), e isso esta' fora do ambito aprovado para a Fase 1.
+REVOKE INSERT, UPDATE, DELETE ON public.profiles FROM anon;

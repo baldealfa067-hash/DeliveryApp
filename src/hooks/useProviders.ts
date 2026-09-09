@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 
 export interface ProviderWithRating {
   id: string;
@@ -28,7 +29,7 @@ export const useProviders = (profileType?: "business") =>
     queryFn: async (): Promise<ProviderWithRating[]> => {
       let q = supabase
         .from("profiles")
-        .select("*")
+        .select(PUBLIC_PROFILE_COLUMNS)
         .neq("category", "")
         .eq("profile_type", "business");
       if (profileType) q = q.eq("profile_type", profileType);
@@ -66,7 +67,7 @@ export const useProvider = (id: string) =>
     queryFn: async () => {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select(PUBLIC_PROFILE_COLUMNS)
         .eq("id", id)
         .single();
       if (error) throw error;

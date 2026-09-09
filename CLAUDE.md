@@ -514,30 +514,57 @@ Depois disso, apresente um Plano de Reconstrução do DeliveryApp por fases, ind
 
 ---
 
-# Fase 1 — âmbito aprovado (2026-09-09)
+# Fase 1 — Fundação — CONCLUÍDA (2026-09-09)
 
-Aprovada pelo dono do projeto. Não avançar para a Fase 2 sem aprovação
-explícita do checklist da Fase 1.
+Aprovada e executada. Não avançar para a Fase 2 sem aprovação explícita do
+checklist.
 
-- [ ] Autorização em `update_order_status` — hoje qualquer autenticado pode
-      mudar o estado de qualquer pedido (SECURITY DEFINER sem verificação de
-      dono; o único `auth.uid()` do corpo serve para `created_by`)
-- [ ] Acrescentar `driver` ao enum `app_role` (hoje: client, provider, admin,
-      business, beleza)
-- [ ] RLS de `drivers` — hoje `USING (true)` para o papel público, com GRANT de
-      SELECT em `phone`, `current_lat`, `current_lng`
-- [ ] REVOKE dos RPCs `SECURITY DEFINER` ao `anon` (48 funções)
-- [ ] Fechar `profiles` a anónimos, EXCETO `phone` que fica público
-- [ ] Fechar `messages` a anónimos (hoje anon insere para qualquer
-      `receiver_id`, e qualquer pessoa lê mensagens com `sender_id IS NULL`)
-- [ ] Remover as policies duplicadas em `profiles` (2) e `notifications` (4 pares)
-- [ ] Fundir `entregue` em `concluido`
-- [ ] Apagar as 4 contas de motorista de teste (Test2, alfa, Motorista D,
-      Alfa Balde) — confirmado como dados de teste
+- [x] Autorização em `update_order_status` — dono do restaurante, motorista da
+      entrega, cliente (só cancelar em `novo`) e admin. Antes: qualquer
+      autenticado mudava o estado de qualquer pedido
+- [x] Disciplina de transições (§36) — matriz imposta no servidor, admin com
+      válvula de correcção registada no histórico
+- [x] `driver` acrescentado ao enum `app_role`
+- [x] RLS de `drivers` — era `USING (true)` para o papel público; passa a
+      própria linha + admin, e o anónimo perde a tabela
+- [x] REVOKE do `anon` em 23 RPCs `SECURITY DEFINER`. Ficam 3 de propósito:
+      `has_role` (avaliada dentro de policies), `increment_provider_view` e
+      `record_provider_contact` (rota pública `/loja/:id`)
+- [x] `profiles` fechado a anónimos — 22 colunas públicas; fora do alcance:
+      `merchant_code`, `payment_number`, `verification_doc_url`,
+      `verification_selfie_url`, `verification_reason`. `phone`, `lat` e `lng`
+      ficam públicos por decisão do dono
+- [x] `profiles` — anónimo perde também INSERT/UPDATE/DELETE
+- [x] `messages` fechado a anónimos — escrevia para qualquer `receiver_id` e
+      qualquer pessoa lia o que tivesse `sender_id IS NULL`
+- [x] Policies duplicadas removidas — 2 em `profiles`, 3 em `notifications`
+- [x] `entregue` fundido em `concluido` (15 pedidos)
+- [x] `complete_delivery` deixa de reintroduzir `entregue`
+- [x] Cartão "Motorista" removido do ecrã de login e do link `?mode=motorista`
+      (Aditamento 1.3). O fluxo do motorista fica intacto (Aditamento 1.4)
+- [x] Teste automatizado da disciplina de estados, com peso nos casos
+      negativos — `src/lib/orderTransitions.test.ts`, 16 testes
 
-## Adiado, não bloqueia a Fase 1
+## Por fechar da Fase 1
+- [ ] `alfa` — a quarta conta de motorista não foi apagada: as foreign keys
+      `deliveries_driver_id_fkey` e `delivery_proofs_driver_id_fkey` são
+      `NO ACTION` e ela tem 9 entregas e 1 comprovativo. O Postgres recusa o
+      DELETE. Precisa de decisão sobre o que fazer aos registos
+
+## Achado durante a Fase 1, fora do âmbito
+- `anon` tem INSERT/UPDATE/DELETE nas 32 tabelas (postura por omissão do
+  Supabase; o RLS é o portão). Só `profiles` e `messages` foram fechados.
+  Rever as outras exige decidir tabela a tabela quais escritas anónimas são
+  intencionais — `complaints`, `reviews` e `service_requests` têm policies de
+  INSERT para `anon` de propósito
+- `merchant_code`, `payment_number` e as colunas de KYC continuam legíveis por
+  qualquer autenticado. Apertar isso exige movê-las para RPC com verificação
+  de dono
+
+## Adiado, não bloqueava a Fase 1
 - Rotação da chave anon JWT (planear por causa dos triggers de push)
 - Remoção do código órfão (~2900 linhas) e das 11 tabelas vazias — fase de
   limpeza do Bornaal
 - Refactor de AdminDashboard.tsx (1464 linhas) e BusinessDetail.tsx (1143)
 - Kriol a 63% (748/1182 chaves)
+- 18 erros de `tsc --noEmit` pré-existentes (o build não os apanha)

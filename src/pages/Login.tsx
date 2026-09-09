@@ -37,8 +37,12 @@ const Login = () => {
   const [mode, setMode] = useState<AuthMode>(() => {
     const m = searchParams.get("mode");
     if (m === "cliente") return "client";
-    if (m === "motorista") return "driver";
     if (m === "restaurante") return "professional";
+    // `?mode=motorista` deixou de abrir o registo de motorista. Era a última
+    // porta pública para o auto-registo depois de o cartão sair do ecrã de
+    // escolha — ver o comentário do cartão, mais abaixo. O modo "driver" em si
+    // mantém-se no ficheiro: é o que a frota vai reutilizar na Fase 3/4 para
+    // criar os seus motoristas, e é o ecrã que um motorista já registado vê.
     return "choose";
   });
   const [tab, setTab] = useState<"login" | "signup">(
@@ -309,20 +313,21 @@ const Login = () => {
             </CardContent>
           </Card>
 
-          <Card
-            className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
-            onClick={() => setMode("driver")}
-          >
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Bike className="h-6 w-6 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold">Motorista</p>
-                <p className="text-xs text-muted-foreground">Entregar pedidos e ganhar dinheiro</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* O cartão "Motorista" saiu daqui deliberadamente (Aditamento 1 do
+              documento mestre): na V1 só frotas se registam como operadores
+              logísticos, e é a frota que cadastra os seus motoristas (§11,
+              §12). Não é um esquecimento — o auto-registo chegou a existir,
+              foi publicado e está a ser revertido de propósito.
+
+              O que NÃO saiu, e não deve sair: o modo "driver" deste ficheiro,
+              o DriverDashboard e as RPC de aceitar/recolher/entregar. Esse
+              código continua a ser o fluxo do motorista; muda apenas quem cria
+              a conta. A Fase 3 liga-o à frota em vez de o duplicar
+              (Aditamento 1.4).
+
+              Um motorista já existente continua a entrar: entra como cliente e
+              getPostLoginDestination manda-o para /painel-motorista por ter
+              linha em `drivers`. */}
 
           <p className="text-center text-xs text-muted-foreground">
             {t("auth.alreadyAccount")}{" "}

@@ -33,7 +33,7 @@ const DELIVERY_STATUS_FLOW = [
   "motorista_encontrado",
   "pedido_recolhido",
   "a_caminho",
-  "entregue",
+  "concluido",
 ];
 
 const LOCAL_STATUS_FLOW = [
@@ -41,7 +41,7 @@ const LOCAL_STATUS_FLOW = [
   "confirmado",
   "em_preparacao",
   "pronto",
-  "entregue",
+  "concluido",
 ];
 
 const STATUS_ICONS: Record<string, string> = {

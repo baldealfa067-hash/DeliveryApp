@@ -30,6 +30,7 @@ import { ClientSignupDialog } from "@/components/ClientSignupDialog";
 import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
 import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
 import { Mic, Square, Play, Pause, RotateCcw, Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -113,7 +114,7 @@ const BusinessDetail = () => {
     }
     (async () => {
       const [{ data: profile }, { data: cats }, { data: items }, { data: revs }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", id).maybeSingle(),
         supabase.from("menu_categories").select("id, name").eq("business_id", id).order("name"),
         supabase.from("menu_items").select("id, name, price, photo_url, category_id").eq("business_id", id).order("name"),
         supabase.from("reviews").select("id, rating, comment, created_at, reviewer_name").eq("provider_id", id).eq("status", "aprovado").order("created_at", { ascending: false }),
@@ -125,6 +126,29 @@ const BusinessDetail = () => {
       setLoading(false);
     })();
   }, [id]);
+
+  // O código de comerciante e o número de pagamento deixaram de estar ao
+  // alcance de quem não tem sessão (Fase 1): são identificadores de pagamento,
+  // e um visitante anónimo não precisa deles para ver o menu. Quem tem conta
+  // continua a precisar, porque é com eles que paga por Orange Money (§23) —
+  // por isso vêm numa segunda consulta, só depois de haver sessão, e juntam-se
+  // ao perfil já carregado.
+  useEffect(() => {
+    if (!id || !user) return;
+    let cancelado = false;
+    supabase
+      .from("profiles")
+      .select("merchant_code, payment_number")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelado || error || !data) return;
+        setBusiness((anterior) => (anterior ? { ...anterior, ...data } : anterior));
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [id, user]);
 
   // Silent GPS capture for delivery orders (no map shown)
   useEffect(() => {
