@@ -222,6 +222,50 @@ export const useUpsertZonePrice = () => {
   });
 };
 
+export interface DriverDetail {
+  driver_id: string;
+  nome: string;
+  resumo: {
+    entregas: number;
+    concluidas: number;
+    canceladas: number;
+    em_curso: number;
+    ganhos: number;
+    /** Minutos entre aceitar e entregar. `null` até haver uma entrega concluída
+     *  — não se devolve 0, que afirmaria rapidez que não se mediu (§84). */
+    minutos_medios: number | null;
+  };
+  bairros: Array<{ bairro: string; entregas: number; ganhos: number }>;
+  horas: Array<{ hora: number; entregas: number }>;
+  ultimas: Array<{
+    order_number: number;
+    bairro: string | null;
+    estado: string;
+    taxa: number | null;
+    aceite_em: string | null;
+    entregue_em: string | null;
+  }>;
+}
+
+/**
+ * Detalhe de um motorista da frota (§12, §32).
+ *
+ * Só o dono da frota a que o motorista pertence — a RPC compara `owner_user_id`
+ * com o `auth.uid()` de quem chama. O próprio motorista é recusado: §12 nega-lhe
+ * acesso administrativo à frota.
+ */
+export const useDriverDetail = (driverId: string | null) =>
+  useQuery({
+    queryKey: ["fleet", "driverDetail", driverId],
+    enabled: !!driverId,
+    queryFn: async () => {
+      const { data, error } = await rpc("get_fleet_driver_detail", {
+        p_driver_id: driverId,
+      });
+      return unwrap<DriverDetail>(data, error);
+    },
+  });
+
 /**
  * §14/§83 — o cliente tem de saber o preço da entrega ANTES de confirmar.
  * Devolve só o valor aplicável; a grelha de preços de cada frota é privada.

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { formatCFA } from "@/lib/format";
 import { LOCATION_OPTIONS } from "@/lib/locations";
 import { useAuth } from "@/hooks/useAuth";
+import { FleetDriverDetail } from "@/components/FleetDriverDetail";
 import {
   useFleetMetrics,
   useCreateFleet,
@@ -62,6 +63,8 @@ const FleetDashboard = () => {
   const [preco, setPreco] = useState("");
   /** PIN devolvido pela criação, para a frota passar ao motorista. */
   const [pinNovo, setPinNovo] = useState<{ nome: string; telefone: string; pin: string } | null>(null);
+  /** Motorista aberto no painel lateral de detalhe. */
+  const [detalheId, setDetalheId] = useState<string | null>(null);
   const [fleetName, setFleetName] = useState("");
   const [fleetPhone, setFleetPhone] = useState("");
 
@@ -275,13 +278,18 @@ const FleetDashboard = () => {
                 <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Bike className="h-5 w-5 text-primary" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold truncate">{d.name}</p>
+                <button
+                  type="button"
+                  onClick={() => setDetalheId(d.id)}
+                  className="min-w-0 flex-1 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <p className="font-semibold truncate underline-offset-2 hover:underline">{d.name}</p>
                   <p className="text-xs text-muted-foreground">{d.phone}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {d.concluidas}/{d.entregas} entregas · {formatCFA(d.valor_entregas)}
                   </p>
-                </div>
+                  <p className="text-[11px] text-primary mt-1">Ver detalhes</p>
+                </button>
                 <div className="flex flex-col gap-2 shrink-0">
                   <Button
                     size="sm"
@@ -381,6 +389,8 @@ const FleetDashboard = () => {
           ))}
         </TabsContent>
       </Tabs>
+
+      <FleetDriverDetail driverId={detalheId} onClose={() => setDetalheId(null)} />
     </div>
   );
 };
