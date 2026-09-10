@@ -35,6 +35,7 @@ const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
 const MyAppointmentsPage = lazy(() => import("./pages/MyAppointmentsPage"));
 const DriverDashboard = lazy(() => import("./pages/DriverDashboard"));
+const FleetDashboard = lazy(() => import("./pages/FleetDashboard"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 
@@ -108,7 +109,19 @@ const App = () => (
                   branco e sem um único elemento clicável. /perfil não
                   redireciona ninguém de volta para a área de cliente, portanto
                   a cadeia termina sempre. */}
-              <Route path="/painel-motorista" element={<RequireRole roles={["client"]} redirectTo="/perfil"><DriverDashboard /></RequireRole>} />
+              {/* Fase 3, risco 3: a guarda era roles={["client"]} -- qualquer cliente
+                  abria o painel do motorista. O papel `driver` existia desde a Fase 1
+                  mas nunca chegou a ser usado aqui. Quem o atribui e' add_driver_to_fleet,
+                  ou seja, a frota (§11). */}
+              <Route path="/painel-motorista" element={<RequireRole roles={["driver"]} redirectTo="/perfil"><DriverDashboard /></RequireRole>} />
+              {/* Sem RequireRole de proposito. O papel `fleet` so' nasce quando
+                  create_fleet() corre, e create_fleet() e' chamada a partir deste
+                  ecra' -- guardar a rota pelo papel fechava a porta pela qual o
+                  papel entra. Nao ha perda de seguranca: todas as RPCs da frota
+                  filtram por owner_user_id = auth.uid(), e get_fleet_metrics()
+                  devolve vazio a quem nao tem frota, que e' o que faz o ecra'
+                  mostrar o formulario de criacao em vez do painel. */}
+              <Route path="/painel-frota" element={<FleetDashboard />} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/mensagem/:userId" element={<ChatPage />} />
               <Route element={<Layout />}>

@@ -25,6 +25,7 @@ import { translateCategoryName } from "@/lib/categoryI18n";
 import { useUnreadFromUser } from "@/hooks/useChat";
 import { useCreateOrder } from "@/hooks/useOrders";
 import { useBairros } from "@/hooks/useBairros";
+import { useDeliveryPrice } from "@/hooks/useFleet";
 import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
 import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
@@ -99,6 +100,11 @@ const BusinessDetail = () => {
   const [orderNotes, setOrderNotes] = useState("");
   const createOrder = useCreateOrder();
   const { data: bairros = [] } = useBairros();
+  /* §14/§83: o cliente tem de saber a taxa de entrega ANTES de confirmar.
+     O preço vem do bairro (§15), não da distância, e é resolvido no servidor --
+     get_delivery_price() devolve só o valor aplicável, nunca a grelha de preços
+     de nenhuma frota. */
+  const { data: deliveryPrice, isLoading: deliveryPriceLoading } = useDeliveryPrice(bairro || null);
   const bizUserId = business ? String((business as Record<string, unknown>).user_id ?? "") : "";
   const isOwnProfile = user?.id === bizUserId && !!user;
   const { data: unreadCount = 0 } = useUnreadFromUser(user?.id ?? null, bizUserId || null);
@@ -1034,10 +1040,41 @@ const BusinessDetail = () => {
                   <span className="font-medium">{formatCFA(i.price * (cart[i.id] ?? 0))}</span>
                 </div>
               ))}
-              <div className="flex justify-between font-bold border-t mt-1.5 pt-1.5">
-                <span>{t("businessDetail.total")}</span>
-                <span>{formatCFA(cartTotal)}</span>
-              </div>
+              {activeConsumption === "entrega" ? (
+                <>
+                  <div className="flex justify-between border-t mt-1.5 pt-1.5">
+                    <span className="text-muted-foreground">{t("businessDetail.total")}</span>
+                    <span>{formatCFA(cartTotal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Taxa de entrega</span>
+                    <span>
+                      {!bairro
+                        ? "—"
+                        : deliveryPriceLoading
+                          ? "…"
+                          : deliveryPrice
+                            ? formatCFA(deliveryPrice.preco)
+                            : "sem entrega"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-bold border-t mt-1.5 pt-1.5">
+                    <span>Total a pagar</span>
+                    <span>{formatCFA(cartTotal + (deliveryPrice?.preco ?? 0))}</span>
+                  </div>
+                  {bairro && !deliveryPriceLoading && !deliveryPrice && (
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      Nenhuma frota entrega em {bairro} de momento. O pedido pode
+                      ser feito, mas não será atribuído a um motorista.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div className="flex justify-between font-bold border-t mt-1.5 pt-1.5">
+                  <span>{t("businessDetail.total")}</span>
+                  <span>{formatCFA(cartTotal)}</span>
+                </div>
+              )}
             </div>
 
             {activeConsumption === "entrega" && (

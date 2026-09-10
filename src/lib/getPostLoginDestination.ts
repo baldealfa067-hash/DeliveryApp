@@ -1,17 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type PostLoginDestination = "/painel-motorista" | "/painel-loja" | "/painel-beleza" | "/inicio" | "/admin";
+export type PostLoginDestination = "/painel-frota" | "/painel-motorista" | "/painel-loja" | "/painel-beleza" | "/inicio" | "/admin";
 
 /**
  * Decide destino pós-login com prioridade Glovo-like:
- * 1. drivers → /painel-motorista
- * 2. business → /painel-loja
- * 3. beleza → /painel-beleza
- * 4. default → /inicio
+ * 1. frota → /painel-frota (o dono de uma frota gere a operação; se também
+ *    conduzir, chega ao painel de motorista pelo menu)
+ * 2. drivers → /painel-motorista
+ * 3. business → /painel-loja
+ * 4. beleza → /painel-beleza
+ * 5. default → /inicio
  * Admin tem prioridade máxima mas é tratado antes (se quiser manter).
  */
 export async function getPostLoginDestination(userId: string): Promise<PostLoginDestination> {
-  // 1. driver tem prioridade máxima (tabela drivers, não user_roles)
+  // 1. dono de frota (tabela fleets, não user_roles)
+  const { data: fleet } = await supabase
+    .from("fleets" as never)
+    .select("id")
+    .eq("owner_user_id", userId)
+    .maybeSingle();
+  if (fleet) return "/painel-frota";
+
+  // 2. driver (tabela drivers, não user_roles)
   const { data: driver } = await supabase
     .from("drivers")
     .select("id")
@@ -19,7 +29,7 @@ export async function getPostLoginDestination(userId: string): Promise<PostLogin
     .maybeSingle();
   if (driver) return "/painel-motorista";
 
-  // 2. business / beleza via profiles (fonte primária) + fallback via user_roles
+  // 3. business / beleza via profiles (fonte primária) + fallback via user_roles
   const { data: profile } = await supabase
     .from("profiles")
     .select("profile_type")

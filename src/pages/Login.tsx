@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Store, User, ArrowLeft, Bike } from "lucide-react";
+import { Store, User, ArrowLeft, Bike, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -27,7 +27,7 @@ import { isPasswordBreached } from "@/lib/passwordBreach";
 import logo from "@/assets/logo.png";
 
 type ProfileType = "business";
-type AuthMode = "choose" | "client" | "professional" | "driver";
+type AuthMode = "choose" | "client" | "professional" | "driver" | "fleet";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -38,6 +38,7 @@ const Login = () => {
     const m = searchParams.get("mode");
     if (m === "cliente") return "client";
     if (m === "restaurante") return "professional";
+    if (m === "frota") return "fleet";
     // `?mode=motorista` deixou de abrir o registo de motorista. Era a última
     // porta pública para o auto-registo depois de o cartão sair do ecrã de
     // escolha — ver o comentário do cartão, mais abaixo. O modo "driver" em si
@@ -189,6 +190,7 @@ const Login = () => {
     e.preventDefault();
     if (password.length < 8) return toast.error(t("auth.passwordMin"));
     if (!name.trim()) return toast.error(t("auth.enterName"));
+    if (mode === "fleet" && !phone.trim()) return toast.error("Telefone de contacto obrigatório");
     setSubmitting(true);
     // Antes de criar a conta: esta palavra-passe já apareceu numa fuga pública?
     // Contas de restaurante e motorista veem dados de clientes e de vendas.
@@ -200,11 +202,18 @@ const Login = () => {
     try {
       const isClientFlow = mode === "client";
       const isDriverFlow = mode === "driver";
-      const redirectPath = isDriverFlow ? "/painel-motorista" : isClientFlow ? "/inicio" : "/painel-loja/editar";
+      const isFleetFlow = mode === "fleet";
+      const redirectPath = isFleetFlow
+        ? "/painel-frota"
+        : isDriverFlow
+          ? "/painel-motorista"
+          : isClientFlow
+            ? "/inicio"
+            : "/painel-loja/editar";
 
       // Passar profile_type no metadata para o trigger handle_new_user criar a role
       // mesmo quando Confirm Email = ON (session === null)
-      const profileTypeForMeta = isClientFlow || isDriverFlow ? "client" : profileType;
+      const profileTypeForMeta = isClientFlow || isDriverFlow || isFleetFlow ? "client" : profileType;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -218,7 +227,19 @@ const Login = () => {
       }
       if (data.session) {
         // Confirm email OFF — session existe, garantir role via RPC também (trigger já fez, mas RPC é idempotente)
-        if (isClientFlow || isDriverFlow) {
+        if (isFleetFlow) {
+          const { error: roleErr } = await supabase.rpc("register_as_client");
+          if (roleErr) console.error("Role error:", roleErr);
+          // create_fleet() e' quem atribui o papel `fleet`. Se falhar, nao se
+          // bloqueia a entrada: /painel-frota mostra o formulario de criacao,
+          // que chama exactamente a mesma RPC.
+          const { error: fleetErr } = await (
+            supabase.rpc as unknown as (
+              fn: string, args: Record<string, unknown>,
+            ) => Promise<{ error: { message: string } | null }>
+          )("create_fleet", { p_name: name.trim(), p_phone: phone.trim(), p_bairro: null });
+          if (fleetErr) toast.error(fleetErr.message);
+        } else if (isClientFlow || isDriverFlow) {
           const { error: roleErr } = await supabase.rpc("register_as_client");
           if (roleErr) console.error("Role error:", roleErr);
         } else {
@@ -313,6 +334,24 @@ const Login = () => {
             </CardContent>
           </Card>
 
+          {/* §11: a frota é a única via de registo de operação logística na V1.
+              Reutiliza o mesmo fluxo profissional (email + password) do
+              restaurante -- não há um fluxo à parte. */}
+          <Card
+            className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+            onClick={() => setMode("fleet")}
+          >
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Truck className="h-6 w-6 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold">Frota</p>
+                <p className="text-xs text-muted-foreground">Gerir motoristas, preços e entregas</p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* O cartão "Motorista" saiu daqui deliberadamente (Aditamento 1 do
               documento mestre): na V1 só frotas se registam como operadores
               logísticos, e é a frota que cadastra os seus motoristas (§11,
@@ -343,6 +382,7 @@ const Login = () => {
   // ─── TELA: Auth (Cliente / Restaurante / Motorista) ───
   const isClientFlow = mode === "client";
   const isDriverFlow = mode === "driver";
+  const isFleetFlow = mode === "fleet";
 
   const campoPin = (id: string, valor: string, setter: (v: string) => void, etiqueta: string) => (
     <div className="space-y-1.5">
@@ -476,10 +516,10 @@ const Login = () => {
         <div className="text-center space-y-1">
           <img src={logo} alt="Bornaal" className="h-10 mx-auto" />
           <h1 className="text-xl font-bold">
-            {isDriverFlow ? "Conta de Motorista" : isClientFlow ? t("auth.clientLoginTitle") : t("auth.professionalLoginTitle")}
+            {isFleetFlow ? "Conta de Frota" : isDriverFlow ? "Conta de Motorista" : isClientFlow ? t("auth.clientLoginTitle") : t("auth.professionalLoginTitle")}
           </h1>
           <p className="text-xs text-muted-foreground">
-            {isDriverFlow ? "Cria a tua conta para começar a entregar" : isClientFlow ? t("auth.clientLoginSubtitle") : t("auth.professionalLoginSubtitle")}
+            {isFleetFlow ? "Registe a frota para gerir motoristas e entregas" : isDriverFlow ? "Cria a tua conta para começar a entregar" : isClientFlow ? t("auth.clientLoginSubtitle") : t("auth.professionalLoginSubtitle")}
           </p>
         </div>
 
@@ -539,9 +579,22 @@ const Login = () => {
           <TabsContent value="signup">
             <form onSubmit={handleSignup} className="flex flex-col gap-3 mt-4">
               <div className="space-y-1">
-                <Label htmlFor="name">{t("auth.name")}</Label>
+                <Label htmlFor="name">{isFleetFlow ? "Nome da frota" : t("auth.name")}</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
+              {isFleetFlow && (
+                <div className="space-y-1">
+                  <Label htmlFor="fleet-phone">Telefone de contacto</Label>
+                  <Input
+                    id="fleet-phone"
+                    inputMode="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="9XXXXXXXX"
+                    required
+                  />
+                </div>
+              )}
               <div className="space-y-1">
                 <Label htmlFor="email-s">{t("auth.email")}</Label>
                 <Input id="email-s" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -553,8 +606,10 @@ const Login = () => {
               <Button type="submit" disabled={submitting} className="w-full h-11">
                 {submitting
                   ? t("auth.creatingAccount")
-                  : isDriverFlow
-                    ? "Criar conta de motorista"
+                  : isFleetFlow
+                    ? "Criar conta de frota"
+                    : isDriverFlow
+                      ? "Criar conta de motorista"
                     : isClientFlow
                       ? t("auth.createClientAccount")
                       : t("auth.createBusinessAccount")}

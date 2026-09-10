@@ -1,0 +1,11 @@
+-- FASE 3 (Frotas) -- papel `fleet` no enum app_role.
+--
+-- §11: na V1 so' frotas se registam como operadores logisticos. A frota e' um
+-- papel proprio, distinto de `driver`: gere motoristas, precos e a operacao,
+-- enquanto o motorista so' executa entregas (§12 -- "o motorista nao deve ter
+-- acesso administrativo a' frota").
+--
+-- Migracao isolada de proposito, pelo mesmo motivo que 20260909155408: em
+-- Postgres um valor novo de enum nao pode ser usado na mesma transacao em que
+-- e' criado. Quem o usa vem nas migracoes seguintes.
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'fleet';

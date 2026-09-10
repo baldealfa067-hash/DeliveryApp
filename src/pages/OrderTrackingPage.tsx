@@ -53,7 +53,7 @@ const STATUS_ICONS: Record<string, string> = {
   motorista_encontrado: "🛵",
   pedido_recolhido: "📦",
   a_caminho: "📍",
-  entregue: "✅",
+  concluido: "✅",
   cancelado: "❌",
 };
 
