@@ -44,6 +44,49 @@ Mantém exatamente os nomes que já existem e estão testados no sistema atual (
 
 ---
 
+# REGRA DE ENGENHARIA — como se testa RLS e isolamento (permanente)
+
+**Testes de RLS e de isolamento têm de usar HTTP real com JWT de utilizador
+normal. Nunca `service_role`, nunca MCP privilegiado, nunca `psql` como dono da
+base de dados.**
+
+`service_role` **ignora RLS por completo**. Um teste que passa sob `service_role`
+não prova absolutamente nada sobre o que um utilizador real consegue — ou não
+consegue — fazer. Prova apenas que o SQL é sintaticamente válido.
+
+Isto já causou pelo menos uma avaria real em produção: a Fase 3 introduziu
+**recursão infinita** entre as policies de `fleets` e `drivers` (cada uma lia a
+tabela da outra). Qualquer leitura directa de `fleets` por um utilizador
+autenticado devolvia `42P17 infinite recursion detected in policy`, ou seja,
+HTTP 500 — o destino pós-login e o separador de preços do painel ficaram
+partidos. O teste de ponta a ponta dessa fase tinha **sete assertivas verdes**,
+todas corridas por MCP com `service_role`, sobre código que nenhum utilizador
+real conseguia executar. Só apareceu quando se fez um pedido HTTP autenticado.
+
+## Como testar, então
+
+1. Criar contas de teste pela API pública (`/auth/v1/signup`) com a chave
+   **anon**, que é a que o frontend usa.
+2. Guardar o `access_token` devolvido e usá-lo como `Authorization: Bearer` em
+   todos os pedidos seguintes, com `apikey: <anon>`.
+3. Exercitar os caminhos reais: `/rest/v1/<tabela>` para leituras directas
+   (é aí que o RLS se aplica) e `/rest/v1/rpc/<nome>` para as RPCs.
+4. Para isolamento, criar **duas** contas e confirmar que a segunda vê zero —
+   tanto pelas RPCs como pela **tabela directamente**, que são caminhos
+   diferentes e falham de maneiras diferentes.
+5. Limpar os dados de teste no fim, com salvaguarda que aborta se tocarem em
+   dados reais.
+
+## Nota sobre RPCs `SECURITY DEFINER`
+
+Uma RPC `SECURITY DEFINER` também salta o RLS da tabela que consulta. Isso é
+útil — é assim que se quebram ciclos de policies — mas significa que **uma RPC
+verde não confirma que a leitura directa da mesma tabela funciona**. Foi por
+isso que a recursão passou despercebida: as RPCs da frota funcionavam, e a
+tabela não. Testar sempre os dois caminhos.
+
+---
+
 # DOCUMENTO MESTRE — DELIVERYAPP
 ## Documento Mestre de Visão, Produto, Regras de Negócio e Engenharia
 Versão: Setembro de 2026
@@ -333,6 +376,8 @@ Segurança é prioridade. O sistema deve garantir isolamento completo. Exemplo: 
 A segurança deve existir no backend/database. Não confiar apenas em `if (user.role === ...)` no frontend.
 
 ## 47. RLS
+
+**Antes de dar qualquer política por verificada, ver a REGRA DE ENGENHARIA no topo deste ficheiro:** um teste de RLS feito com `service_role` não testa RLS nenhum.
 
 Se Supabase estiver sendo utilizado, as políticas RLS devem ser auditadas cuidadosamente. Verificar: SELECT; INSERT; UPDATE; DELETE; funções; triggers; views; relações; ownership; roles. Toda informação privada deve possuir autorização adequada.
 

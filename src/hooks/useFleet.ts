@@ -150,6 +150,38 @@ export const useAddDriver = () => {
   });
 };
 
+/**
+ * Gera um PIN novo para um motorista da frota.
+ *
+ * O PIN não é guardado em lado nenhum — é derivado do telefone + PIN. Portanto
+ * não há "ver o PIN outra vez": só gerar outro, que invalida o anterior.
+ */
+export const useResetDriverPin = () => {
+  return useMutation({
+    mutationFn: async (driverId: string) => {
+      const { data, error } = await supabase.functions.invoke("fleet-reset-driver-pin", {
+        body: { driverId },
+      });
+      if (error) {
+        const ctx = (error as { context?: Response }).context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const corpo = await ctx.json();
+            if (corpo?.error) throw new Error(corpo.error);
+          } catch (e) {
+            if (e instanceof Error && e.message) throw e;
+          }
+        }
+        throw new Error(error.message ?? "Não foi possível gerar um PIN novo");
+      }
+      if ((data as { error?: string })?.error) {
+        throw new Error((data as { error: string }).error);
+      }
+      return data as { pin: string; telefone: string; nome: string | null };
+    },
+  });
+};
+
 export const useSetDriverActive = () => {
   const qc = useQueryClient();
   return useMutation({

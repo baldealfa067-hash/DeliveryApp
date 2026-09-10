@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Bike, Plus, Power, Trash2, MapPin } from "lucide-react";
+import { ArrowLeft, Bike, Plus, Power, Trash2, MapPin, KeyRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
   useAddDriver,
   useSetDriverActive,
   useRemoveDriver,
+  useResetDriverPin,
   useUpsertZonePrice,
 } from "@/hooks/useFleet";
 
@@ -53,6 +54,7 @@ const FleetDashboard = () => {
   const removeDriver = useRemoveDriver();
   const upsertPrice = useUpsertZonePrice();
   const createFleet = useCreateFleet();
+  const resetPin = useResetDriverPin();
 
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
@@ -293,6 +295,22 @@ const FleetDashboard = () => {
                   >
                     <Power className="h-4 w-4 mr-1" />
                     {d.is_available ? "Activo" : "Inactivo"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={resetPin.isPending}
+                    onClick={() =>
+                      resetPin.mutate(d.id, {
+                        onSuccess: (r) => {
+                          setPinNovo({ nome: r.nome ?? d.name, telefone: r.telefone, pin: r.pin });
+                          toast.success("PIN novo gerado");
+                        },
+                        onError: fail,
+                      })
+                    }
+                  >
+                    <KeyRound className="h-4 w-4 mr-1" /> Novo PIN
                   </Button>
                   <Button
                     size="sm"
