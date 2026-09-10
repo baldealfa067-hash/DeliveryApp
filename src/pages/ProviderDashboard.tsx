@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -83,11 +84,19 @@ const ProviderDashboard = () => {
     if (loading) return;
     if (!user) return navigate("/login", { replace: true });
     (async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("user_id", user.id).maybeSingle();
       if (data) {
         setProfileId(data.id);
         setVerificationStatus(data.verification_status ?? "none");
-        setVerificationReason(data.verification_reason);
+        // `verification_reason` deixou de sair no SELECT: e' coluna privada,
+        // fechada a leitura directa. Vem por RPC, resolvida pelo auth.uid().
+        void (
+          supabase.rpc as unknown as (fn: string) => Promise<{ data: unknown; error: unknown }>
+        )("get_my_profile_private").then(({ data: priv, error }) => {
+          if (error) return;
+          const row = ((priv as Array<{ verification_reason: string | null }>) ?? [])[0];
+          if (row) setVerificationReason(row.verification_reason);
+        });
         setForm({
           name: data.name ?? "",
           category: data.category ?? "",

@@ -222,7 +222,7 @@ const AdminDashboard = () => {
       { data: bl },
       { data: an },
     ] = await Promise.all([
-      supabase.from("profiles").select("id, name, category, phone, location, price_type, starting_price, photo_url, profile_type, is_verified, verification_status, verification_reason, verification_doc_url, verification_selfie_url").order("name"),
+      supabase.from("profiles").select("id, name, category, phone, location, price_type, starting_price, photo_url, profile_type, is_verified, verification_status").order("name"),
       supabase.from("service_requests").select("id, requester_name, category, location, description, status, created_at").order("created_at", { ascending: false }),
       supabase.from("reviews").select("id, provider_id, reviewer_name, rating, comment, created_at, status").order("created_at", { ascending: false }),
       supabase.from("categories").select("id, name, name_en, name_fr").order("name"),
@@ -248,7 +248,27 @@ const AdminDashboard = () => {
     (ql ?? []).forEach((row) => {
       qlMap[row.provider_id] = { level: row.level, score: row.score };
     });
-    setProviders(((p ?? []) as Provider[]).map((prov) => ({ ...prov, stats: statsMap[prov.id] ?? { profile_views: 0, whatsapp_clicks: 0, call_clicks: 0 } })));
+    // As colunas de KYC (documento, selfie, motivo) deixaram de ser legíveis
+    // directamente: qualquer conta autenticada lia os documentos de identidade
+    // de toda a gente. Vêm agora por RPC de admin e juntam-se aqui.
+    const kycMap: Record<string, { verification_doc_url: string | null; verification_selfie_url: string | null; verification_reason: string | null }> = {};
+    {
+      const { data: kyc } = await (
+        supabase.rpc as unknown as (fn: string) => Promise<{ data: unknown; error: unknown }>
+      )("admin_list_verifications");
+      (((kyc as Array<{ profile_id: string; verification_doc_url: string | null; verification_selfie_url: string | null; verification_reason: string | null }>) ?? [])).forEach((row) => {
+        kycMap[row.profile_id] = {
+          verification_doc_url: row.verification_doc_url,
+          verification_selfie_url: row.verification_selfie_url,
+          verification_reason: row.verification_reason,
+        };
+      });
+    }
+    setProviders(((p ?? []) as Provider[]).map((prov) => ({
+      ...prov,
+      ...(kycMap[prov.id] ?? { verification_doc_url: null, verification_selfie_url: null, verification_reason: null }),
+      stats: statsMap[prov.id] ?? { profile_views: 0, whatsapp_clicks: 0, call_clicks: 0 },
+    })));
     setRequests((r ?? []) as Request[]);
     setReviews((rv ?? []) as Review[]);
     setComplaints((cp ?? []) as Complaint[]);

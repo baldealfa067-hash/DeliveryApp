@@ -7,11 +7,18 @@
  * sessão: o `*` expande para todas as colunas, incluindo as revogadas, e o
  * pedido inteiro falha com "permission denied".
  *
- * Quem lê perfis em rota pública (/inicio, /explorar, /loja/:id) tem de pedir
- * esta lista em vez de `*`. Manter em sincronia com a migração
- * `fase1_close_profiles_drivers_messages_to_anon` — se uma coluna for
- * acrescentada ao GRANT, acrescenta-se aqui; o contrário parte a navegação
- * anónima.
+ * Desde 2026-09-10 isto já não vale só para visitantes sem sessão: as cinco
+ * colunas privadas (`merchant_code`, `payment_number` e as três de
+ * verificação) foram fechadas TAMBÉM a `authenticated`, porque qualquer conta
+ * lia os dados de pagamento e os documentos de identidade de toda a gente.
+ * Portanto `select("*")` em `profiles` não funciona para ninguém — nem com
+ * sessão. Quem precisa das privadas usa as RPCs `get_business_payment_info`,
+ * `get_my_profile_private` ou `admin_list_verifications`.
+ *
+ * TRÊS listas têm de andar sempre juntas — esta, o GRANT ao `anon` em
+ * `fase1_close_profiles_drivers_messages_to_anon`, e o GRANT ao
+ * `authenticated` em `close_profile_private_columns_table_level_revoke`.
+ * Acrescentar uma coluna a uma e esquecer as outras parte a navegação.
  *
  * `phone`, `lat` e `lng` estão de propósito nesta lista: o telefone é
  * informação de contacto do estabelecimento (decisão do dono, 2026-09-09) e as

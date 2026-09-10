@@ -24,6 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { useAuth } from "@/hooks/useAuth";
 import { useBeautyCategories } from "@/hooks/useProviders";
 import { useBairros } from "@/hooks/useBairros";
@@ -57,6 +58,29 @@ const empty: Form = {
 };
 
 type BeautyItem = { id: string; name: string; price_type: PriceType; price: number | null; photo_url: string | null };
+
+
+/**
+ * As colunas privadas de `profiles` (merchant_code, payment_number e as de
+ * verificação) deixaram de ser legíveis directamente por `authenticated` --
+ * qualquer conta lia as de toda a gente. Vêm agora por RPC, que resolve o dono
+ * pelo auth.uid() de quem chama e não aceita id nenhum de fora.
+ */
+type PerfilPrivado = {
+  merchant_code: string | null;
+  payment_number: string | null;
+  verification_doc_url: string | null;
+  verification_selfie_url: string | null;
+  verification_reason: string | null;
+};
+
+const lerPrivadasDoMeuPerfil = async (): Promise<PerfilPrivado | null> => {
+  const { data, error } = await (
+    supabase.rpc as unknown as (fn: string) => Promise<{ data: unknown; error: unknown }>
+  )("get_my_profile_private");
+  if (error) return null;
+  return ((data as PerfilPrivado[]) ?? [])[0] ?? null;
+};
 
 const BeautyEdit = () => {
   const { t, i18n } = useTranslation();
@@ -105,11 +129,13 @@ const BeautyEdit = () => {
     if (!user) return navigate("/login", { replace: true });
     if (!isBeleza && !isAdmin) return navigate("/inicio", { replace: true });
     (async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("user_id", user.id).maybeSingle();
       if (data) {
         setProfileId(data.id);
         setVerificationStatus(data.verification_status ?? "none");
-        setVerificationReason(data.verification_reason);
+        void lerPrivadasDoMeuPerfil().then((priv) => {
+          if (priv) setVerificationReason(priv.verification_reason);
+        });
         setForm({
           name: data.name ?? "",
           category: data.category ?? "",

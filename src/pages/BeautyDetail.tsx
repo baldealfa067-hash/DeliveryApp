@@ -10,6 +10,7 @@ import { StarRating } from "@/components/StarRating";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { formatCFA } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
+import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,7 +88,7 @@ const BeautyDetail = () => {
     }
     (async () => {
       const [{ data: profile }, { data: its }, { data: revs }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", id).maybeSingle(),
         supabase.from("beauty_items").select("id, name, price_type, price, photo_url").eq("business_id", id).order("name"),
         supabase.from("reviews").select("id, rating, comment, created_at, reviewer_name").eq("provider_id", id).eq("status", "aprovado").order("created_at", { ascending: false }),
       ]);

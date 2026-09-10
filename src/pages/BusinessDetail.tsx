@@ -142,15 +142,19 @@ const BusinessDetail = () => {
   useEffect(() => {
     if (!id || !user) return;
     let cancelado = false;
-    supabase
-      .from("profiles")
-      .select("merchant_code, payment_number")
-      .eq("id", id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelado || error || !data) return;
-        setBusiness((anterior) => (anterior ? { ...anterior, ...data } : anterior));
-      });
+    // Estas colunas deixaram de ser legiveis directamente por `authenticated`:
+    // qualquer conta descarregava os dados de pagamento de todos os negocios
+    // numa query. Saem agora por RPC, um negocio de cada vez.
+    (
+      supabase.rpc as unknown as (
+        fn: string, args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: unknown }>
+    )("get_business_payment_info", { p_business_id: id }).then(({ data, error }) => {
+      if (cancelado || error) return;
+      const info = (data as Array<{ merchant_code: string | null; payment_number: string | null }>)?.[0];
+      if (!info) return;
+      setBusiness((anterior) => (anterior ? { ...anterior, ...info } : anterior));
+    });
     return () => {
       cancelado = true;
     };
