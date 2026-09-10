@@ -99,21 +99,52 @@ export const useCreateFleet = () => {
   });
 };
 
+export interface DriverCreated {
+  driverId: string;
+  /** PIN gerado, para a frota passar ao motorista. `null` se a conta já existia. */
+  pin: string | null;
+  jaTinhaConta: boolean;
+  telefone: string;
+}
+
 /**
- * §11 — a frota cadastra os seus motoristas. A pessoa cria primeiro uma conta
- * normal de cliente (telefone + PIN); a frota associa-a pelo telefone. Não há
- * auto-registo de motorista desde o Aditamento 1.3.
+ * §11 — a frota cadastra os seus motoristas.
+ *
+ * A conta do motorista é criada pela frota, não por ele: a Edge Function
+ * `fleet-create-driver` usa a API de administração (a única via suportada para
+ * criar contas em `auth.users`) e devolve um PIN gerado. Antes exigia-se que o
+ * motorista se registasse sozinho primeiro — um passo a mais, e a frota ficava
+ * à espera dele.
+ *
+ * Se o telefone já tiver conta, nada é criado e `pin` vem `null`: essa pessoa
+ * entra com o PIN que já tem.
  */
 export const useAddDriver = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (p: { phone: string; name?: string; vehicleType?: string }) => {
-      const { data, error } = await rpc("add_driver_to_fleet", {
-        p_phone: p.phone,
-        p_name: p.name ?? null,
-        p_vehicle_type: p.vehicleType ?? "moto",
+    mutationFn: async (p: { phone: string; name: string; vehicleType?: string }) => {
+      const { data, error } = await supabase.functions.invoke("fleet-create-driver", {
+        body: { name: p.name, phone: p.phone, vehicleType: p.vehicleType ?? "moto" },
       });
-      return unwrap<string>(data, error);
+      // A Edge Function devolve {error} no corpo com estado 4xx; o supabase-js
+      // embrulha isso num FunctionsHttpError cuja mensagem não diz nada de útil.
+      // Lê-se o corpo para a frota ver a razão real.
+      if (error) {
+        const ctx = (error as { context?: Response }).context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const corpo = await ctx.json();
+            if (corpo?.error) throw new Error(corpo.error);
+          } catch (e) {
+            if (e instanceof Error && e.message) throw e;
+          }
+        }
+        throw new Error(error.message ?? "Não foi possível criar o motorista");
+      }
+      if ((data as { error?: string })?.error) {
+        throw new Error((data as { error: string }).error);
+      }
+      return data as DriverCreated;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["fleet"] }),
   });

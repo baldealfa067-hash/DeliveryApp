@@ -30,6 +30,18 @@ describe("isValidPin", () => {
 });
 
 describe("derivePassword", () => {
+  /**
+   * Vector fixo, partilhado com a Edge Function `fleet-create-driver`, que tem
+   * de derivar exactamente a mesma password para a conta que cria em nome da
+   * frota. Se as duas implementações divergirem, a conta é criada e o motorista
+   * nunca consegue entrar — falha silenciosa, do género que já nos custou caro
+   * nesta base de dados. Mudar este valor obriga a mudar a Edge Function.
+   */
+  it("bate certo com o vector partilhado com a Edge Function", async () => {
+    const p = await derivePassword("955123456", "1234");
+    expect(p).toBe("Dg1!3a1de16db232e556644e39a30b78325cb8c4947a");
+  });
+
   it("é determinística — a mesma entrada dá sempre a mesma password", async () => {
     const a = await derivePassword("955123456", "1234");
     const b = await derivePassword("955123456", "1234");

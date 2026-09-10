@@ -58,6 +58,8 @@ const FleetDashboard = () => {
   const [name, setName] = useState("");
   const [bairro, setBairro] = useState(LOCATION_OPTIONS[0]);
   const [preco, setPreco] = useState("");
+  /** PIN devolvido pela criação, para a frota passar ao motorista. */
+  const [pinNovo, setPinNovo] = useState<{ nome: string; telefone: string; pin: string } | null>(null);
   const [fleetName, setFleetName] = useState("");
   const [fleetPhone, setFleetPhone] = useState("");
 
@@ -65,12 +67,20 @@ const FleetDashboard = () => {
     toast.error(e instanceof Error ? e.message : "Não foi possível concluir a operação");
 
   const onAddDriver = () => {
-    if (!phone.trim()) return;
+    if (!phone.trim() || !name.trim()) return;
+    const nome = name.trim();
     addDriver.mutate(
-      { phone: phone.trim(), name: name.trim() || undefined },
+      { phone: phone.trim(), name: nome },
       {
-        onSuccess: () => {
-          toast.success("Motorista adicionado");
+        onSuccess: (r) => {
+          if (r.pin) {
+            setPinNovo({ nome, telefone: r.telefone, pin: r.pin });
+            toast.success("Motorista criado");
+          } else {
+            // Já tinha conta: não há PIN novo, entra com o dele.
+            setPinNovo(null);
+            toast.success("Este número já tinha conta — motorista associado à frota");
+          }
           setPhone("");
           setName("");
         },
@@ -199,9 +209,18 @@ const FleetDashboard = () => {
             <CardContent className="p-4 space-y-3">
               <p className="text-sm font-semibold">Adicionar motorista</p>
               <p className="text-xs text-muted-foreground">
-                A pessoa cria primeiro uma conta na app com o telefone dela. Depois
-                associa-a aqui por esse número.
+                A conta é criada aqui. O motorista não precisa de se registar
+                antes — recebe um PIN e entra com o telefone dele.
               </p>
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome</Label>
+                <Input
+                  id="nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nome do motorista"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="tel">Telefone</Label>
                 <Input
@@ -212,15 +231,35 @@ const FleetDashboard = () => {
                   placeholder="9XXXXXXXX"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome (opcional)</Label>
-                <Input id="nome" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <Button onClick={onAddDriver} disabled={addDriver.isPending} className="w-full h-12">
-                <Plus className="h-4 w-4 mr-2" /> Adicionar
+              <Button
+                onClick={onAddDriver}
+                disabled={addDriver.isPending || !name.trim() || !phone.trim()}
+                className="w-full h-12"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {addDriver.isPending ? "A criar…" : "Criar motorista"}
               </Button>
             </CardContent>
           </Card>
+
+          {pinNovo && (
+            <Card className="border-primary/40 bg-primary/5">
+              <CardContent className="p-4 space-y-2">
+                <p className="text-sm font-semibold">{pinNovo.nome} — PIN de entrada</p>
+                <p className="text-4xl font-bold tracking-widest text-primary tabular-nums">
+                  {pinNovo.pin}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Passa este PIN ao motorista. Ele entra com o telefone{" "}
+                  <span className="font-medium">{pinNovo.telefone}</span> e este código.
+                  Só aparece aqui uma vez — anota-o antes de fechar.
+                </p>
+                <Button variant="outline" size="sm" onClick={() => setPinNovo(null)}>
+                  Já anotei
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {drivers.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">
