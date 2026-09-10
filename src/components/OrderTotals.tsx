@@ -5,45 +5,71 @@ import { formatCFA } from "@/lib/format";
  *
  * `orders.total` guarda SÓ a comida — §27 separa as duas parcelas de propósito,
  * e a Fase 6 vai precisar delas separadas para o ledger. Quem soma é a
- * interface, aqui, num sítio só, para os três ecrãs (acompanhamento do cliente,
- * histórico do cliente, painel do restaurante) não divergirem.
- *
- * Só pedidos de ENTREGA têm taxa. Comer no local e levantar mostram uma linha
- * só, como sempre mostraram — uma linha "Taxa de entrega: 0" num pedido que se
- * come no local seria ruído, não informação.
+ * interface, aqui, num sítio só, para os ecrãs não divergirem.
  *
  * `delivery_fee` a null é diferente de zero: são os pedidos anteriores à Fase 3,
  * e os de bairros que nenhuma frota serve. Nesses não se inventa uma taxa nem
  * se mostra 0 — mostra-se só o valor da comida, que é o único número de que o
  * sistema tem a certeza (§84).
  */
+
+/** A regra de "este pedido tem taxa", num sítio só. */
+export const temTaxaDeEntrega = (
+  consumptionOption: string,
+  deliveryFee?: number | null,
+): deliveryFee is number =>
+  consumptionOption === "entrega" && deliveryFee != null && deliveryFee > 0;
+
+export const totalAPagar = (
+  total: number,
+  consumptionOption: string,
+  deliveryFee?: number | null,
+): number => total + (temTaxaDeEntrega(consumptionOption, deliveryFee) ? deliveryFee : 0);
+
+type Variante =
+  /** Decomposição completa em três linhas. Para o detalhe de um pedido. */
+  | "full"
+  /** Um número só, o que o cliente paga. Para listas em linha de texto. */
+  | "inline"
+  /**
+   * Comida em destaque, taxa numa segunda linha por baixo. Para cartões
+   * estreitos, onde a versão em linha colidia com o texto ao lado — foi
+   * exactamente o que aconteceu no cartão do painel do restaurante, com o
+   * número do pedido a sobrepor-se ao preço.
+   */
+  | "stacked";
+
 export const OrderTotals = ({
   total,
   deliveryFee,
   consumptionOption,
   labelTotal,
-  compact = false,
+  variant = "full",
 }: {
   total: number;
   deliveryFee?: number | null;
   consumptionOption: string;
   /** Rótulo do total, para reaproveitar as traduções já existentes. */
-  labelTotal: string;
-  /** Uma linha só, para listas. */
-  compact?: boolean;
+  labelTotal?: string;
+  variant?: Variante;
 }) => {
-  const temTaxa =
-    consumptionOption === "entrega" && deliveryFee != null && deliveryFee > 0;
-  const aPagar = total + (temTaxa ? deliveryFee : 0);
+  const temTaxa = temTaxaDeEntrega(consumptionOption, deliveryFee);
+  const aPagar = totalAPagar(total, consumptionOption, deliveryFee);
 
-  if (compact) {
+  if (variant === "inline") {
+    return <span>{formatCFA(aPagar)}</span>;
+  }
+
+  if (variant === "stacked") {
     return (
-      <span>
-        {formatCFA(aPagar)}
+      <span className="block text-right">
+        {/* A comida em destaque: é o valor que pertence ao restaurante (§28).
+            A taxa vai por baixo, em linha própria — empilhadas não competem
+            por largura, que era a causa da sobreposição. */}
+        <span className="block text-price text-primary">{formatCFA(total)}</span>
         {temTaxa && (
-          <span className="text-muted-foreground">
-            {" "}
-            ({formatCFA(total)} + {formatCFA(deliveryFee)} entrega)
+          <span className="block whitespace-nowrap text-caption text-muted-foreground">
+            + {formatCFA(deliveryFee)} entrega
           </span>
         )}
       </span>

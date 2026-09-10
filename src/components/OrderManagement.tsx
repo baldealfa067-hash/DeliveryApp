@@ -466,15 +466,14 @@ const OrderCard = ({ order, onOpen }: { order: Order; onOpen: () => void }) => {
           <p className="text-title">#{order.order_number}</p>
           <p className="text-caption text-muted-foreground">{hora(order.created_at)}</p>
         </div>
-        <p className="shrink-0 text-price text-primary">
+        <div className="shrink-0">
           <OrderTotals
-            compact
+            variant="stacked"
             total={order.total}
             deliveryFee={order.delivery_fee}
             consumptionOption={order.consumption_option}
-            labelTotal=""
           />
-        </p>
+        </div>
       </div>
 
       <div className="mt-2">

@@ -107,11 +107,10 @@ const MyOrdersPage = () => {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {order.items.length} {t("myOrders.items")} ·{" "}
                           <OrderTotals
-                            compact
+                            variant="inline"
                             total={order.total}
                             deliveryFee={order.delivery_fee}
                             consumptionOption={order.consumption_option}
-                            labelTotal=""
                           />
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-1">
