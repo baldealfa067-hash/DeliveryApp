@@ -33,7 +33,7 @@ import { useBusinessOrders, useUpdateOrderStatus, useValidateOrderPayment, type 
 import { orderStatusTone, paymentStatusTone, TONE_SOFT, TONE_STRONG } from "@/lib/orderStatus";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
-import { OrderTotals } from "@/components/OrderTotals";
+import { OrderTotals, temTaxaDeEntrega, totalAPagar } from "@/components/OrderTotals";
 import { cn } from "@/lib/utils";
 import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
 
@@ -619,6 +619,37 @@ const OrderDetail = ({
         <div>
           <p className="text-caption text-muted-foreground">{t("orderManagement.prepTime")}</p>
           <p className="text-body">{order.preparation_time} min</p>
+        </div>
+      )}
+
+      {/* Dinheiro na entrega: §28 e a decisao de 2026-09-10. Quem recebe do
+          cliente e' o MOTORISTA, e e' ele que devolve o valor da comida ao
+          restaurante -- nao o contrario. Sem isto escrito, o restaurante nao
+          sabe o que esperar de quem.
+
+          Nao se afirma "Pago": em dinheiro o sistema so' sabe que a entrega foi
+          concluida, nao que o dinheiro mudou de maos (§84). A reconciliacao e'
+          o ledger da Fase 6. */}
+      {order.payment_method !== "online" && order.consumption_option === "entrega" && (
+        <div className="space-y-1 rounded-lg bg-muted p-3">
+          <p className="text-caption font-semibold">Dinheiro na entrega</p>
+          {temTaxaDeEntrega(order.consumption_option, order.delivery_fee) ? (
+            <p className="text-caption text-muted-foreground">
+              O motorista recebe{" "}
+              <span className="font-medium text-foreground">
+                {formatCFA(totalAPagar(order.total, order.consumption_option, order.delivery_fee))}
+              </span>{" "}
+              do cliente e entrega-te{" "}
+              <span className="font-medium text-foreground">{formatCFA(order.total)}</span>{" "}
+              — o valor da comida. A taxa de entrega fica para ele.
+            </p>
+          ) : (
+            <p className="text-caption text-muted-foreground">
+              O motorista recebe{" "}
+              <span className="font-medium text-foreground">{formatCFA(order.total)}</span>{" "}
+              do cliente e entrega-te esse valor.
+            </p>
+          )}
         </div>
       )}
 

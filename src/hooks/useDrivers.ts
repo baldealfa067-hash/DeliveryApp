@@ -25,6 +25,12 @@ export interface Delivery {
   customer_address?: string;
   distance_km: number | null;
   delivery_fee: number;
+  /** Valor da COMIDA. §28: em dinheiro, o motorista recebe comida+entrega do
+   *  cliente e deve a comida ao restaurante — precisa dos dois números. */
+  order_total: number | null;
+  items: Array<{ name: string; price: number; qty: number }> | null;
+  payment_method: string;
+  payment_status: string;
   status: string;
   accepted_at: string | null;
   picked_up_at: string | null;
@@ -45,6 +51,12 @@ export interface AvailableDelivery {
   customer_address: string | null;
   distance_km: number | null;
   delivery_fee: number;
+  /** Valor da COMIDA. §28: em dinheiro, o motorista recebe comida+entrega do
+   *  cliente e deve a comida ao restaurante — precisa dos dois números. */
+  order_total: number | null;
+  items: Array<{ name: string; price: number; qty: number }> | null;
+  payment_method: string;
+  payment_status: string;
   created_at: string;
   restaurant_lat: number | null;
   restaurant_lng: number | null;

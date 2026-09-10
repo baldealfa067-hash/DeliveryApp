@@ -54,6 +54,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import logo from "@/assets/logo.png";
+import { DeliveryPayload } from "@/components/DeliveryPayload";
 // DriverMap disabled by product decision — voice directions replace map in Bissau context
 // import DriverMap from "@/components/DriverMap";
 
@@ -515,6 +516,13 @@ const DriverDashboard = () => {
                           {d.distance_km && (
                             <p className="text-xs text-muted-foreground mt-1">↔ {d.distance_km.toFixed(1)} km</p>
                           )}
+                          <DeliveryPayload
+                            items={d.items}
+                            orderTotal={d.order_total}
+                            deliveryFee={d.delivery_fee}
+                            paymentMethod={d.payment_method}
+                            paymentStatus={d.payment_status}
+                          />
                         </div>
                         <Button
                           size="sm"
@@ -565,6 +573,13 @@ const DriverDashboard = () => {
                               </a>
                             )}
                           </div>
+                          <DeliveryPayload
+                            items={d.items}
+                            orderTotal={d.order_total}
+                            deliveryFee={d.delivery_fee}
+                            paymentMethod={d.payment_method}
+                            paymentStatus={d.payment_status}
+                          />
                           {d.voice_note_url && (
                             <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 py-1.5">
                               <Volume2 className="h-3.5 w-3.5 text-amber-600 shrink-0" />
