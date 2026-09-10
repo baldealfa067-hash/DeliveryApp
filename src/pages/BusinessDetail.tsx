@@ -61,6 +61,21 @@ const BusinessDetail = () => {
   const { data: bizCats = [] } = useBusinessCategories();
   const [loading, setLoading] = useState(true);
   const [business, setBusiness] = useState<Record<string, unknown> | null>(null);
+  /**
+   * Dados de pagamento do negócio, em estado PRÓPRIO e não fundidos em
+   * `business`.
+   *
+   * Estiveram fundidos e a opção "Pagar Orange Money" desaparecia do checkout,
+   * de forma silenciosa e quase sempre: a consulta do perfil espera por quatro
+   * queries num Promise.all, esta é uma só e chega primeiro. Com `business`
+   * ainda a null, o merge era descartado -- e o `setBusiness(profile)` que vem
+   * a seguir sobrescreveria o objecto de qualquer maneira. O useEffect nunca
+   * repete, portanto a informação perdia-se de vez.
+   */
+  const [paymentInfo, setPaymentInfo] = useState<{
+    merchant_code: string | null;
+    payment_number: string | null;
+  } | null>(null);
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -150,10 +165,13 @@ const BusinessDetail = () => {
         fn: string, args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: unknown }>
     )("get_business_payment_info", { p_business_id: id }).then(({ data, error }) => {
-      if (cancelado || error) return;
+      if (cancelado) return;
+      if (error) {
+        console.error("[checkout] get_business_payment_info:", error);
+        return;
+      }
       const info = (data as Array<{ merchant_code: string | null; payment_number: string | null }>)?.[0];
-      if (!info) return;
-      setBusiness((anterior) => (anterior ? { ...anterior, ...info } : anterior));
+      setPaymentInfo(info ?? null);
     });
     return () => {
       cancelado = true;
@@ -307,8 +325,8 @@ const BusinessDetail = () => {
     await uploadPaymentProof(file);
   };
 
-  const businessMerchantCode = business ? String((business as Record<string, unknown>).merchant_code ?? "") : "";
-  const businessPaymentNumber = business ? String((business as Record<string, unknown>).payment_number ?? "") : "";
+  const businessMerchantCode = paymentInfo?.merchant_code ?? "";
+  const businessPaymentNumber = paymentInfo?.payment_number ?? "";
   const hasOnlinePayment = !!(businessMerchantCode || businessPaymentNumber);
 
   const sendOrder = async () => {
