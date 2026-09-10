@@ -85,6 +85,12 @@ verde não confirma que a leitura directa da mesma tabela funciona**. Foi por
 isso que a recursão passou despercebida: as RPCs da frota funcionavam, e a
 tabela não. Testar sempre os dois caminhos.
 
+O caso vivo disto é `deliveries`: as RPCs da frota devolvem os dados todos, e a
+leitura directa da tabela com o mesmo JWT devolve **zero linhas** — porque a
+policy não contempla o dono da frota. É deliberado (ver decisões de
+2026-09-10), mas serve de aviso: os dois caminhos podem discordar em silêncio, e
+só se descobre medindo os dois.
+
 ---
 
 # DOCUMENTO MESTRE — DELIVERYAPP
@@ -570,6 +576,21 @@ Depois disso, apresente um Plano de Reconstrução do DeliveryApp por fases, ind
 
   Isto é contabilístico, não físico: §29 diz que a comissão da plataforma não é
   retirada do dinheiro no momento da entrega, é registada e paga depois.
+
+- **`deliveries` fica inacessível à leitura directa pelo dono da frota.** Sem
+  policy nova. A policy `Deliveries viewable by involved` cobre o motorista, o
+  cliente, o dono do restaurante e o admin — a frota está fora, de propósito.
+
+  A frota chega aos seus dados pelas RPCs `SECURITY DEFINER`
+  (`get_fleet_metrics`, `get_fleet_drivers`, `get_fleet_driver_detail`), que
+  decidem o que expor, em vez de a tabela inteira ficar aberta a mais um papel.
+
+  **Porque isto está escrito:** uma leitura directa de `deliveries` com o JWT da
+  frota devolve **lista vazia, sem erro**. Código novo no painel da frota que
+  leia a tabela vai parecer que funciona e não mostra nada. Se precisares de
+  mais um dado do lado da frota, acrescenta-o a uma RPC — não acrescentes uma
+  policy sem falar com o dono do projeto. Também registado em
+  `COMMENT ON TABLE public.deliveries` e no comentário da própria policy.
 
 ---
 
