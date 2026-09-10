@@ -67,6 +67,15 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  /**
+   * "Este telefone já tem conta" chegava como toast e desaparecia, e o
+   * separador saltava para Entrar com o PIN acabado de inventar ainda no
+   * campo. Quem carregasse em Entrar levava "Telefone ou PIN errado" -- e
+   * lia isso como "criei a conta e agora o PIN não serve", quando o que
+   * aconteceu foi que a conta já existia e o PIN pedido é o DELA.
+   * O aviso passa a ficar no ecrã até o telefone mudar.
+   */
+  const [telefoneJaTemConta, setTelefoneJaTemConta] = useState(false);
 
   const entrar = async (rawPhone: string, rawPin: string) => {
     const password = await derivePassword(rawPhone, rawPin);
@@ -93,7 +102,14 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
 
       if (error || !data.user) {
         const chave = clientAuthErrorKey(error?.message, "signup");
-        if (chave === "auth.phoneTaken") setTab("login");
+        if (chave === "auth.phoneTaken") {
+          // O PIN inventado agora não é o da conta que já existe: limpar, ou o
+          // utilizador submete-o e recebe "PIN errado" sem perceber porquê.
+          setPin("");
+          setPinConfirm("");
+          setTelefoneJaTemConta(true);
+          setTab("login");
+        }
         return toast.error(t(chave));
       }
 
@@ -144,6 +160,7 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
     setPhone("");
     setPin("");
     setPinConfirm("");
+    setTelefoneJaTemConta(false);
   };
 
   const campoTelefone = (id: string) => (
@@ -156,7 +173,10 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
         autoComplete="tel"
         placeholder={t("auth.phonePlaceholder")}
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => {
+          setPhone(e.target.value);
+          setTelefoneJaTemConta(false);
+        }}
         className="h-12 text-body"
       />
     </div>
@@ -206,6 +226,14 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
 
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="mt-4 space-y-3">
+              {telefoneJaTemConta && (
+                <p
+                  role="status"
+                  className="rounded-md border border-primary/30 bg-primary/5 p-3 text-caption"
+                >
+                  {t("auth.phoneTakenNotice")}
+                </p>
+              )}
               {campoTelefone("login-phone")}
               <PinInput id="login-pin" value={pin} onChange={setPin} label={t("auth.pin")} />
               <Button type="submit" disabled={submitting} className="h-12 w-full gap-2 text-body font-semibold">

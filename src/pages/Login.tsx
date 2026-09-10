@@ -55,6 +55,8 @@ const Login = () => {
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
   const [forgotPinOpen, setForgotPinOpen] = useState(false);
+  // Mesmo defeito que ClientSignupDialog tinha: ver o comentario la'.
+  const [telefoneJaTemConta, setTelefoneJaTemConta] = useState(false);
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -156,7 +158,13 @@ const Login = () => {
       });
       if (error || !data.user) {
         const chave = clientAuthErrorKey(error?.message, "signup");
-        if (chave === "auth.phoneTaken") setTab("login");
+        if (chave === "auth.phoneTaken") {
+          // O PIN inventado agora nao e' o da conta que ja' existe.
+          setPin("");
+          setPinConfirm("");
+          setTelefoneJaTemConta(true);
+          setTab("login");
+        }
         return toast.error(t(chave));
       }
       if (!data.session) {
@@ -412,7 +420,10 @@ const Login = () => {
         autoComplete="tel"
         placeholder={t("auth.phonePlaceholder")}
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => {
+          setPhone(e.target.value);
+          setTelefoneJaTemConta(false);
+        }}
         className="h-12 text-body"
       />
     </div>
@@ -447,6 +458,14 @@ const Login = () => {
 
             <TabsContent value="login">
               <form onSubmit={handleClientLogin} className="mt-4 space-y-3">
+                {telefoneJaTemConta && (
+                  <p
+                    role="status"
+                    className="rounded-md border border-primary/30 bg-primary/5 p-3 text-caption"
+                  >
+                    {t("auth.phoneTakenNotice")}
+                  </p>
+                )}
                 {campoTelefone("cli-login-phone")}
                 {campoPin("cli-login-pin", pin, setPin, t("auth.pin"))}
                 <Button type="submit" disabled={submitting} className="h-12 w-full text-body font-semibold">
