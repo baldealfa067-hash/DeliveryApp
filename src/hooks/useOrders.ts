@@ -11,6 +11,9 @@ export interface Order {
   business_name?: string;
   items: Array<{ name: string; price: number; qty: number }>;
   total: number;
+  /** Taxa de entrega congelada no checkout. `null` em pedidos anteriores à
+   *  Fase 3 e em bairros que nenhuma frota serve. `total` é só a comida. */
+  delivery_fee: number | null;
   status: string;
   consumption_option: string;
   address: string | null;

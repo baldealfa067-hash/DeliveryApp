@@ -557,6 +557,20 @@ Depois disso, apresente um Plano de Reconstrução do DeliveryApp por fases, ind
 - **As restantes falhas de RLS seguem a ordem do roadmap**, não são corrigidas
   isoladamente fora de fase.
 
+## 2026-09-10
+- **Pagamento em dinheiro na entrega: o cliente paga ao MOTORISTA.** §28 do
+  documento mestre está correto. O motorista recebe o total (comida + entrega),
+  fica com a taxa de entrega, e **deve o valor da comida ao restaurante**.
+  O fluxo é motorista → restaurante, nunca restaurante → motorista.
+
+  Fica registado porque a direção já foi trocada uma vez por engano num prompt,
+  e o indicador de "pago" que o Prompt B vai construir fica errado para um dos
+  lados se for pelo sentido contrário: quem vê "tenho a receber" é o
+  restaurante, e quem vê "tenho a entregar" é o motorista.
+
+  Isto é contabilístico, não físico: §29 diz que a comissão da plataforma não é
+  retirada do dinheiro no momento da entrega, é registada e paga depois.
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)

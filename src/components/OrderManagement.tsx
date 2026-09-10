@@ -33,6 +33,7 @@ import { useBusinessOrders, useUpdateOrderStatus, useValidateOrderPayment, type 
 import { orderStatusTone, paymentStatusTone, TONE_SOFT, TONE_STRONG } from "@/lib/orderStatus";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
+import { OrderTotals } from "@/components/OrderTotals";
 import { cn } from "@/lib/utils";
 import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
 
@@ -465,7 +466,15 @@ const OrderCard = ({ order, onOpen }: { order: Order; onOpen: () => void }) => {
           <p className="text-title">#{order.order_number}</p>
           <p className="text-caption text-muted-foreground">{hora(order.created_at)}</p>
         </div>
-        <p className="shrink-0 text-price text-primary">{formatCFA(order.total)}</p>
+        <p className="shrink-0 text-price text-primary">
+          <OrderTotals
+            compact
+            total={order.total}
+            deliveryFee={order.delivery_fee}
+            consumptionOption={order.consumption_option}
+            labelTotal=""
+          />
+        </p>
       </div>
 
       <div className="mt-2">
@@ -583,8 +592,12 @@ const OrderDetail = ({
             </div>
           ))}
           <div className="flex justify-between border-t pt-1.5">
-            <span className="text-body font-semibold">{t("orderTracking.total")}</span>
-            <span className="text-price text-primary">{formatCFA(order.total)}</span>
+            <OrderTotals
+              total={order.total}
+              deliveryFee={order.delivery_fee}
+              consumptionOption={order.consumption_option}
+              labelTotal={t("orderTracking.total")}
+            />
           </div>
         </div>
       </div>

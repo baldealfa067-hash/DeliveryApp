@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCustomerOrders, type Order } from "@/hooks/useOrders";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
+import { OrderTotals } from "@/components/OrderTotals";
 
 const STATUS_LABELS: Record<string, { key: string; color: string }> = {
   novo: { key: "orderStatus.novo", color: "bg-blue-100 text-blue-800" },
@@ -104,7 +105,14 @@ const MyOrdersPage = () => {
                         </div>
                         <p className="text-sm font-medium truncate">{order.business_name}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {order.items.length} {t("myOrders.items")} · {formatCFA(order.total)}
+                          {order.items.length} {t("myOrders.items")} ·{" "}
+                          <OrderTotals
+                            compact
+                            total={order.total}
+                            deliveryFee={order.delivery_fee}
+                            consumptionOption={order.consumption_option}
+                            labelTotal=""
+                          />
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-1">
                           {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}

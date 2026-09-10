@@ -22,6 +22,7 @@ import {
 } from "@/hooks/useOrders";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
+import { OrderTotals } from "@/components/OrderTotals";
 import { supabase } from "@/integrations/supabase/client";
 
 const DELIVERY_STATUS_FLOW = [
@@ -138,8 +139,12 @@ const OrderTrackingPage = () => {
               </div>
             ))}
             <div className="flex justify-between text-sm font-bold border-t pt-1.5 mt-1.5">
-              <span>{t("orderTracking.total")}</span>
-              <span>{formatCFA(order.total)}</span>
+              <OrderTotals
+                total={order.total}
+                deliveryFee={order.delivery_fee}
+                consumptionOption={order.consumption_option}
+                labelTotal={t("orderTracking.total")}
+              />
             </div>
           </div>
           {order.notes && (
