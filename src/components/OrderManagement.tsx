@@ -29,12 +29,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useBusinessOrders, useUpdateOrderStatus, useValidateOrderPayment, type Order } from "@/hooks/useOrders";
+import { useBusinessOrders, useUpdateOrderStatus, useValidateOrderPayment, useReofferDelivery, type Order } from "@/hooks/useOrders";
 import { orderStatusTone, paymentStatusTone, TONE_SOFT, TONE_STRONG } from "@/lib/orderStatus";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 import { OrderTotals, temTaxaDeEntrega, totalAPagar } from "@/components/OrderTotals";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
 
 const DELIVERY_IN_PROGRESS_STATUSES = [
@@ -165,6 +166,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
   const { data: allOrders = [], isLoading, refetch } = useBusinessOrders(businessId);
   const updateStatus = useUpdateOrderStatus();
   const validatePayment = useValidateOrderPayment();
+  const reoffer = useReofferDelivery();
   const [activeTab, setActiveTab] = useState("novo");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -245,7 +247,30 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
       onBefore?.();
       handleStatusChange(order.id, newStatus);
     };
-    return { avancar, podeCancelar, agir };
+    // Só faz sentido insistir enquanto o pedido está à espera de alguém que o
+    // aceite. Assim que há motorista o estado avança e o botão desaparece
+    // sozinho — quem decide de verdade é o servidor, que recusa se já tiver
+    // dono (§73).
+    const podeReoferecer = order.status === "aguardando_motorista";
+    // Com retorno visivel nos dois sentidos: sem isto, uma recusa do servidor
+    // (entrega ja aceite, bairro sem frota) nao dava sinal nenhum e o botao
+    // parecia nao fazer nada.
+    const reoferecer = () =>
+      reoffer.mutate(order.id, {
+        onSuccess: (r) =>
+          toast.success(
+            t("orderManagement.reofferSent", {
+              count: r?.motoristas_notificados ?? 0,
+              defaultValue: "{{count}} motorista(s) notificado(s)",
+            })
+          ),
+        onError: (e: unknown) =>
+          toast.error(
+            (e as { message?: string })?.message ??
+              t("common.error", "Nao foi possivel voltar a oferecer")
+          ),
+      });
+    return { avancar, podeCancelar, agir, podeReoferecer, reoferecer };
   };
 
   return (
@@ -334,6 +359,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
                 <OrderActions
                   {...statusActions(selected, () => setDetailOpen(false))}
                   pending={updateStatus.isPending}
+                  reofferPending={reoffer.isPending}
                 />
               </DialogFooter>
             </>
@@ -395,16 +421,33 @@ const OrderActions = ({
   podeCancelar,
   agir,
   pending,
+  podeReoferecer,
+  reoferecer,
+  reofferPending,
 }: {
   avancar?: string;
   podeCancelar: boolean;
   agir: (status: string) => void;
   pending: boolean;
+  podeReoferecer?: boolean;
+  reoferecer?: () => void;
+  reofferPending?: boolean;
 }) => {
   const { t } = useTranslation();
 
   return (
     <div className="w-full space-y-2">
+      {podeReoferecer && reoferecer && (
+        <Button
+          variant="outline"
+          onClick={reoferecer}
+          disabled={reofferPending}
+          className="h-12 w-full gap-2 text-body"
+        >
+          <Truck className="h-4 w-4" />
+          {t("orderManagement.reoffer", "Voltar a chamar motorista")}
+        </Button>
+      )}
       {avancar && (
         <Button
           onClick={() => agir(avancar)}

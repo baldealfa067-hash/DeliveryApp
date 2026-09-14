@@ -633,6 +633,8 @@
     "cancelado": "Anuladu"
   },
   "orderManagement": {
+    "reofferSent": "{{count}} motorista notifikadu",
+    "reoffer": "Yama motorista di nobu",
     "itemCount": "{{count}} itens",
     "paymentShort_pendente": "Pa valida",
     "paymentShort_validado": "Pagadu",

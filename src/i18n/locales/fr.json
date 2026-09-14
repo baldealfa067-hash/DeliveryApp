@@ -1210,6 +1210,8 @@
     "cancelado": "Annulée"
   },
   "orderManagement": {
+    "reofferSent": "{{count}} livreur(s) notifié(s)",
+    "reoffer": "Rappeler un livreur",
     "itemCount": "{{count}} articles",
     "paymentShort_pendente": "À valider",
     "paymentShort_validado": "Payé",

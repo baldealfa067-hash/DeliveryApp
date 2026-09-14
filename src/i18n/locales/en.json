@@ -1210,6 +1210,8 @@
     "cancelado": "Cancelled"
   },
   "orderManagement": {
+    "reofferSent": "{{count}} driver(s) notified",
+    "reoffer": "Call a driver again",
     "itemCount": "{{count}} items",
     "paymentShort_pendente": "To validate",
     "paymentShort_validado": "Paid",

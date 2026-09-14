@@ -1213,6 +1213,8 @@
     "cancelado": "Cancelado"
   },
   "orderManagement": {
+    "reofferSent": "{{count}} motorista(s) notificado(s)",
+    "reoffer": "Voltar a chamar motorista",
     "itemCount": "{{count}} itens",
     "paymentShort_pendente": "Por validar",
     "paymentShort_validado": "Pago",

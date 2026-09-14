@@ -139,6 +139,30 @@ export const useUpdateOrderStatus = () => {
   });
 };
 
+// Volta a oferecer aos motoristas da MESMA frota uma entrega que ninguem
+// aceitou (Fase 5). Nao troca de frota: a frota e a taxa congelaram no checkout
+// e o cliente aceitou aquele preco (§83).
+//
+// O servidor e' que decide se pode -- dono do restaurante do pedido ou admin, e
+// so' enquanto a entrega nao tem motorista. Aqui nao se repete essa regra, so'
+// se mostra o erro que ele devolver.
+export const useReofferDelivery = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase.rpc("reoffer_delivery", {
+        p_order_id: orderId,
+      });
+      if (error) throw error;
+      return data as { ronda: number; motoristas_notificados: number };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business-orders"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
 export const useValidateOrderPayment = () => {
   const qc = useQueryClient();
   return useMutation({
