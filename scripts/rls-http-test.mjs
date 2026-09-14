@@ -281,9 +281,25 @@ async function main() {
   } else {
     ko("ABORTEI a limpeza: a frota encontrada nao tem a marca desta corrida");
   }
-  console.log("\n  Nota: apagar as contas em auth.users precisa da admin API");
-  console.log("  (service_role), que este script nao usa de proposito. Contas a remover:");
-  for (const c of contas) console.log(`    ${c.email}`);
+  // O QUE ESTE SCRIPT NAO CONSEGUE LIMPAR, e porque:
+  // apagar contas em auth.users e' admin API (service_role), e apagar uma frota
+  // nao tem RPC -- `create_fleet` existe, `delete_fleet` nao. Com a chave anon
+  // nao ha caminho nenhum, e usar service_role aqui era exactamente o que a
+  // regra do CLAUDE.md proibe.
+  //
+  // Consequencia real, medida: quatro corridas deixaram 16 contas e 3 frotas em
+  // producao, que foi preciso apagar por migracao (20260914192238). Por isso o
+  // que fica por limpar sai daqui em SQL pronto a correr, em vez de uma lista
+  // para alguem traduzir a mao.
+  console.log("\n  Por limpar (precisa de privilegio de admin). SQL:");
+  console.log(`    DELETE FROM public.drivers d USING auth.users u`);
+  console.log(`     WHERE u.id = d.user_id AND u.email LIKE '${MARCA}-%';`);
+  console.log(`    DELETE FROM auth.users WHERE email LIKE '${MARCA}-%';`);
+  console.log(`    -- a frota sai por CASCADE (fleets.owner_user_id)`);
+  console.log(`\n  Para limpar TUDO o que estas corridas ja deixaram:`);
+  console.log(`    DELETE FROM public.drivers d USING auth.users u`);
+  console.log(`     WHERE u.id = d.user_id AND u.email LIKE 'rlstest-%@deliveryapp.test';`);
+  console.log(`    DELETE FROM auth.users WHERE email LIKE 'rlstest-%@deliveryapp.test';`);
 
   // --- resultado -------------------------------------------------------------
   console.log(`\n${passou} passou, ${falhou} falhou\n`);
