@@ -390,6 +390,7 @@ export type Database = {
           delivery_fee: number | null
           distance_km: number | null
           driver_id: string | null
+          fleet_id: string | null
           id: string
           order_id: string
           picked_up_at: string | null
@@ -409,6 +410,7 @@ export type Database = {
           delivery_fee?: number | null
           distance_km?: number | null
           driver_id?: string | null
+          fleet_id?: string | null
           id?: string
           order_id: string
           picked_up_at?: string | null
@@ -428,6 +430,7 @@ export type Database = {
           delivery_fee?: number | null
           distance_km?: number | null
           driver_id?: string | null
+          fleet_id?: string | null
           id?: string
           order_id?: string
           picked_up_at?: string | null
@@ -443,6 +446,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
             referencedColumns: ["id"]
           },
           {
@@ -550,6 +560,7 @@ export type Database = {
           created_at: string
           current_lat: number | null
           current_lng: number | null
+          fleet_id: string | null
           id: string
           is_available: boolean
           last_location_update: string | null
@@ -564,6 +575,7 @@ export type Database = {
           created_at?: string
           current_lat?: number | null
           current_lng?: number | null
+          fleet_id?: string | null
           id?: string
           is_available?: boolean
           last_location_update?: string | null
@@ -578,6 +590,7 @@ export type Database = {
           created_at?: string
           current_lat?: number | null
           current_lng?: number | null
+          fleet_id?: string | null
           id?: string
           is_available?: boolean
           last_location_update?: string | null
@@ -586,6 +599,85 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vehicle_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fleet_zone_prices: {
+        Row: {
+          bairro: string
+          created_at: string
+          fleet_id: string
+          id: string
+          is_active: boolean
+          preco: number
+          updated_at: string
+        }
+        Insert: {
+          bairro: string
+          created_at?: string
+          fleet_id: string
+          id?: string
+          is_active?: boolean
+          preco: number
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string
+          created_at?: string
+          fleet_id?: string
+          id?: string
+          is_active?: boolean
+          preco?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fleet_zone_prices_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fleets: {
+        Row: {
+          bairro: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_user_id: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_user_id: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_user_id?: string
+          phone?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -800,6 +892,8 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           delivery_code: string | null
+          delivery_fee: number | null
+          fleet_id: string | null
           id: string
           items: Json
           notes: string | null
@@ -825,6 +919,8 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           delivery_code?: string | null
+          delivery_fee?: number | null
+          fleet_id?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -850,6 +946,8 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           delivery_code?: string | null
+          delivery_fee?: number | null
+          fleet_id?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -869,6 +967,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
             referencedColumns: ["id"]
           },
         ]
@@ -1387,7 +1492,20 @@ export type Database = {
     }
     Functions: {
       accept_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
+      add_driver_to_fleet: {
+        Args: { p_name?: string; p_phone: string; p_vehicle_type?: string }
+        Returns: string
+      }
       admin_delete_user: { Args: { p_profile_id: string }; Returns: undefined }
+      admin_list_verifications: {
+        Args: never
+        Returns: {
+          profile_id: string
+          verification_doc_url: string
+          verification_reason: string
+          verification_selfie_url: string
+        }[]
+      }
       assert_can_order_for: {
         Args: { p_business_id: string; p_customer_id: string }
         Returns: undefined
@@ -1431,6 +1549,10 @@ export type Database = {
           p_photo_url: string
           p_qr_validated?: boolean
         }
+        Returns: string
+      }
+      create_fleet: {
+        Args: { p_bairro?: string; p_name: string; p_phone: string }
         Returns: string
       }
       create_notification: {
@@ -1485,7 +1607,11 @@ export type Database = {
           delivery_fee: number
           distance_km: number
           id: string
+          items: Json
           order_id: string
+          order_total: number
+          payment_method: string
+          payment_status: string
           restaurant_address: string
           restaurant_lat: number
           restaurant_lng: number
@@ -1540,6 +1666,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           delivery_code: string
+          delivery_fee: number
           id: string
           items: Json
           notes: string
@@ -1551,6 +1678,13 @@ export type Database = {
           status: string
           total: number
           voice_note_url: string
+        }[]
+      }
+      get_business_payment_info: {
+        Args: { p_business_id: string }
+        Returns: {
+          merchant_code: string
+          payment_number: string
         }[]
       }
       get_business_sales_stats: {
@@ -1594,6 +1728,7 @@ export type Database = {
           customer_name: string
           customer_phone: string
           delivery_code: string
+          delivery_fee: number
           id: string
           items: Json
           notes: string
@@ -1619,6 +1754,14 @@ export type Database = {
           total: number
         }[]
       }
+      get_delivery_price: {
+        Args: { p_bairro: string }
+        Returns: {
+          fleet_id: string
+          fleet_name: string
+          preco: number
+        }[]
+      }
       get_delivery_tracking: {
         Args: { p_delivery_id: string }
         Returns: {
@@ -1641,10 +1784,40 @@ export type Database = {
         Returns: {
           month_count: number
           month_distance: number
+          month_earnings: number
           today_count: number
           today_distance: number
+          today_earnings: number
           week_count: number
           week_distance: number
+          week_earnings: number
+        }[]
+      }
+      get_fleet_driver_detail: { Args: { p_driver_id: string }; Returns: Json }
+      get_fleet_drivers: {
+        Args: never
+        Returns: {
+          concluidas: number
+          entregas: number
+          id: string
+          is_available: boolean
+          name: string
+          phone: string
+          valor_entregas: number
+          vehicle_type: string
+        }[]
+      }
+      get_fleet_metrics: {
+        Args: never
+        Returns: {
+          concluidas: number
+          entregas: number
+          fleet_id: string
+          fleet_name: string
+          motoristas: number
+          motoristas_activos: number
+          pendentes: number
+          valor_entregas: number
         }[]
       }
       get_my_bornaal_id: { Args: never; Returns: string }
@@ -1662,8 +1835,12 @@ export type Database = {
           delivery_fee: number
           distance_km: number
           id: string
+          items: Json
           order_id: string
           order_number: number
+          order_total: number
+          payment_method: string
+          payment_status: string
           picked_up_at: string
           restaurant_address: string
           restaurant_lat: number
@@ -1688,6 +1865,16 @@ export type Database = {
           reference_type: string
           title: string
           type: string
+        }[]
+      }
+      get_my_profile_private: {
+        Args: never
+        Returns: {
+          merchant_code: string
+          payment_number: string
+          verification_doc_url: string
+          verification_reason: string
+          verification_selfie_url: string
         }[]
       }
       get_order_history: {
@@ -1715,6 +1902,7 @@ export type Database = {
         Returns: undefined
       }
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean }
+      is_driver_of_fleet: { Args: { p_fleet_id: string }; Returns: boolean }
       lookup_by_bornaal_id: {
         Args: { p_bornaal_id: string }
         Returns: {
@@ -1732,6 +1920,7 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      owns_fleet: { Args: { p_fleet_id: string }; Returns: boolean }
       pickup_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
       record_business_order: {
         Args: {
@@ -1755,6 +1944,10 @@ export type Database = {
         Returns: string
       }
       register_as_provider: { Args: never; Returns: undefined }
+      remove_driver_from_fleet: {
+        Args: { p_driver_id: string }
+        Returns: undefined
+      }
       search_bornaal_id: {
         Args: { p_prefix: string }
         Returns: {
@@ -1766,6 +1959,10 @@ export type Database = {
       send_bulk_notification: {
         Args: { p_body: string; p_target_groups: string[]; p_title: string }
         Returns: number
+      }
+      set_driver_active: {
+        Args: { p_active: boolean; p_driver_id: string }
+        Returns: undefined
       }
       toggle_driver_availability: { Args: never; Returns: boolean }
       update_appointment_status: {
@@ -1830,8 +2027,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      upsert_zone_price: {
+        Args: { p_bairro: string; p_preco: number }
+        Returns: undefined
+      }
       validate_commission_payment: {
-        Args: { p_id: string; p_status: string }
+        Args: { p_id: string; p_note?: string; p_status: string }
         Returns: undefined
       }
       validate_delivery_code: {
@@ -1848,7 +2049,14 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "client" | "provider" | "admin" | "business" | "beleza"
+      app_role:
+        | "client"
+        | "provider"
+        | "admin"
+        | "business"
+        | "beleza"
+        | "driver"
+        | "fleet"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1976,7 +2184,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["client", "provider", "admin", "business", "beleza"],
+      app_role: [
+        "client",
+        "provider",
+        "admin",
+        "business",
+        "beleza",
+        "driver",
+        "fleet",
+      ],
     },
   },
 } as const

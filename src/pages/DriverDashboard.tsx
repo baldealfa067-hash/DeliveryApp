@@ -55,6 +55,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import logo from "@/assets/logo.png";
 import { DeliveryPayload } from "@/components/DeliveryPayload";
+import { formatCFA } from "@/lib/format";
 // DriverMap disabled by product decision — voice directions replace map in Bissau context
 // import DriverMap from "@/components/DriverMap";
 
@@ -373,24 +374,36 @@ const DriverDashboard = () => {
               </p>
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.today")}</p>
+                  <p className="text-lg font-bold text-primary">{formatCFA(deliveryStats.today_earnings)}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {deliveryStats.today_count} {t("driverDashboard.deliveries")}
+                  </p>
+                </div>
+                <div className="text-center">
                   <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.last7days")}</p>
-                  <p className="text-lg font-bold">{deliveryStats.week_count}</p>
-                  <p className="text-[10px] text-muted-foreground">{deliveryStats.week_distance.toFixed(1)} km</p>
+                  <p className="text-lg font-bold text-primary">{formatCFA(deliveryStats.week_earnings)}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {deliveryStats.week_count} {t("driverDashboard.deliveries")}
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.thisMonth")}</p>
-                  <p className="text-lg font-bold">{deliveryStats.month_count}</p>
-                  <p className="text-[10px] text-muted-foreground">{deliveryStats.month_distance.toFixed(1)} km</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] text-muted-foreground uppercase">{t("driverDashboard.totalDistance")}</p>
-                  <p className="text-lg font-bold flex items-center justify-center gap-1">
-                    <Route className="h-4 w-4 text-primary" />
-                    {deliveryStats.today_distance.toFixed(1)}
+                  <p className="text-lg font-bold text-primary">{formatCFA(deliveryStats.month_earnings)}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {deliveryStats.month_count} {t("driverDashboard.deliveries")}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">km {t("driverDashboard.today")}</p>
                 </div>
               </div>
+
+              {/* Km em linha secundaria: sao distancia em linha recta entre
+                  restaurante e cliente, nao percurso medido. §40 diz para nao os
+                  apresentar como se fossem precisos -- por isso nao competem com
+                  o dinheiro, que esse e' exacto. */}
+              <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 pt-1">
+                <Route className="h-3 w-3" />
+                {t("driverDashboard.totalDistance")}: {deliveryStats.week_distance.toFixed(1)} km ({t("driverDashboard.last7days")})
+              </p>
               {dailyStats.length > 0 && (
                 <ResponsiveContainer width="100%" height={150}>
                   <BarChart data={dailyStats}>

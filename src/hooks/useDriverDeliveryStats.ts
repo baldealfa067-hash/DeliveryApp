@@ -4,10 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 interface DriverStats {
   today_count: number;
   today_distance: number;
+  today_earnings: number;
   week_count: number;
   week_distance: number;
+  week_earnings: number;
   month_count: number;
   month_distance: number;
+  month_earnings: number;
 }
 
 interface DailyDriverStats {
@@ -25,13 +28,18 @@ export const useDriverDeliveryStats = (driverId: string | null) =>
       });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
+      // Number(...) em tudo de proposito: numeric do Postgres chega como string
+      // no JSON, e somar strings dava concatenacao silenciosa.
       return {
         today_count: Number(row?.today_count ?? 0),
         today_distance: Number(row?.today_distance ?? 0),
+        today_earnings: Number(row?.today_earnings ?? 0),
         week_count: Number(row?.week_count ?? 0),
         week_distance: Number(row?.week_distance ?? 0),
+        week_earnings: Number(row?.week_earnings ?? 0),
         month_count: Number(row?.month_count ?? 0),
         month_distance: Number(row?.month_distance ?? 0),
+        month_earnings: Number(row?.month_earnings ?? 0),
       };
     },
     enabled: !!driverId,

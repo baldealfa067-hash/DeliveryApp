@@ -625,11 +625,12 @@ checklist.
 - [x] Teste automatizado da disciplina de estados, com peso nos casos
       negativos — `src/lib/orderTransitions.test.ts`, 16 testes
 
-## Por fechar da Fase 1
-- [ ] `alfa` — a quarta conta de motorista não foi apagada: as foreign keys
-      `deliveries_driver_id_fkey` e `delivery_proofs_driver_id_fkey` são
-      `NO ACTION` e ela tem 9 entregas e 1 comprovativo. O Postgres recusa o
-      DELETE. Precisa de decisão sobre o que fazer aos registos
+## Por fechar da Fase 1 — nada. Fechada em 2026-09-10
+- [x] `alfa` — a quarta conta de motorista foi apagada, pela ordem das chaves
+      estrangeiras, na migração `20260909222100_fase1_remove_alfa_driver_account`
+      (commit `ed7d61f`). As 9 entregas e o comprovativo **não** foram apagados:
+      as referências de auditoria ficaram a NULL e as linhas mantiveram-se, por
+      §56 (nunca apagar silenciosamente histórico financeiro)
 
 ## Achado durante a Fase 1, fora do âmbito
 - `anon` tem INSERT/UPDATE/DELETE nas 32 tabelas (postura por omissão do
