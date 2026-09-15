@@ -120,23 +120,25 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [commissionPayments, orders, periodFilter, t]);
 
-  const filteredCommission = useMemo(() => {
-    if (!commission) return null;
-
-    // For filtered view, recalculate based on filtered orders
-    const filteredSalesTotal = orders.filter((o) => COMPLETE_ORDER_STATUSES.includes(o.status as any)).reduce((sum, o) => sum + o.total, 0);
-
-    const commissionDue = Math.round(filteredSalesTotal * commission.commission_rate / 100);
-    const paidFiltered = commissionPayments.filter((cp) => isInPeriod(new Date(cp.created_at), periodFilter) && cp.status === "validado").reduce((sum, cp) => sum + cp.amount, 0);
-
-    return {
-      ...commission,
-      total_sales: filteredSalesTotal,
-      commission_due: commissionDue,
-      commission_paid: paidFiltered,
-      commission_balance: commissionDue - paidFiltered,
-    };
-  }, [commission, orders, commissionPayments, periodFilter]);
+  /**
+   * FASE 6: aqui recalculava-se a comissão no browser —
+   * `Math.round(filteredSalesTotal * commission.commission_rate / 100)` — a
+   * partir da taxa que vigora AGORA. Era o terceiro sítio a fazer a mesma conta
+   * (os outros dois eram `get_business_commission` e `get_all_commissions`), e
+   * tinha dois defeitos:
+   *
+   *   §84  mudar a taxa de 5% para 6% reescrevia a dívida histórica em silêncio
+   *   §46  número financeiro calculado no cliente, onde ninguém o pode garantir
+   *
+   * Agora os valores vêm inteiros do ledger, onde cada entrada guarda a base e
+   * a taxa do momento em que foi escrita. Não se recalcula nada — só se mostra.
+   *
+   * O filtro de período deixou de mexer nos totais de propósito: uma dívida é
+   * um saldo acumulado, não uma fatia de um mês. Filtrar a dívida dava um
+   * número que não corresponde a nada que o parceiro tenha de pagar. O filtro
+   * continua a aplicar-se à LISTA de movimentos, que é onde faz sentido.
+   */
+  const filteredCommission = commission;
 
   if (!commission) {
     return (

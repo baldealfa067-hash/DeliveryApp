@@ -778,6 +778,8 @@
     "commissions": "Comissões"
   },
   "commission": {
+    "account": "Conta",
+    "fleet": "frota",
     "title": "Comissão da Plataforma",
     "due": "A pagar",
     "paid": "Pago",

@@ -775,6 +775,8 @@
     "commissions": "Commissions"
   },
   "commission": {
+    "account": "Compte",
+    "fleet": "flotte",
     "title": "Commission de la Plateforme",
     "due": "À payer",
     "paid": "Payé",

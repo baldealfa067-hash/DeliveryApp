@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { formatCFA } from "@/lib/format";
+import { useFleetFinancials, type MovimentoLedger } from "@/hooks/useFleetFinancials";
 import { LOCATION_OPTIONS } from "@/lib/locations";
 import { useAuth } from "@/hooks/useAuth";
 import { FleetDriverDetail } from "@/components/FleetDriverDetail";
@@ -35,6 +36,17 @@ import {
  * suficiente para apresentar valores como se fossem precisos.
  */
 
+/**
+ * Os tipos do ledger em português corrente. O motorista e o dono da frota não
+ * têm de saber o que é um `entry_type`.
+ */
+const ROTULO_MOVIMENTO: Record<string, string> = {
+  comissao_frota: "Comissão da entrega",
+  divida_comida: "Comida recebida em dinheiro",
+  pagamento_comissao: "Pagamento de comissão",
+  reversao: "Correcção",
+};
+
 const Metric = ({ label, value }: { label: string; value: string | number }) => (
   <Card>
     <CardContent className="p-4">
@@ -46,6 +58,7 @@ const Metric = ({ label, value }: { label: string; value: string | number }) => 
 
 const FleetDashboard = () => {
   const { user, loading: authLoading } = useAuth();
+  const { data: financas } = useFleetFinancials();
   const { data: metrics, isLoading } = useFleetMetrics();
   const { data: drivers = [] } = useFleetDrivers();
   const { data: prices = [] } = useZonePrices(metrics?.fleet_id ?? null);
@@ -206,6 +219,7 @@ const FleetDashboard = () => {
         <TabsList className="w-full">
           <TabsTrigger value="motoristas" className="flex-1">Motoristas</TabsTrigger>
           <TabsTrigger value="precos" className="flex-1">Preços</TabsTrigger>
+          <TabsTrigger value="financeiro" className="flex-1">Financeiro</TabsTrigger>
         </TabsList>
 
         {/* ── Motoristas (§12) ─────────────────────────────────────────── */}
@@ -387,6 +401,121 @@ const FleetDashboard = () => {
               </CardContent>
             </Card>
           ))}
+        </TabsContent>
+
+        {/* ── Financeiro (§26, §28, §32, §84) ──────────────────────────── */}
+        <TabsContent value="financeiro" className="space-y-3 mt-3">
+          {!financas ? (
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">A carregar…</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Metric label="Entregas faturadas" value={financas.entregas_faturadas} />
+                <Metric label="Valor das entregas" value={formatCFA(financas.valor_entregas)} />
+                <Metric label="Comissão gerada" value={formatCFA(financas.comissao_gerada)} />
+                <Metric label="Comissão paga" value={formatCFA(financas.comissao_paga)} />
+              </div>
+
+              {/* As duas dívidas são de naturezas diferentes e não se somam:
+                  uma é comissão da plataforma (§26), a outra é dinheiro do
+                  restaurante que passou pelas mãos do motorista (§28). */}
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground uppercase">Dívida à plataforma</p>
+                      <p className="text-xs text-muted-foreground">Comissão de {financas.taxa_actual}% sobre as entregas</p>
+                    </div>
+                    <p className="text-xl font-bold whitespace-nowrap">{formatCFA(financas.divida_plataforma)}</p>
+                  </div>
+                  <Button
+                    className="w-full h-12"
+                    disabled={financas.divida_plataforma <= 0}
+                    onClick={() => toast.info("Pagamento por Orange Money: use o código da plataforma e envie o comprovativo ao admin.")}
+                  >
+                    Pagar comissão
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground uppercase">A entregar aos restaurantes</p>
+                      {/* §28: o cliente paga ao motorista, que fica com a taxa
+                          e deve a comida ao restaurante. Este número é dinheiro
+                          de outra pessoa, não receita da frota. */}
+                      <p className="text-xs text-muted-foreground">Comida paga em dinheiro ao motorista</p>
+                    </div>
+                    <p className="text-xl font-bold whitespace-nowrap">{formatCFA(financas.divida_restaurantes)}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* O espelho do §28: nos pedidos pagos online o cliente paga tudo
+                  ao restaurante, pelo merchant_code dele, e a taxa de entrega
+                  fica lá — é da frota (decisão de 2026-09-15). Cartão separado
+                  do de cima de propósito: um é dinheiro a sair, o outro a
+                  entrar, e juntos num só número não se percebia nenhum. */}
+              {financas.a_receber_restaurantes > 0 && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground uppercase">A receber dos restaurantes</p>
+                        <p className="text-xs text-muted-foreground">Taxas de entrega de pedidos pagos online</p>
+                      </div>
+                      <p className="text-xl font-bold whitespace-nowrap text-primary">
+                        {formatCFA(financas.a_receber_restaurantes)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* §84: nunca mostrar "deves X" sem conseguir explicar porquê. */}
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <p className="text-sm font-semibold">Movimentos</p>
+                  {financas.movimentos.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Ainda sem movimentos. Aparecem aqui assim que a primeira
+                      entrega for concluída.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {financas.movimentos.map((m: MovimentoLedger) => (
+                        <div
+                          key={m.id}
+                          className={`flex items-baseline justify-between gap-2 border-b pb-2 last:border-0 ${m.revertida ? "opacity-50" : ""}`}
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm truncate">
+                              {ROTULO_MOVIMENTO[m.tipo] ?? m.tipo}
+                              {m.pedido != null && <span className="text-muted-foreground"> · #{m.pedido}</span>}
+                              {m.revertida && <span className="text-muted-foreground"> · anulado</span>}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {new Date(m.quando).toLocaleString()}
+                              {m.base != null && m.taxa != null && ` · ${formatCFA(m.base)} × ${m.taxa}%`}
+                            </p>
+                          </div>
+                          <span className="text-sm font-semibold whitespace-nowrap">
+                            {formatCFA(m.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
       </Tabs>
 

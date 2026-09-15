@@ -514,6 +514,8 @@
     "commissions": "Komisons"
   },
   "commission": {
+    "account": "Konta",
+    "fleet": "frota",
     "title": "Komison di Plataforma",
     "due": "Pa paga",
     "paid": "Pagadu",

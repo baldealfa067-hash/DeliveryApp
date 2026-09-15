@@ -1254,7 +1254,10 @@ const AdminDashboard = () => {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b text-xs text-muted-foreground">
-                            <th className="text-left py-2 px-1">{t("commission.restaurant")}</th>
+                            {/* §26: a plataforma tem DUAS fontes de comissão,
+                                restaurantes e frotas, com contas separadas. A
+                                coluna diz de qual se trata. */}
+                            <th className="text-left py-2 px-1">{t("commission.account", "Conta")}</th>
                             <th className="text-right py-2 px-1">{t("commission.totalSales")}</th>
                             <th className="text-right py-2 px-1">{t("commission.due")}</th>
                             <th className="text-right py-2 px-1">{t("commission.paid")}</th>
@@ -1263,9 +1266,14 @@ const AdminDashboard = () => {
                         </thead>
                         <tbody>
                           {allCommissions.map((c) => (
-                            <tr key={c.business_id} className="border-b">
-                              <td className="py-2 px-1 font-medium">{c.business_name}</td>
-                              <td className="py-2 px-1 text-right">{formatCFA(c.total_sales)}</td>
+                            <tr key={`${c.account_kind}:${c.account_id}`} className="border-b">
+                              <td className="py-2 px-1 font-medium">
+                                {c.account_name}
+                                <span className="ml-1 text-[10px] text-muted-foreground uppercase">
+                                  {c.account_kind === "fleet" ? t("commission.fleet", "frota") : t("commission.restaurant")}
+                                </span>
+                              </td>
+                              <td className="py-2 px-1 text-right">{formatCFA(c.total_base)}</td>
                               <td className="py-2 px-1 text-right">{formatCFA(c.commission_due)}</td>
                               <td className="py-2 px-1 text-right text-green-600">{formatCFA(c.commission_paid)}</td>
                               <td className={"py-2 px-1 text-right font-bold " + (c.commission_balance > 0 ? "text-orange-600" : "text-green-600")}>

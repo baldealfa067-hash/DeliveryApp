@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       admin_notifications: {
@@ -287,8 +312,9 @@ export type Database = {
       commission_payments: {
         Row: {
           amount: number
-          business_id: string
+          business_id: string | null
           created_at: string
+          fleet_id: string | null
           id: string
           note: string | null
           proof_url: string
@@ -298,8 +324,9 @@ export type Database = {
         }
         Insert: {
           amount: number
-          business_id: string
+          business_id?: string | null
           created_at?: string
+          fleet_id?: string | null
           id?: string
           note?: string | null
           proof_url: string
@@ -309,8 +336,9 @@ export type Database = {
         }
         Update: {
           amount?: number
-          business_id?: string
+          business_id?: string | null
           created_at?: string
+          fleet_id?: string | null
           id?: string
           note?: string | null
           proof_url?: string
@@ -324,6 +352,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_payments_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
             referencedColumns: ["id"]
           },
         ]
@@ -554,6 +589,83 @@ export type Database = {
           },
         ]
       }
+      dispatch_attempts: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          delivery_id: string
+          driver_id: string | null
+          drivers_notified: number
+          expires_at: string
+          fleet_id: string | null
+          id: string
+          note: string | null
+          offered_at: string
+          order_id: string
+          outcome: string
+          resolved_at: string | null
+        }
+        Insert: {
+          attempt_number?: number
+          created_at?: string
+          delivery_id: string
+          driver_id?: string | null
+          drivers_notified?: number
+          expires_at: string
+          fleet_id?: string | null
+          id?: string
+          note?: string | null
+          offered_at?: string
+          order_id: string
+          outcome?: string
+          resolved_at?: string | null
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          delivery_id?: string
+          driver_id?: string | null
+          drivers_notified?: number
+          expires_at?: string
+          fleet_id?: string | null
+          id?: string
+          note?: string | null
+          offered_at?: string
+          order_id?: string
+          outcome?: string
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_attempts_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatch_attempts_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatch_attempts_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatch_attempts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           bornaal_id: string | null
@@ -680,6 +792,119 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ledger_entries: {
+        Row: {
+          account_kind: string
+          amount: number
+          base_amount: number | null
+          business_id: string | null
+          ciclo: number
+          counterparty: string
+          created_at: string
+          created_by: string | null
+          delivery_id: string | null
+          driver_id: string | null
+          entry_type: string
+          fleet_id: string | null
+          id: string
+          note: string | null
+          order_id: string | null
+          payment_id: string | null
+          rate: number | null
+          reverses_id: string | null
+        }
+        Insert: {
+          account_kind: string
+          amount: number
+          base_amount?: number | null
+          business_id?: string | null
+          ciclo?: number
+          counterparty: string
+          created_at?: string
+          created_by?: string | null
+          delivery_id?: string | null
+          driver_id?: string | null
+          entry_type: string
+          fleet_id?: string | null
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          payment_id?: string | null
+          rate?: number | null
+          reverses_id?: string | null
+        }
+        Update: {
+          account_kind?: string
+          amount?: number
+          base_amount?: number | null
+          business_id?: string | null
+          ciclo?: number
+          counterparty?: string
+          created_at?: string
+          created_by?: string | null
+          delivery_id?: string | null
+          driver_id?: string | null
+          entry_type?: string
+          fleet_id?: string | null
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          payment_id?: string | null
+          rate?: number | null
+          reverses_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "commission_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_reverses_id_fkey"
+            columns: ["reverses_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_categories: {
         Row: {
@@ -1586,16 +1811,18 @@ export type Database = {
         }
         Returns: string
       }
+      expire_stale_dispatch: { Args: never; Returns: number }
       generate_bornaal_id: { Args: never; Returns: string }
       get_all_commissions: {
         Args: never
         Returns: {
-          business_id: string
-          business_name: string
+          account_id: string
+          account_kind: string
+          account_name: string
           commission_balance: number
           commission_due: number
           commission_paid: number
-          total_sales: number
+          total_base: number
         }[]
       }
       get_anon_key: { Args: never; Returns: string }
@@ -1642,6 +1869,8 @@ export type Database = {
           commission_due: number
           commission_paid: number
           commission_rate: number
+          delivery_payable: number
+          food_receivable: number
           total_sales: number
         }[]
       }
@@ -1807,6 +2036,7 @@ export type Database = {
           vehicle_type: string
         }[]
       }
+      get_fleet_financials: { Args: never; Returns: Json }
       get_fleet_metrics: {
         Args: never
         Returns: {
@@ -1903,6 +2133,14 @@ export type Database = {
       }
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean }
       is_driver_of_fleet: { Args: { p_fleet_id: string }; Returns: boolean }
+      ledger_registar_conclusao: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
+      ledger_reverter_pedido: {
+        Args: { p_motivo: string; p_order_id: string }
+        Returns: undefined
+      }
       lookup_by_bornaal_id: {
         Args: { p_bornaal_id: string }
         Returns: {
@@ -1919,6 +2157,10 @@ export type Database = {
       mark_request_completed: {
         Args: { p_request_id: string }
         Returns: undefined
+      }
+      offer_delivery_to_fleet: {
+        Args: { p_attempt?: number; p_delivery_id: string }
+        Returns: number
       }
       owns_fleet: { Args: { p_fleet_id: string }; Returns: boolean }
       pickup_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
@@ -1948,6 +2190,7 @@ export type Database = {
         Args: { p_driver_id: string }
         Returns: undefined
       }
+      reoffer_delivery: { Args: { p_order_id: string }; Returns: Json }
       search_bornaal_id: {
         Args: { p_prefix: string }
         Returns: {
@@ -2182,6 +2425,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: [

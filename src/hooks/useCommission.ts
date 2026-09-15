@@ -3,15 +3,32 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface CommissionSummary {
   total_sales: number;
+  /**
+   * A taxa que vigora AGORA, só para mostrar "a comissão é de X%". Não serve
+   * para calcular nada: desde a Fase 6 cada entrada do ledger guarda a taxa que
+   * valia no momento em que foi escrita, e é dessas que os totais saem (§84).
+   */
   commission_rate: number;
   commission_due: number;
   commission_paid: number;
   commission_balance: number;
+  /** §28: o que a frota tem a entregar ao restaurante, do dinheiro na entrega. */
+  food_receivable: number;
+  /**
+   * Pagamento online (decisão de 2026-09-15): o cliente pagou tudo pelo
+   * merchant_code do restaurante, portanto a taxa de entrega ficou com ele e é
+   * da frota. Campo separado de `food_receivable` de propósito — são sentidos
+   * opostos contra a mesma contraparte, e somados dão um número que não se
+   * paga a ninguém.
+   */
+  delivery_payable: number;
 }
 
 export interface CommissionPayment {
   id: string;
-  business_id: string;
+  /** Um dos dois está preenchido, nunca ambos — restaurante ou frota (§26). */
+  business_id: string | null;
+  fleet_id: string | null;
   amount: number;
   proof_url: string;
   status: string;
@@ -21,10 +38,15 @@ export interface CommissionPayment {
   validated_by: string | null;
 }
 
+/**
+ * A visão do admin passa a ter DUAS espécies de conta, não só restaurantes:
+ * §26 diz que a frota também paga comissão, e as contas são separadas.
+ */
 export interface AllCommissionEntry {
-  business_id: string;
-  business_name: string;
-  total_sales: number;
+  account_kind: "business" | "fleet";
+  account_id: string;
+  account_name: string;
+  total_base: number;
   commission_due: number;
   commission_paid: number;
   commission_balance: number;
@@ -64,9 +86,12 @@ export const useCommissionPayments = (businessId: string | null) =>
 export const useCreateCommissionPayment = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { businessId: string; amount: number; proofUrl: string }) => {
+    mutationFn: async (params: { businessId?: string; fleetId?: string; amount: number; proofUrl: string }) => {
+      // Exactamente uma das contas, nunca as duas — há um CHECK na base a
+      // impor o mesmo, para o caso de alguém chamar isto por outro caminho.
       const { error } = await supabase.from("commission_payments").insert({
-        business_id: params.businessId,
+        business_id: params.businessId ?? null,
+        fleet_id: params.fleetId ?? null,
         amount: params.amount,
         proof_url: params.proofUrl,
       });
@@ -75,6 +100,7 @@ export const useCreateCommissionPayment = () => {
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["commission-payments", variables.businessId] });
       qc.invalidateQueries({ queryKey: ["business-commission", variables.businessId] });
+      qc.invalidateQueries({ queryKey: ["fleet-financials"] });
     },
   });
 };
@@ -122,6 +148,7 @@ export const useValidateCommissionPayment = () => {
       qc.invalidateQueries({ queryKey: ["all-commission-payments"] });
       qc.invalidateQueries({ queryKey: ["commission-payments"] });
       qc.invalidateQueries({ queryKey: ["business-commission"] });
+      qc.invalidateQueries({ queryKey: ["fleet-financials"] });
     },
   });
 };
@@ -152,6 +179,9 @@ export const useUpdatePlatformSetting = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["platform-settings"] });
+      // A taxa nova só afecta pedidos FUTUROS — as entradas já escritas ficam
+      // com a taxa que tinham (§84). Estas invalidações são só para o ecrã
+      // passar a mostrar a percentagem nova, não porque algum total mude.
       qc.invalidateQueries({ queryKey: ["all-commissions"] });
       qc.invalidateQueries({ queryKey: ["business-commission"] });
     },
