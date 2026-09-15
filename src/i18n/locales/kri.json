@@ -793,7 +793,13 @@
     "merchantCode": "Código Orange Money",
     "merchantCodeHint": "Código USSD di kumersanti (ex: #144#32*123456#)",
     "paymentNumber": "Número pa pagamentu",
-    "paymentNumberHint": "Alternativa si ka ten código di kumersanti"
+    "paymentNumberHint": "Alternativa si ka ten código di kumersanti",
+    "stockMinus": "Minus un",
+    "stockPlus": "Mas un",
+    "stockStartTracking": "Kontrola stock",
+    "stockStopTracking": "Para di kontrola",
+    "stockAdjustReason": "Ajusti na painel",
+    "stockStopReason": "Kontrolu di stock disligadu"
   },
   "businessDetail": {
     "consumption": {
@@ -823,7 +829,9 @@
     "changeProof": "Troka",
     "attachProof": "Anexa komprovativu",
     "paymentProofError": "Eror na mandason di komprovativu",
-    "amountToTransfer": "Valor pa transferi"
+    "amountToTransfer": "Valor pa transferi",
+    "soldOut": "Kaba",
+    "stockLeft": "Fika {{count}}"
   },
   "notifications": {
     "title": "Notifikasons",

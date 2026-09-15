@@ -50,7 +50,7 @@ const CONSUMPTION_LABEL_KEYS: Record<string, string> = {
 };
 
 type MenuCategory = { id: string; name: string };
-type MenuItem = { id: string; name: string; price: number; photo_url: string | null; category_id: string | null };
+type MenuItem = { id: string; name: string; price: number; photo_url: string | null; category_id: string | null; track_stock: boolean; stock_qty: number | null; is_orderable: boolean };
 type Review = { id: string; rating: number; comment: string | null; created_at: string; reviewer_name: string | null };
 
 const BusinessDetail = () => {
@@ -137,7 +137,7 @@ const BusinessDetail = () => {
       const [{ data: profile }, { data: cats }, { data: items }, { data: revs }] = await Promise.all([
         supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", id).maybeSingle(),
         supabase.from("menu_categories").select("id, name").eq("business_id", id).order("name"),
-        supabase.from("menu_items").select("id, name, price, photo_url, category_id").eq("business_id", id).order("name"),
+        supabase.from("menu_items").select("id, name, price, photo_url, category_id, track_stock, stock_qty, is_orderable").eq("business_id", id).order("name"),
         supabase.from("reviews").select("id, rating, comment, created_at, reviewer_name").eq("provider_id", id).eq("status", "aprovado").order("created_at", { ascending: false }),
       ]);
       setBusiness(profile as Record<string, unknown> | null);
@@ -1201,10 +1201,24 @@ const MenuItemRow = ({ item, qty, onAdd, onRemove }: { item: MenuItem; qty: numb
     <div className="min-w-0 flex-1">
       <div className="text-body font-medium">{item.name}</div>
       <div className="text-price text-primary">{formatCFA(item.price)}</div>
+      {/* §83, não surpreender: o cliente vê que acabou antes de tentar, em vez
+          de levar com o erro do servidor depois de encher o carrinho. A recusa
+          continua a existir no servidor — isto é só cortesia de interface. */}
+      {!item.is_orderable ? (
+        <div className="text-xs font-medium text-destructive">{t("businessDetail.soldOut")}</div>
+      ) : item.track_stock && item.stock_qty !== null && item.stock_qty <= 5 ? (
+        <div className="text-xs text-muted-foreground">
+          {t("businessDetail.stockLeft", { count: item.stock_qty })}
+        </div>
+      ) : null}
     </div>
     {/* 44px: e' o controlo mais usado da pagina e o minimo do plano (§5.2).
         Estava a 32px. */}
-    {qty === 0 ? (
+    {!item.is_orderable ? (
+      <Button variant="outline" className="h-11 shrink-0 px-4" disabled>
+        {t("businessDetail.soldOut")}
+      </Button>
+    ) : qty === 0 ? (
       <Button variant="outline" className="h-11 shrink-0 gap-1 px-4" onClick={onAdd}>
         <Plus className="h-4 w-4" /> {t("common.add")}
       </Button>
@@ -1214,7 +1228,12 @@ const MenuItemRow = ({ item, qty, onAdd, onRemove }: { item: MenuItem; qty: numb
           <Minus className="h-4 w-4" />
         </Button>
         <span className="w-7 text-center text-body font-semibold">{qty}</span>
-        <Button size="icon" className="h-11 w-11 rounded-full" onClick={onAdd}>
+        <Button
+          size="icon"
+          className="h-11 w-11 rounded-full"
+          onClick={onAdd}
+          disabled={item.track_stock && item.stock_qty !== null && qty >= item.stock_qty}
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </div>

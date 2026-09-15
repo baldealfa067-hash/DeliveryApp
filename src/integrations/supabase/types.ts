@@ -285,6 +285,29 @@ export type Database = {
         }
         Relationships: []
       }
+      business_order_counters: {
+        Row: {
+          business_id: string
+          last_number: number
+        }
+        Insert: {
+          business_id: string
+          last_number?: number
+        }
+        Update: {
+          business_id?: string
+          last_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_order_counters_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -941,27 +964,39 @@ export type Database = {
           category_id: string | null
           created_at: string
           id: string
+          is_available: boolean
+          is_orderable: boolean | null
           name: string
           photo_url: string | null
           price: number
+          stock_qty: number | null
+          track_stock: boolean
         }
         Insert: {
           business_id: string
           category_id?: string | null
           created_at?: string
           id?: string
+          is_available?: boolean
+          is_orderable?: boolean | null
           name: string
           photo_url?: string | null
           price: number
+          stock_qty?: number | null
+          track_stock?: boolean
         }
         Update: {
           business_id?: string
           category_id?: string | null
           created_at?: string
           id?: string
+          is_available?: boolean
+          is_orderable?: boolean | null
           name?: string
           photo_url?: string | null
           price?: number
+          stock_qty?: number | null
+          track_stock?: boolean
         }
         Relationships: [
           {
@@ -1078,6 +1113,7 @@ export type Database = {
           name_snapshot: string
           order_id: string
           qty: number
+          stock_returned_at: string | null
           unit_price_snapshot: number
         }
         Insert: {
@@ -1088,6 +1124,7 @@ export type Database = {
           name_snapshot: string
           order_id: string
           qty: number
+          stock_returned_at?: string | null
           unit_price_snapshot: number
         }
         Update: {
@@ -1098,6 +1135,7 @@ export type Database = {
           name_snapshot?: string
           order_id?: string
           qty?: number
+          stock_returned_at?: string | null
           unit_price_snapshot?: number
         }
         Relationships: [
@@ -1708,6 +1746,57 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_adjustments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          menu_item_id: string
+          motivo: string
+          order_id: string | null
+          qty_antes: number | null
+          qty_depois: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          menu_item_id: string
+          motivo: string
+          order_id?: string | null
+          qty_antes?: number | null
+          qty_depois?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          menu_item_id?: string
+          motivo?: string
+          order_id?: string | null
+          qty_antes?: number | null
+          qty_depois?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_adjustments_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_adjustments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_reports: {
         Row: {
           created_at: string
@@ -2254,6 +2343,15 @@ export type Database = {
       set_driver_active: {
         Args: { p_active: boolean; p_driver_id: string }
         Returns: undefined
+      }
+      set_menu_item_stock: {
+        Args: {
+          p_menu_item_id: string
+          p_motivo?: string
+          p_stock_qty: number
+          p_track?: boolean
+        }
+        Returns: number
       }
       toggle_driver_availability: { Args: never; Returns: boolean }
       update_appointment_status: {

@@ -14,6 +14,7 @@ import {
   UtensilsCrossed,
   Plus,
   MapPin,
+  Minus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,7 @@ const empty: Form = {
 };
 
 type MenuCategory = { id: string; name: string };
-type MenuItem = { id: string; name: string; price: number; photo_url: string | null; category_id: string | null };
+type MenuItem = { id: string; name: string; price: number; photo_url: string | null; category_id: string | null; track_stock: boolean; stock_qty: number | null; is_orderable: boolean };
 
 
 /**
@@ -108,6 +109,7 @@ const BusinessDashboard = () => {
   const navigate = useNavigate();
   const { user, isBusiness, isAdmin, rolesLoaded, loading, signOut } = useAuth();
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [savingStock, setSavingStock] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(empty);
   const [businessLocation, setBusinessLocation] = useState<GeoPosition | null>(null);
   const [saving, setSaving] = useState(false);
@@ -138,7 +140,7 @@ const BusinessDashboard = () => {
   const loadMenu = async (pid: string) => {
     const [{ data: cats }, { data: items }, { count: orders }] = await Promise.all([
       supabase.from("menu_categories").select("id, name").eq("business_id", pid).order("name"),
-      supabase.from("menu_items").select("id, name, price, photo_url, category_id").eq("business_id", pid).order("name"),
+      supabase.from("menu_items").select("id, name, price, photo_url, category_id, track_stock, stock_qty, is_orderable").eq("business_id", pid).order("name"),
       supabase.from("orders").select("id", { count: "exact", head: true }).eq("business_id", pid),
     ]);
     setMenuCategories((cats ?? []) as MenuCategory[]);
@@ -347,6 +349,38 @@ const BusinessDashboard = () => {
     if (error) return toast.error(error.message);
     toast.success(t("businessEdit.itemAdded"));
     setItemForm({ name: "", price: "", category_id: "", photo_url: "" });
+    loadMenu(profileId);
+  };
+
+  /**
+   * O stock muda SEMPRE pela RPC. A coluna `stock_qty` tem o UPDATE revogado ao
+   * `authenticated` de propósito: se o painel pudesse escrevê-la directamente,
+   * o registo de ajustes ficava decorativo e um saldo deixava de se explicar
+   * (§30, a mesma regra do ledger aplicada à comida).
+   */
+  const ajustarStock = async (item: MenuItem, novaQtd: number) => {
+    if (!profileId) return;
+    setSavingStock(item.id);
+    const { error } = await supabase.rpc("set_menu_item_stock", {
+      p_menu_item_id: item.id,
+      p_stock_qty: Math.max(0, novaQtd),
+      p_track: true,
+      p_motivo: t("businessEdit.stockAdjustReason"),
+    });
+    setSavingStock(null);
+    if (error) return toast.error(error.message);
+    loadMenu(profileId);
+  };
+
+  const desligarStock = async (item: MenuItem) => {
+    if (!profileId) return;
+    setSavingStock(item.id);
+    const { error } = await supabase.rpc("set_menu_item_stock", {
+      p_menu_item_id: item.id, p_stock_qty: null, p_track: false,
+      p_motivo: t("businessEdit.stockStopReason"),
+    });
+    setSavingStock(null);
+    if (error) return toast.error(error.message);
     loadMenu(profileId);
   };
 
@@ -628,6 +662,47 @@ const BusinessDashboard = () => {
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium truncate">{item.name}</div>
                         <div className="text-xs text-muted-foreground">{formatCFA(item.price)} · <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{categoryName(item.category_id)}</Badge></div>
+                        {/* O stock é a quantidade que resta hoje. Não se escreve
+                            aqui à mão: passa pela RPC, que regista porque é que
+                            mudou (§30 aplicado à comida). */}
+                        {item.track_stock ? (
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <Button
+                              size="icon" variant="outline" className="h-8 w-8"
+                              aria-label={t("businessEdit.stockMinus")}
+                              disabled={savingStock === item.id || (item.stock_qty ?? 0) <= 0}
+                              onClick={() => ajustarStock(item, (item.stock_qty ?? 0) - 1)}
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </Button>
+                            <span className={`min-w-[2.5rem] text-center text-sm font-semibold ${(item.stock_qty ?? 0) === 0 ? "text-destructive" : ""}`}>
+                              {item.stock_qty ?? 0}
+                            </span>
+                            <Button
+                              size="icon" variant="outline" className="h-8 w-8"
+                              aria-label={t("businessEdit.stockPlus")}
+                              disabled={savingStock === item.id}
+                              onClick={() => ajustarStock(item, (item.stock_qty ?? 0) + 1)}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost" className="h-8 px-2 text-xs"
+                              disabled={savingStock === item.id}
+                              onClick={() => desligarStock(item)}
+                            >
+                              {t("businessEdit.stockStopTracking")}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost" className="mt-1 h-8 px-2 text-xs"
+                            disabled={savingStock === item.id}
+                            onClick={() => ajustarStock(item, 10)}
+                          >
+                            {t("businessEdit.stockStartTracking")}
+                          </Button>
+                        )}
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
