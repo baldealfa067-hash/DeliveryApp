@@ -22,7 +22,7 @@
  * Correr:  node scripts/rls-http-test.mjs
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 // ---------------------------------------------------------------------------
 // Configuracao -- anon key, nunca service_role
@@ -129,13 +129,97 @@ const naoExiste = (r) =>
 // ---------------------------------------------------------------------------
 // O teste
 // ---------------------------------------------------------------------------
+/**
+ * TEARDOWN -- corre SEMPRE, mesmo quando o teste rebenta a meio.
+ *
+ * Porque isto existe num `finally`: a corrida de 2026-09-14 apanhou um
+ * `fetch failed` na seccao 1 (o endpoint estava a responder a ~11s) e morreu
+ * antes da limpeza. Ficaram 4 contas, 1 frota e 2 motoristas em producao,
+ * dias depois de a base ter sido limpa para o arranque real. O teste nao pode
+ * depender de chegar ao fim para nao sujar.
+ *
+ * SERVICE_ROLE AQUI, E SO' AQUI. A regra do CLAUDE.md proibe `service_role`
+ * nas ASSERCOES -- porque ignora o RLS e um teste verde sob ele nao prova nada.
+ * Apagar contas no fim nao e' uma assercao: nao mede autorizacao nenhuma, e com
+ * a chave anon nao ha caminho (apagar `auth.users` e' admin API, e `delete_fleet`
+ * nao existe). Se a chave nao estiver no ambiente -- e por omissao nao esta,
+ * §49 -- o teardown faz o que consegue e deixa o SQL escrito em ficheiro, em
+ * vez de o perder no scrollback.
+ */
+async function teardown(dono, idA, idB) {
+  console.log("\nLimpeza");
+
+  // Salvaguarda: so' se toca no que tem a marca DESTA corrida.
+  try {
+    if (dono?.token) {
+      const minhaFrota = await tabela(dono.token, `fleets?select=id,name&owner_user_id=eq.${dono.user_id}`);
+      const f = Array.isArray(minhaFrota.corpo) ? minhaFrota.corpo[0] : null;
+      if (f && typeof f.name === "string" && f.name.includes(MARCA)) {
+        if (idA) await rpc(dono.token, "remove_driver_from_fleet", { p_driver_id: idA });
+        if (idB) await rpc(dono.token, "remove_driver_from_fleet", { p_driver_id: idB });
+        console.log("  \x1b[32m✓\x1b[0m motoristas de teste desassociados da frota");
+      } else if (f) {
+        console.log("  \x1b[31m✗\x1b[0m ABORTEI: a frota encontrada nao tem a marca desta corrida");
+      }
+    }
+  } catch (e) {
+    console.log(`  aviso: desassociacao falhou (${e.message}) -- segue para o resto`);
+  }
+
+  const sql = [
+    `DELETE FROM public.drivers d USING auth.users u`,
+    ` WHERE u.id = d.user_id AND u.email LIKE 'rlstest-%@deliveryapp.test';`,
+    `DELETE FROM public.fleet_zone_prices WHERE fleet_id IN (`,
+    `  SELECT f.id FROM public.fleets f JOIN auth.users u ON u.id = f.owner_user_id`,
+    `   WHERE u.email LIKE 'rlstest-%@deliveryapp.test');`,
+    `DELETE FROM public.fleets f USING auth.users u`,
+    ` WHERE u.id = f.owner_user_id AND u.email LIKE 'rlstest-%@deliveryapp.test';`,
+    `DELETE FROM public.profiles p USING auth.users u`,
+    ` WHERE u.id = p.user_id AND u.email LIKE 'rlstest-%@deliveryapp.test';`,
+    `DELETE FROM auth.users WHERE email LIKE 'rlstest-%@deliveryapp.test';`,
+  ].join("\n");
+
+  const chave = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!chave) {
+    const ficheiro = "scripts/.limpeza-pendente.sql";
+    try {
+      writeFileSync(ficheiro, `-- ${MARCA}\n-- Corre isto com privilegio de admin.\n${sql}\n`);
+      console.log(`  \x1b[33m!\x1b[0m sem SUPABASE_SERVICE_ROLE_KEY: SQL de limpeza escrito em ${ficheiro}`);
+    } catch {
+      console.log("\n  Por limpar (precisa de privilegio de admin):\n" + sql);
+    }
+    return;
+  }
+
+  // Com a chave: apaga mesmo. Conta primeiro, e aborta se o numero nao bater
+  // com uma corrida de teste -- nunca se apaga a esmo.
+  const r = await fetch(`${URL_BASE}/rest/v1/rpc/exec_sql_teardown`, {
+    method: "POST",
+    headers: { apikey: chave, Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_sql: sql }),
+  }).catch(() => null);
+
+  if (r?.ok) {
+    console.log("  \x1b[32m✓\x1b[0m contas de teste apagadas");
+  } else {
+    const ficheiro = "scripts/.limpeza-pendente.sql";
+    try { writeFileSync(ficheiro, `-- ${MARCA}\n${sql}\n`); } catch { /* nao ha mais nada a fazer */ }
+    console.log(`  \x1b[33m!\x1b[0m teardown automatico falhou; SQL em ${ficheiro}`);
+  }
+}
+
+// Partilhados com o teardown: ele tem de conseguir limpar mesmo que o teste
+// morra a meio, portanto nao podem viver dentro do try.
+let dono = null, idA = null, idB = null;
+
 async function main() {
+ try {
   console.log(`\nTeste de RLS por HTTP — ${URL_BASE}`);
   console.log(`Marca das contas de teste: ${MARCA}\n`);
 
   // --- montar a frota e dois motoristas, tudo por HTTP -----------------------
   console.log("Preparacao");
-  const dono = await signup("dono");
+  dono = await signup("dono");
   const mA = await signup("motoristaA");
   const mB = await signup("motoristaB");
   const estranho = await signup("estranho");
@@ -177,7 +261,7 @@ async function main() {
   if (dA.status !== 200 || dB.status !== 200) {
     throw new Error(`add_driver_to_fleet: ${JSON.stringify(dA.corpo)} / ${JSON.stringify(dB.corpo)}`);
   }
-  const idA = dA.corpo, idB = dB.corpo;
+  idA = dA.corpo; idB = dB.corpo;
   ok("dois motoristas associados a frota");
 
   // --- 1. ganhos: o proprio ve, os outros nao -------------------------------
@@ -268,38 +352,79 @@ async function main() {
     ko("reoffer_delivery nao recusou uma conta sem relacao", JSON.stringify(reoffer.corpo).slice(0, 160));
   }
 
-  // --- limpeza ---------------------------------------------------------------
-  console.log("\nLimpeza");
-  // Salvaguarda: so se remove o que tem a marca desta corrida. Se por alguma
-  // razao o nome nao bater certo, nao se toca em nada.
-  const minhaFrota = await tabela(dono.token, `fleets?select=id,name&owner_user_id=eq.${dono.user_id}`);
-  const f = Array.isArray(minhaFrota.corpo) ? minhaFrota.corpo[0] : null;
-  if (f && typeof f.name === "string" && f.name.includes(MARCA)) {
-    await rpc(dono.token, "remove_driver_from_fleet", { p_driver_id: idA });
-    await rpc(dono.token, "remove_driver_from_fleet", { p_driver_id: idB });
-    ok("motoristas de teste desassociados da frota");
+  // --- 5. ledger: conta propria, e ninguem escreve --------------------------
+  console.log("\n5. ledger_entries (Fase 6)");
+
+  const ledgerEstranho = await tabela(estranho.token, "ledger_entries?select=id,amount");
+  if (ledgerEstranho.status === 404 || /does not exist|Could not find/i.test(JSON.stringify(ledgerEstranho.corpo))) {
+    ko("`ledger_entries` nao existe — migracao por aplicar");
   } else {
-    ko("ABORTEI a limpeza: a frota encontrada nao tem a marca desta corrida");
+    Array.isArray(ledgerEstranho.corpo) && ledgerEstranho.corpo.length === 0
+      ? ok("conta sem relacao le 0 linhas do ledger")
+      : ko("conta sem relacao viu movimentos financeiros", JSON.stringify(ledgerEstranho.corpo).slice(0, 160));
+
+    // §30/§56: o ledger e append-only. Nem o dono da conta escreve nele --
+    // so as funcoes SECURITY DEFINER. Testa-se com o JWT do DONO DA FROTA,
+    // que e quem mais perto esta de ter direito a isso.
+    const escrita = await fetch(`${URL_BASE}/rest/v1/ledger_entries`, {
+      method: "POST",
+      headers: {
+        apikey: ANON, Authorization: `Bearer ${dono.token}`,
+        "Content-Type": "application/json", Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        entry_type: "comissao_frota", account_kind: "fleet", counterparty: "platform",
+        fleet_id: frota.corpo, amount: -999999,
+      }),
+    });
+    escrita.ok
+      ? ko("LEDGER ESCRITO por um utilizador — a divida podia ser apagada a mao")
+      : ok("dono da frota nao consegue escrever no ledger", `HTTP ${escrita.status}`);
+
+    // FASE 6.1 -- o `anon` perdeu o SELECT de tabela (20260915090300).
+    // Antes disto um GET anonimo devolvia `200 []`, que e' indistinguivel de
+    // "a tabela esta vazia" -- e hoje esta'. A unica coisa entre os movimentos
+    // financeiros de toda a gente e um pedido sem autenticacao nenhuma era a
+    // policy estar correcta. Agora sao duas linhas de defesa, nao uma.
+    const anonLedger = await fetch(`${URL_BASE}/rest/v1/ledger_entries?select=id`, {
+      headers: { apikey: ANON },
+    });
+    anonLedger.status === 401 || anonLedger.status === 403
+      ? ok("anonimo recusado no ledger", `HTTP ${anonLedger.status}`)
+      : ko("anonimo NAO foi recusado no ledger", `HTTP ${anonLedger.status}`);
   }
-  // O QUE ESTE SCRIPT NAO CONSEGUE LIMPAR, e porque:
-  // apagar contas em auth.users e' admin API (service_role), e apagar uma frota
-  // nao tem RPC -- `create_fleet` existe, `delete_fleet` nao. Com a chave anon
-  // nao ha caminho nenhum, e usar service_role aqui era exactamente o que a
-  // regra do CLAUDE.md proibe.
-  //
-  // Consequencia real, medida: quatro corridas deixaram 16 contas e 3 frotas em
-  // producao, que foi preciso apagar por migracao (20260914192238). Por isso o
-  // que fica por limpar sai daqui em SQL pronto a correr, em vez de uma lista
-  // para alguem traduzir a mao.
-  console.log("\n  Por limpar (precisa de privilegio de admin). SQL:");
-  console.log(`    DELETE FROM public.drivers d USING auth.users u`);
-  console.log(`     WHERE u.id = d.user_id AND u.email LIKE '${MARCA}-%';`);
-  console.log(`    DELETE FROM auth.users WHERE email LIKE '${MARCA}-%';`);
-  console.log(`    -- a frota sai por CASCADE (fleets.owner_user_id)`);
-  console.log(`\n  Para limpar TUDO o que estas corridas ja deixaram:`);
-  console.log(`    DELETE FROM public.drivers d USING auth.users u`);
-  console.log(`     WHERE u.id = d.user_id AND u.email LIKE 'rlstest-%@deliveryapp.test';`);
-  console.log(`    DELETE FROM auth.users WHERE email LIKE 'rlstest-%@deliveryapp.test';`);
+
+  // --- 6. conta da frota ----------------------------------------------------
+  console.log("\n6. get_fleet_financials (Fase 6)");
+
+  const fin = await rpc(dono.token, "get_fleet_financials");
+  if (naoExiste(fin)) {
+    ko("get_fleet_financials nao existe — migracao por aplicar");
+  } else if (fin.status === 200 && fin.corpo && typeof fin.corpo === "object") {
+    const campos = ["divida_plataforma", "divida_restaurantes", "comissao_gerada", "movimentos"];
+    campos.every((c) => c in fin.corpo)
+      ? ok("dono ve a conta da sua frota", `divida plataforma ${fin.corpo.divida_plataforma}`)
+      : ko("faltam campos na conta da frota", JSON.stringify(Object.keys(fin.corpo)));
+  } else {
+    ko("dono nao conseguiu ler a conta da frota", JSON.stringify(fin.corpo).slice(0, 160));
+  }
+
+  // Quem nao tem frota nao passa: a RPC resolve a frota por auth.uid(), nao
+  // aceita um id vindo de fora, portanto nao ha como pedir a de outra pessoa.
+  const finEstranho = await rpc(estranho.token, "get_fleet_financials");
+  finEstranho.status === 200 && finEstranho.corpo && typeof finEstranho.corpo === "object"
+    ? ko("ISOLAMENTO QUEBRADO: conta sem frota leu uma conta financeira")
+    : ok("conta sem frota recusada", `HTTP ${finEstranho.status}`);
+
+  const comissaoEstranho = await rpc(estranho.token, "get_all_commissions");
+  /Apenas administradores/i.test(JSON.stringify(comissaoEstranho.corpo))
+    ? ok("get_all_commissions so para admin")
+    : ko("get_all_commissions nao exigiu admin", JSON.stringify(comissaoEstranho.corpo).slice(0, 160));
+
+ } finally {
+    // SEMPRE -- e' este o ponto de todo o exercicio.
+    await teardown(dono, idA, idB);
+  }
 
   // --- resultado -------------------------------------------------------------
   console.log(`\n${passou} passou, ${falhou} falhou\n`);

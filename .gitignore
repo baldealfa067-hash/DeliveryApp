@@ -38,3 +38,9 @@ imagem.png/
 supabase/.temp/
 .supabase/
 vite.config.ts.timestamp-*.mjs
+
+# Grafo de conhecimento gerado localmente (graphify) — reconstruivel, nao versionado
+graphify-out/
+
+# SQL de limpeza deixado pelo rls-http-test quando nao tem chave de admin
+scripts/.limpeza-pendente.sql
