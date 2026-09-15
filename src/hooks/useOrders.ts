@@ -9,7 +9,7 @@ export interface Order {
   customer_phone: string | null;
   business_id: string;
   business_name?: string;
-  items: Array<{ name: string; price: number; qty: number }>;
+  items: Array<{ menu_item_id?: string | null; name: string; price: number; qty: number }>;
   total: number;
   /** Taxa de entrega congelada no checkout. `null` em pedidos anteriores à
    *  Fase 3 e em bairros que nenhuma frota serve. `total` é só a comida. */
@@ -43,7 +43,18 @@ export const useCreateOrder = () => {
       customerId: string | null;
       customerName: string;
       customerPhone: string;
-      items: Array<{ name: string; price: number; qty: number }>;
+      /**
+       * FASE 2.0: `menu_item_id` e o que liga a linha ao menu. Sem ele o
+       * servidor tem de adivinhar o artigo pelo nome, e o stock da 2.1 nao
+       * tem de que linha descontar. O carrinho ja tinha o id — era so nao o
+       * deitar fora a caminho do servidor.
+       */
+      items: Array<{ menu_item_id: string; name: string; price: number; qty: number }>;
+      /**
+       * Enviado apenas para CONFERENCIA. O total gravado e o que o servidor
+       * calcula a partir de `menu_items` (§46); se este nao bater, o pedido e
+       * recusado em vez de aceite por outro valor (§83).
+       */
       total: number;
       consumptionOption: string;
       address?: string;

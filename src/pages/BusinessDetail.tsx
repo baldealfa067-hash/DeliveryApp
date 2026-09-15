@@ -358,7 +358,7 @@ const BusinessDetail = () => {
         customerId: user?.id ?? null,
         customerName: orderCustomerName.trim(),
         customerPhone: phoneForOrder,
-        items: cartItems.map((i) => ({ name: i.name, price: i.price, qty: cart[i.id] ?? 0 })),
+        items: cartItems.map((i) => ({ menu_item_id: i.id, name: i.name, price: i.price, qty: cart[i.id] ?? 0 })),
         total: cartTotal,
         consumptionOption: activeConsumption,
         address: activeConsumption === "entrega" ? [bairro.trim(), referencePoint.trim()].filter(Boolean).join(" - ") : undefined,

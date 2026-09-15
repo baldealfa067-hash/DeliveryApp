@@ -1069,6 +1069,54 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          line_total: number | null
+          menu_item_id: string | null
+          name_snapshot: string
+          order_id: string
+          qty: number
+          unit_price_snapshot: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_total?: number | null
+          menu_item_id?: string | null
+          name_snapshot: string
+          order_id: string
+          qty: number
+          unit_price_snapshot: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_total?: number | null
+          menu_item_id?: string | null
+          name_snapshot?: string
+          order_id?: string
+          qty?: number
+          unit_price_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_status_history: {
         Row: {
           created_at: string
