@@ -22,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BusinessHoursEditor } from "@/components/BusinessHoursEditor";
+import { BusinessGallery } from "@/components/BusinessGallery";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -785,6 +787,12 @@ const BusinessDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Fase 2.5 — horário e galeria. Componentes à parte porque esta página
+            já tem 834 linhas e a auditoria da Fase 1 marcou o crescimento
+            destes ficheiros como dívida a não aumentar. */}
+        {profileId && <div className="space-y-4"><BusinessHoursEditor businessId={profileId} /></div>}
+        {profileId && <div className="space-y-4"><BusinessGallery businessId={profileId} /></div>}
 
         {profileId && (
           <div className="mt-4 flex justify-center">

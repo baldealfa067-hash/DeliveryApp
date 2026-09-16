@@ -681,6 +681,41 @@ Vendas conta a tabela `orders` inteira. Os dois estão certos e vão divergir; o
 rótulo antigo levava um restaurante com muitos pedidos manuais a pensar que
 estava a perder vendas.
 
+## Fase 2.5 — Horários e galeria — CONCLUÍDA (2026-09-16)
+
+A última sub-fase da Fase 2. **Estas decisões foram tomadas por mim, não pelo
+dono** — ficam aqui para serem confirmadas ou trocadas, e cada uma é reversível
+numa linha.
+
+**Horários**
+
+- **Sem horário definido = sempre aberto.** É o único default seguro: há
+  restaurantes reais em produção que nunca vão abrir este ecrã, e um default de
+  "fechado" fechava-os a todos no momento em que a migração corresse.
+- **O horário TRAVA o pedido, não é decoração.** §46 põe a regra no backend;
+  mostrar "Fechado" e aceitar o pedido a seguir mentia aos dois lados.
+- **Interruptor manual `profiles.accepting_orders`**, independente do horário —
+  fecha já (acabou o peixe, acabou o gás) sem obrigar o dono a editar o horário
+  e depois lembrar-se de o repor.
+- **O pedido manual (2.4) NÃO é travado**: quem o lança é o próprio restaurante,
+  que sabe se está aberto.
+- **Vários períodos por dia** (almoço/jantar), e `closes_at <= opens_at`
+  significa que o período atravessa a meia-noite e conta no dia em que **abre** —
+  19:00→02:00 numa sexta mantém a loja aberta à 01:00 de sábado. É o caso que uma
+  comparação ingénua erra sempre, e erra em silêncio, na noite de mais movimento.
+- **Fuso:** a Guiné-Bissau é UTC+0. Guarda-se e compara-se em UTC, sem conversão.
+  Não "corrigir" isto com um `AT TIME ZONE` — introduzia um desvio.
+
+**Galeria**
+
+- **Reaproveita `portfolio_images` e o bucket `portfolio`**, que já existiam para
+  a vertical de beleza e já têm as policies certas (dono gere a sua, toda a gente
+  lê). A tabela é exactamente uma galeria com chave em `profiles.id`. Criar uma
+  paralela só para restaurantes acrescentava uma segunda verdade sobre a mesma
+  coisa (§10). **Não é tabela morta** — `ProviderDetail` e `BeautyEdit` usam-na.
+- Leitura pública de propósito: é a montra, e o cliente vê-a antes de ter conta,
+  como já vê o menu. Máximo de 12 fotos, 5 MB cada.
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)

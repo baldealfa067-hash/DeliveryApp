@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { sanitizeName, sanitizeComment, sanitizeReason, sanitizeDescription, sanitizeContact } from "@/lib/sanitize";
 import { useBusinessCategories } from "@/hooks/useProviders";
 import { translateCategoryName } from "@/lib/categoryI18n";
@@ -92,6 +92,30 @@ const BusinessDetail = () => {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
+
+  /**
+   * Fase 2.5 — está aberto? Vem do servidor (`is_business_open`), que é a mesma
+   * função que o `create_order` usa para travar. Calcular isto no browser a
+   * partir dos períodos daria um ecrã que diz "Aberto" e um checkout que
+   * recusa — a surpresa que o §83 proíbe.
+   */
+  const { data: horario } = useQuery({
+    queryKey: ["horarios", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string, args?: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>)(
+        "get_business_hours", { p_business_id: id },
+      );
+      if (error) throw new Error(error.message);
+      return data as {
+        aberto_agora: boolean;
+        periodos: { weekday: number; opens_at: string; closes_at: string }[];
+      };
+    },
+  });
+  const lojaFechada = horario ? !horario.aberto_agora : false;
   const cartRef = useRef<HTMLDivElement | null>(null);
   const [typing, setTyping] = useState(false);
   const [consumptionOption, setConsumptionOption] = useState("");
@@ -239,7 +263,7 @@ const BusinessDetail = () => {
   const cartCount = cartItems.reduce((sum, i) => sum + (cart[i.id] ?? 0), 0);
 
 
-  const showCartBar = cartItems.length > 0 && !typing;
+  const showCartBar = cartItems.length > 0 && !typing && !lojaFechada;
 
   const trackCall = () => {
     if (!id) return;
@@ -332,6 +356,9 @@ const BusinessDetail = () => {
   const sendOrder = async () => {
     if (!id) return;
     if (!cartItems.length) return toast.error(t("businessDetail.addItems"));
+    // O backend recusa na mesma (§46); isto é só para não deixar o cliente
+    // preencher tudo para levar com um erro no fim.
+    if (lojaFechada) return toast.error("Este restaurante está fechado neste momento.");
     if (!activeConsumption) return toast.error(t("businessDetail.chooseConsumption"));
     if (activeConsumption === "entrega") {
       if (!deliveryPhone.trim()) return toast.error(t("businessDetail.enterPhone"));
@@ -476,6 +503,35 @@ const BusinessDetail = () => {
   // baixo dela no fim do scroll sem depender do padding do Layout.
   return (
     <div className={cn("max-w-lg mx-auto px-4 pt-6", showCartBar && "pb-[8.5rem]")}>
+      {/* Fase 2.5 — dizer que está fechado ANTES de a pessoa escolher a comida.
+          Aparece no topo, não junto ao botão: descobrir que está fechado depois
+          de encher o carrinho é a pior altura para o saber (§52). */}
+      {lojaFechada && (
+        <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+          <p className="text-sm font-semibold text-destructive">Fechado neste momento</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {horario?.periodos?.length
+              ? "Pode ver o menu, mas só é possível encomendar dentro do horário."
+              : "Este restaurante não está a aceitar pedidos agora."}
+          </p>
+          {!!horario?.periodos?.length && (
+            <div className="mt-2 space-y-0.5">
+              {["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"].map((nome, d) => {
+                const ps = horario.periodos.filter((x) => x.weekday === d);
+                return (
+                  <p key={d} className="text-[11px] text-muted-foreground">
+                    <span className="inline-block w-16">{nome}</span>
+                    {ps.length === 0
+                      ? "Fechado"
+                      : ps.map((x) => `${x.opens_at}–${x.closes_at}`).join(" · ")}
+                  </p>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Foto de destaque. Mesmo padrão do RestaurantCard da lista — incluindo a
           máscara verde quando não há foto — para os dois ecrãs se reconhecerem
           um ao outro. É aqui e no item de menu que a fotografia se justifica (§9). */}
