@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
+import { BusinessCashSettlements } from "@/components/BusinessCashSettlements";
 import logo from "@/assets/logo.png";
 
 type DashboardProfile = {
@@ -461,8 +462,14 @@ const BusinessDashboard = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="conta" className="mt-0">
+            <TabsContent value="conta" className="mt-0 space-y-4">
               <BusinessCurrentAccount businessId={profile.id} />
+              {/* Fase 2.3 — o dinheiro que os motoristas cobraram aos clientes e
+                  ainda não entregaram (§28). Fica na conta corrente e não numa
+                  aba nova: é a mesma pergunta que o dono já vem aqui fazer
+                  ("quanto tenho a haver, e a quem?"), só muda a contraparte —
+                  ali é a plataforma, aqui é a frota. */}
+              <BusinessCashSettlements businessId={profile.id} />
             </TabsContent>
 
             <TabsContent value="perfil" className="mt-0 space-y-4">

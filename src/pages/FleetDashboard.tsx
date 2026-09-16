@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FleetCashClosing } from "@/components/FleetCashClosing";
 import { toast } from "sonner";
 import { formatCFA } from "@/lib/format";
 import { useFleetFinancials, type MovimentoLedger } from "@/hooks/useFleetFinancials";
@@ -219,6 +220,7 @@ const FleetDashboard = () => {
         <TabsList className="w-full">
           <TabsTrigger value="motoristas" className="flex-1">Motoristas</TabsTrigger>
           <TabsTrigger value="precos" className="flex-1">Preços</TabsTrigger>
+          <TabsTrigger value="caixa" className="flex-1">Caixa</TabsTrigger>
           <TabsTrigger value="financeiro" className="flex-1">Financeiro</TabsTrigger>
         </TabsList>
 
@@ -404,6 +406,14 @@ const FleetDashboard = () => {
         </TabsContent>
 
         {/* ── Financeiro (§26, §28, §32, §84) ──────────────────────────── */}
+        {/* Fase 2.3 — separado do "Financeiro" de propósito: ali está a dívida à
+            PLATAFORMA (comissão, §26); aqui está dinheiro de terceiros que
+            passou pelas mãos dos motoristas (§28). Somá-los num ecrã só levava
+            a frota a pensar que devia o total a uma pessoa. */}
+        <TabsContent value="caixa" className="space-y-3 mt-3">
+          <FleetCashClosing />
+        </TabsContent>
+
         <TabsContent value="financeiro" className="space-y-3 mt-3">
           {!financas ? (
             <Card>

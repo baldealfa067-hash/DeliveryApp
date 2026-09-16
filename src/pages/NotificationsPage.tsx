@@ -32,6 +32,7 @@ const TYPE_ICONS: Record<string, string> = {
   stock: "📦",
   dispatch_expirado: "⏳",
   pedido_preso: "⚠️",
+  fecho_caixa: "💵",
   system: "⚙️",
   report: "⚠️",
 };
