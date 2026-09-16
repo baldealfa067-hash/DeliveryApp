@@ -716,6 +716,68 @@ numa linha.
 - Leitura pública de propósito: é a montra, e o cliente vê-a antes de ter conta,
   como já vê o menu. Máximo de 12 fotos, 5 MB cada.
 
+## Fase 7 — Categoria "Enviar" — CONCLUÍDA (2026-09-16)
+
+Documentos e objetos (§19), reutilizando **o mesmo dispatch** das Fases 3 e 5 —
+`offer_delivery_to_fleet`, `dispatch_attempts`, `expire_stale_dispatch`. Nenhum
+tubo paralelo.
+
+**Modelo.** Um envio é um `order` com `kind = 'envio'`, sem `business_id`. O
+CHECK `orders_kind_coerente` amarra tudo: restaurante exige `business_id`; envio
+exige `business_id` nulo, `consumption_option = 'entrega'` **e `total = 0`**.
+
+> **O `total = 0` não é cosmético.** O `ledger_registar_conclusao` decide o que
+> escrever a partir de `v_total > 0`. Com zero, salta a comissão do restaurante
+> (§25) e a dívida de comida (§28) e sobra a comissão da frota (§26) — o correcto.
+> Se um envio pudesse ter total > 0, o ledger escrevia `comissao_restaurante` com
+> `business_id` nulo e batia no CHECK do próprio ledger **na conclusão**, depois
+> de o motorista já ter trabalhado.
+
+**Preço:** pelo bairro de **destino**, via `fleet_zone_prices` (§13/§15). O
+`pickup_bairro` é guardado para a evolução do §16 mas **não entra na conta hoje** —
+um envio Bissau→Safim e um dentro do mesmo bairro custam o mesmo se o destino for
+igual. Limitação aceite.
+
+**Origem:** reutiliza `deliveries.restaurant_lat/lng/address`, que são um ponto de
+recolha genérico com nome infeliz. Não foram renomeadas — mexeria em muitas
+funções por ganho cosmético.
+
+**Duas gravações de voz**, não uma. Numa entrega de restaurante a origem tem
+morada; num envio a origem é o sítio mais difícil de explicar (§21, §78), e o
+motorista precisa dela **primeiro**. No painel dele aparece antes da de entrega e
+desaparece depois de recolher.
+
+**Decisões operacionais:**
+
+- **Recusa criar se nenhuma frota cobrir o destino.** Sem frota não há preço para
+  o cliente aceitar (§14), e o envio ficaria preso para sempre: não tem
+  restaurante que o reofereça, o `expire_stale_dispatch` não lhe toca (a ronda
+  nasceria `sem_frota`, fechada) e o `alert_stuck_orders` também não (tem entrega).
+- **Só dinheiro na entrega.** O pagamento online usa o `merchant_code` do parceiro
+  (§23) e um envio não tem parceiro.
+- **Cancelamento:** o cliente cancela enquanto **nenhum motorista aceitou**
+  (`novo` ou `aguardando_motorista`). A regra da Fase 1 ("só em `novo`") nasceu do
+  momento em que o restaurante confirma; aqui o compromisso equivalente é o
+  motorista aceitar. Sem isto o cliente nunca conseguiria cancelar um envio.
+- **Sem transição nova na matriz.** O envio nasce em `aguardando_motorista`, e um
+  estado *inicial* não passa pela matriz (que só governa UPDATEs) — como o
+  `create_manual_order` nasce em `confirmado`. Alargar o §36 para um caminho que
+  ninguém percorre só o enfraquecia.
+- **Idempotência (§73):** sem chave natural, a assinatura do pedido numa janela de
+  90s (mesmo cliente, mesma origem, mesmo destino, por aceitar). O segundo toque
+  devolve o pedido já criado em vez de rebentar.
+- **Entrada na UI:** ecrã inicial, não `BottomNav` — "Enviar" é categoria da
+  plataforma (§4), e a barra já tem 5 itens (§50).
+
+**Armadilha permanente, descoberta aqui:** várias funções faziam
+`INNER JOIN profiles ON p.id = o.business_id`. Um pedido sem restaurante
+**desaparecia sem erro** — lista vazia, HTTP 200. Passaram a `LEFT JOIN`:
+`get_available_deliveries`, `get_my_deliveries`, `alert_stuck_orders`,
+`expire_stale_dispatch`. **Continuam `INNER` de propósito** as de *autorização* —
+`reoffer_delivery` e `validate_order_payment` — porque um envio não tem dono de
+restaurante e nenhum o deve poder reoferecer ou validar-lhe o pagamento. Há
+asserções nas migrações que rebentam se alguém as "corrigir".
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)
