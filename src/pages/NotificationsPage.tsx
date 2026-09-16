@@ -20,6 +20,7 @@ import {
 } from "@/hooks/useNotifications";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { LoadError } from "@/components/LoadError";
 
 const TYPE_ICONS: Record<string, string> = {
   info: "ℹ️",
@@ -41,7 +42,7 @@ const NotificationsPage = () => {
   const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { data: notifications = [], isLoading } = useNotifications(user?.id ?? null);
+  const { data: notifications = [], isLoading, isError, refetch } = useNotifications(user?.id ?? null);
   const markRead = useMarkNotificationsRead();
 
   useEffect(() => {
@@ -80,7 +81,11 @@ const NotificationsPage = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-4 pb-[calc(env(safe-area-inset-bottom))]">
-        {notifications.length === 0 ? (
+        {/* Fase 9.2 -- erro antes de vazio: com falha de rede isto dizia "sem
+            notificacoes" a quem as tinha. */}
+        {isError && notifications.length === 0 ? (
+          <LoadError onRetry={() => void refetch()} className="min-h-[60vh]" />
+        ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
             <BellOff className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <p className="text-sm text-muted-foreground">{t("notifications.empty")}</p>

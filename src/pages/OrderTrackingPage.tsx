@@ -10,6 +10,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadError } from "@/components/LoadError";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,7 +64,12 @@ const OrderTrackingPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: customerOrders = [] } = useCustomerOrders(user?.id ?? null);
+  const {
+    data: customerOrders = [],
+    isLoading: aCarregar,
+    isError: falhou,
+    refetch,
+  } = useCustomerOrders(user?.id ?? null);
   const { data: history = [] } = useOrderHistory(id ?? null);
 
   const order = customerOrders.find((o) => o.id === id);
@@ -73,7 +79,28 @@ const OrderTrackingPage = () => {
     return null;
   }
 
-  if (!order && customerOrders.length > 0) {
+  // TRES estados distintos, e antes havia dois. O ecra decidia "nao encontrado"
+  // vs "a carregar" pelo tamanho da lista -- e uma lista VAZIA caia sempre no
+  // spinner. Tanto um erro de rede (a lista fica [] por omissao) como uma consulta
+  // bem sucedida sem este pedido deixavam o cliente a olhar para uma roda que
+  // nunca parava, no ecra que responde a "o que aconteceu ao meu pedido?" (§52).
+  if (falhou && !order) {
+    return (
+      <div className="max-w-lg mx-auto px-4 pt-6 min-h-[60vh] flex items-center justify-center">
+        <LoadError onRetry={() => void refetch()} />
+      </div>
+    );
+  }
+
+  if (aCarregar) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!order) {
     return (
       <div className="max-w-lg mx-auto px-4 pt-6">
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -83,14 +110,6 @@ const OrderTrackingPage = () => {
             {t("myOrders.title")}
           </Button>
         </div>
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }

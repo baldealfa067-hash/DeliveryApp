@@ -43,7 +43,11 @@ export default defineConfig(() => ({
             "@radix-ui/react-toggle-group",
             "@radix-ui/react-slot",
           ],
-          charts: ["recharts"],
+          // `recharts` NAO tem chunk manual de proposito (Fase 9.2). Declara-lo
+          // aqui punha-o no `modulepreload` do index.html, e todos os clientes
+          // descarregavam ~98 KB gzip de graficos na primeira visita -- 27% da
+          // carga -- quando so os paineis do motorista e do restaurante os usam.
+          // Sem entrada aqui, o Rollup deixa-o nos chunks lazy de quem o importa.
           supabase: ["@supabase/supabase-js"],
           query: ["@tanstack/react-query"],
         },

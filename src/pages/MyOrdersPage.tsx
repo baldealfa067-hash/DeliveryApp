@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useCustomerOrders, type Order } from "@/hooks/useOrders";
+import { LoadError } from "@/components/LoadError";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 import { OrderTotals } from "@/components/OrderTotals";
@@ -39,7 +40,7 @@ const MyOrdersPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: orders = [], isLoading } = useCustomerOrders(user?.id ?? null);
+  const { data: orders = [], isLoading, isError, refetch } = useCustomerOrders(user?.id ?? null);
 
   if (!user) {
     return (
@@ -70,7 +71,15 @@ const MyOrdersPage = () => {
         </div>
       )}
 
-      {!isLoading && orders.length === 0 && (
+      {/* Fase 9.2 -- a falha tem de vir ANTES do estado vazio. Com erro de rede a
+          lista fica [] por omissao e caia em "nao tem pedidos": dizer ao cliente
+          que nao encomendou quando so nao se conseguiu ler, e pode leva-lo a
+          encomendar outra vez (§73). */}
+      {!isLoading && isError && orders.length === 0 && (
+        <LoadError onRetry={() => void refetch()} />
+      )}
+
+      {!isLoading && !isError && orders.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <ShoppingBag className="h-8 w-8 text-primary/50" />
