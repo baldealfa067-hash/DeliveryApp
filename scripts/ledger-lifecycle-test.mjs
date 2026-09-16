@@ -79,9 +79,17 @@ async function rpc(token, nome, args = {}) {
   return { status: r.status, corpo };
 }
 
-async function tabela(token, caminho) {
+// ATENCAO: aceita `init`. Antes nao aceitava e ignorava-o em silencio, o que
+// transformava qualquer POST num GET -- um "INSERT" devolvia a primeira linha
+// legivel da tabela e o teste seguia com dados de outra pessoa. Custou uma
+// investigacao; fica explicito.
+async function tabela(token, caminho, init = {}) {
   const r = await fetch(`${URL_BASE}/rest/v1/${caminho}`, {
-    headers: { apikey: ANON, Authorization: `Bearer ${token}` },
+    ...init,
+    headers: {
+      apikey: ANON, Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json", ...(init.headers ?? {}),
+    },
   });
   let corpo = null;
   try { corpo = await r.json(); } catch { /* vazio */ }
@@ -110,19 +118,41 @@ async function fase1() {
   const businessId = perfil.corpo?.[0]?.id;
   if (!businessId) throw new Error(`sem perfil de restaurante: ${JSON.stringify(perfil.corpo)}`);
 
+  // BAIRRO PROPRIO DO TESTE, e nao o nome real "Sabi". `get_delivery_price`
+  // escolhe a frota mais BARATA de todas as que cobrem o bairro (empate
+  // desempatado pela mais antiga), portanto um nome real fazia este teste
+  // competir com frotas verdadeiras -- ou com frotas de teste de corridas
+  // anteriores, que foi o que aconteceu: o pedido foi parar a frota de uma
+  // execucao antiga e as contas desta davam zero.
+  const bairro = `ZonaLedger${marca.slice(-6)}`;
   const f = await rpc(frota.token, "create_fleet", {
-    p_name: `Frota ${marca}`, p_phone: "900000001", p_bairro: "Sabi",
+    p_name: `Frota ${marca}`, p_phone: "900000001", p_bairro: bairro,
   });
   if (f.status !== 200) throw new Error(`create_fleet: ${JSON.stringify(f.corpo)}`);
   ok("frota criada", String(f.corpo).slice(0, 8));
 
   // §13: o preco e' por bairro, cadastrado previamente pela frota.
-  const preco = await rpc(frota.token, "upsert_zone_price", { p_bairro: "Sabi", p_preco: 1000 });
+  const preco = await rpc(frota.token, "upsert_zone_price", { p_bairro: bairro, p_preco: 1000 });
   if (preco.status >= 400) throw new Error(`upsert_zone_price: ${JSON.stringify(preco.corpo)}`);
-  ok("preco de zona definido", "Sabi = 1.000 FCFA");
+  ok("preco de zona definido", `${bairro} = 1.000 FCFA`);
+
+  // O ARTIGO TEM DE EXISTIR NO MENU. Este teste mandava `{name:"Prato",
+  // price:10000}` a solta, e isso funcionou ate a Fase 2.0 (20260915140000)
+  // passar o `create_order` a resolver os artigos contra o menu e a somar o
+  // total no servidor (§46, §83). Desde ai o teste morria na montagem com
+  // "Artigo nao existe no menu" -- e como e o UNICO que prova que reconcluir
+  // um pedido nao duplica a comissao, essa garantia esteve sem rede.
+  const item = await tabela(restaurante.token, "menu_items", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ business_id: businessId, name: `Prato ${marca}`, price: 10000 }),
+  });
+  const menuItemId = item.corpo?.[0]?.id;
+  if (!menuItemId) throw new Error(`menu_items: ${JSON.stringify(item.corpo)}`);
+  ok("artigo criado no menu", "10.000 FCFA");
 
   writeFileSync(ESTADO, JSON.stringify({
     marca, restaurante, frota, cliente, admin, businessId, fleetId: f.corpo,
+    menuItemId, menuItemName: `Prato ${marca}`, bairro,
   }, null, 2));
 
   console.log(`\n  Estado guardado em ${ESTADO}`);
@@ -154,11 +184,11 @@ async function fase2() {
     p_customer_id: cliente.user_id,
     p_customer_name: "Cliente de teste",
     p_customer_phone: "955000000",
-    p_items: [{ name: "Prato", price: 10000, quantity: 1 }],
+    p_items: [{ menu_item_id: e.menuItemId, name: e.menuItemName, price: 10000, qty: 1 }],
     p_total: 10000,
     p_consumption_option: "entrega",
     p_address: "Rua de teste",
-    p_bairro: "Sabi",
+    p_bairro: e.bairro,
     p_payment_method: "online",
   });
   if (novo.status !== 200) throw new Error(`create_order: ${JSON.stringify(novo.corpo)}`);
@@ -170,10 +200,22 @@ async function fase2() {
     if (r.status >= 400) throw new Error(`${para}: ${JSON.stringify(r.corpo)}`);
   };
 
-  for (const s of ["confirmado", "em_preparacao", "pronto", "concluido"]) {
+  // O restaurante leva o pedido ate `pronto`. A partir da correccao "entrega
+  // sem GPS" (2026-09-16) marcar `pronto` num pedido de ENTREGA cria sempre a
+  // linha de `deliveries` e converte o estado para `aguardando_motorista` --
+  // antes, sem coordenadas, nao criava nada e o pedido ficava em `pronto`, de
+  // onde `concluido` era transicao valida. Este teste dependia desse
+  // comportamento antigo.
+  for (const s of ["confirmado", "em_preparacao", "pronto"]) {
     await estado(restaurante.token, s);
   }
-  ok("pedido levado ate concluido pelo restaurante");
+  // A conclusao passa a ser pela valvula do admin, que e' como o resto deste
+  // teste ja conduz os estados (o cancelamento e a reconclusao mais abaixo).
+  // O objecto de estudo aqui e' o LEDGER, nao o dispatch -- percorrer
+  // aceitar/recolher/entregar com um motorista a serio so acrescentava partes
+  // moveis a um teste que existe para medir outra coisa.
+  await estado(admin.token, "concluido");
+  ok("pedido levado ate concluido", "restaurante ate `pronto`, admin conclui");
 
   const contaRestaurante = async () => {
     const r = await rpc(restaurante.token, "get_business_commission", { p_business_id: businessId });
