@@ -462,6 +462,18 @@ const DriverDashboard = () => {
                   )}
                 </div>
               </div>
+              {/* Fase 7.3 — a voz da RECOLHA aparece ANTES da de entrega e some
+                  depois de recolher: o motorista tem duas gravações e precisa
+                  delas em momentos diferentes. Enquanto não recolheu, o sítio
+                  que lhe interessa é a origem (§51 — nada desnecessário a
+                  competir com a acção actual). */}
+              {activeDelivery.pickup_voice_note_url && activeDelivery.status !== "recolhido" && (
+                <div className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 border border-primary/30 px-2.5 py-2">
+                  <Volume2 className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-xs font-medium text-primary shrink-0">Onde recolher</span>
+                  <audio src={activeDelivery.pickup_voice_note_url} controls className="h-8 flex-1 min-w-0" />
+                </div>
+              )}
               {/* Voice note from customer */}
               {activeDelivery.voice_note_url && (
                 <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
@@ -593,6 +605,13 @@ const DriverDashboard = () => {
                             paymentMethod={d.payment_method}
                             paymentStatus={d.payment_status}
                           />
+                          {d.pickup_voice_note_url && (
+                            <div className="mt-1.5 flex items-center gap-1.5 rounded bg-primary/10 border border-primary/30 px-2 py-1.5">
+                              <Volume2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                              <span className="text-[10px] font-medium text-primary shrink-0">Onde recolher</span>
+                              <audio src={d.pickup_voice_note_url} controls className="h-7 flex-1 min-w-0" />
+                            </div>
+                          )}
                           {d.voice_note_url && (
                             <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 py-1.5">
                               <Volume2 className="h-3.5 w-3.5 text-amber-600 shrink-0" />

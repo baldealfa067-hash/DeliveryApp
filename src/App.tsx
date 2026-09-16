@@ -32,6 +32,7 @@ const Models = lazy(() => import("./pages/Models"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ConversationsPage = lazy(() => import("./pages/ConversationsPage"));
 const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
+const SendPage = lazy(() => import("./pages/SendPage"));
 const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
 const MyAppointmentsPage = lazy(() => import("./pages/MyAppointmentsPage"));
 const DriverDashboard = lazy(() => import("./pages/DriverDashboard"));
@@ -146,6 +147,10 @@ const App = () => (
                     get_order_history so' abre ao cliente, ao dono do
                     restaurante ou ao motorista da entrega. */}
                 <Route path="/meus-pedidos" element={<MyOrdersPage />} />
+                {/* Fase 7.3 — categoria "Enviar" (§4, §19). Fica dentro da area
+                    de cliente porque criar um envio exige sessao; o ecra
+                    redirecciona para o login se nao houver. */}
+                <Route path="/enviar" element={<SendPage />} />
                 <Route path="/pedido/:id" element={<OrderTrackingPage />} />
                 <Route path="/meus-agendamentos" element={<MyAppointmentsPage />} />
                 <Route path="/perfil" element={<Profile />} />

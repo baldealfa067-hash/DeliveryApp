@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin, SearchX, WifiOff } from "lucide-react";
@@ -122,6 +122,26 @@ const Explore = () => {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Fase 7.3 — "Enviar" e uma CATEGORIA da plataforma (§4), a par de
+          Restaurantes, e nao um tipo de restaurante. Por isso fica aqui em cima
+          e nao dentro da grelha de categorias, que vem da tabela `categories` e
+          lista tipos de loja. Nao foi para a BottomNav porque ela ja tem 5
+          itens e um sexto tornava-a apertada no telemovel (§50). */}
+      <Link
+        to="/enviar"
+        className="mb-4 flex items-center gap-3 rounded-lg border bg-card p-4 shadow-soft transition-all hover:shadow-elevated active:scale-[0.99]"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl">
+          📦
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-title">Enviar</span>
+          <span className="block text-caption text-muted-foreground">
+            Documentos e objetos, de um ponto a outro
+          </span>
+        </span>
+      </Link>
 
       {categories.length > 0 && (
         <div className="mb-4">

@@ -189,6 +189,15 @@ async function main() {
     : ko("ponto de recolha errado", String(linha?.restaurant_name));
   linha && Number(linha.delivery_fee) === TAXA ? ok("o motorista ve a taxa certa") : ko("taxa errada para o motorista");
   linha && linha.voice_note_url ? ok("a voz da entrega chega ao motorista") : ko("voz nao chega ao motorista");
+  // FASE 7.3: a voz da RECOLHA e a mais util das duas -- e o primeiro sitio
+  // onde o motorista tem de chegar, e o mais dificil de explicar por escrito.
+  // Estava a ser gravada e nao era devolvida a ninguem.
+  linha && linha.pickup_voice_note_url === ENVIO.p_pickup_voice_note_url
+    ? ok("a voz da RECOLHA chega ao motorista (§21)")
+    : ko("a voz da recolha nao chega", String(linha?.pickup_voice_note_url));
+  linha && linha.pickup_voice_note_url !== linha.voice_note_url
+    ? ok("as duas vozes chegam separadas")
+    : ko("as vozes vieram iguais ou em falta");
   linha && linha.distance_km !== null && Number(linha.distance_km) > 0
     ? ok("distancia calculada (§40)", `${linha.distance_km} km`)
     : ko("distancia nao calculada apesar de haver GPS dos dois lados", String(linha?.distance_km));
@@ -213,6 +222,12 @@ async function main() {
   const entregaId = linha.id;
   const aceitar = await rpc(motorista.token, "accept_delivery", { p_delivery_id: entregaId });
   aceitar.status < 300 ? ok("aceitar") : ko("accept_delivery falhou", erro(aceitar));
+  const minhas = await rpc(motorista.token, "get_my_deliveries");
+  const minha = (minhas.corpo ?? []).find((d) => d.order_id === r.order_id);
+  minha?.pickup_voice_note_url
+    ? ok("a voz da recolha tambem em `get_my_deliveries`")
+    : ko("a voz da recolha perde-se depois de aceitar");
+
   const recolher = await rpc(motorista.token, "pickup_delivery", { p_delivery_id: entregaId });
   recolher.status < 300 ? ok("recolher") : ko("pickup_delivery falhou", erro(recolher));
   const concluir = await rpc(motorista.token, "complete_delivery", { p_delivery_id: entregaId });

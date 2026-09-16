@@ -41,6 +41,8 @@ export interface Delivery {
   customer_lat: number | null;
   customer_lng: number | null;
   voice_note_url: string | null;
+  /** Fase 7.3 — indicação de voz da RECOLHA (§21). Só existe em envios. */
+  pickup_voice_note_url?: string | null;
 }
 
 export interface AvailableDelivery {
@@ -61,6 +63,8 @@ export interface AvailableDelivery {
   restaurant_lat: number | null;
   restaurant_lng: number | null;
   voice_note_url: string | null;
+  /** Fase 7.3 — indicação de voz da RECOLHA (§21). Só existe em envios. */
+  pickup_voice_note_url?: string | null;
 }
 
 export interface TrackingPoint {
