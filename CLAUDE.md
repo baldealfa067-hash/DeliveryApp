@@ -778,6 +778,44 @@ desaparece depois de recolher.
 restaurante e nenhum o deve poder reoferecer ou validar-lhe o pagamento. Há
 asserções nas migrações que rebentam se alguém as "corrigir".
 
+## Fase 9 — Polimento — decisões tomadas (2026-09-16)
+
+Dividida em 5 sub-fases, por esta ordem: **9.1** bugs de runtime e triagem de
+`tsc`/`eslint` · **9.2** desempenho e estados de erro · **9.3** prova de entrega
+· **9.4** avaliações · **9.5** traduções. As traduções ficam no fim porque a 9.3 e
+a 9.4 criam ecrãs novos — traduzir antes seria traduzir duas vezes.
+
+1. **Prova de entrega: código OU foto obrigatórios.** Desaparece o botão "Sem
+   código", que concluía a entrega sem deixar rasto nenhum. O motorista tem
+   sempre uma saída se um dos métodos falhar (telemóvel do cliente sem bateria,
+   sem rede). **Imposto no backend** (`complete_delivery`), não só escondendo o
+   botão (§46). Porque importa além do óbvio: concluir uma entrega dispara o
+   ledger — num pedido a dinheiro fica registada dívida de comida e comissão, e
+   sem prova isso acontecia para entregas que nada provava terem existido (§86,
+   prioridade 2). **Esta sub-fase toca na função que dispara o ledger: correr o
+   teste do ciclo concluir → cancelar → reconcluir depois de mexer.**
+
+2. **Avaliações V1: restaurante e motorista, por pedido concluído, uma vez cada,
+   sem inserção anónima.** O modelo actual é o do Bornaal (`provider_id` +
+   `service_requests`) e não liga a pedidos nem a motoristas — fica intacto para
+   a vertical de beleza. Sem sistemas de penalização: §38 manda esperar por
+   dados.
+
+3. **Kriol: escrito por mim, MARCADO para revisão por falante nativo antes de
+   produção.** Não é tradução validada. **Termos e Privacidade (34 chaves) NÃO se
+   traduzem** sem essa revisão: é texto com valor legal, e um erro ali é pior do
+   que ficar em português por agora.
+
+4. **As ~170 chaves dos ecrãs do Bornaal ficam fora do Kriol** (`providerDashboard`,
+   `providerDetail`, `requests`, `beautyEdit`) — pertencem ao bloco de limpeza do
+   Bornaal, que é separado.
+
+**Achado da auditoria que é erro meu:** a UI das Fases 2.3 a 7.3 foi escrita com
+texto fixo em português, fora do i18n (~57 frases em 6 ficheiros). O contador de
+cobertura dizia 100% em en/fr porque conta as chaves que existem, e esses ecrãs
+não tinham chave nenhuma. **Regra daqui em diante: texto de interface novo entra
+já com chave nos 4 ficheiros.**
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)
