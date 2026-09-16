@@ -616,7 +616,12 @@
     "progress": "Estadu di Pedidu",
     "deliveryAddress": "Endirisu di Entrega",
     "messageRestaurant": "Kontata Resturanti",
-    "estimatedTime": "Aproximadamenti {{time}} minutus"
+    "estimatedTime": "Aproximadamenti {{time}} minutus",
+    "proofTitle": "Prova di entrega",
+    "proofByCode": "Entregadu ku kodigu di konfirmason",
+    "proofByPhoto": "Entregadu ku fotografia",
+    "deliveryCode": "Kodigu di entrega",
+    "deliveryCodeHint": "Mostra es kodigu pa motorista ora ki i tchiga"
   },
   "orderStatus": {
     "novo": "Pedidu Nobu",
@@ -776,7 +781,13 @@
     "thisMonth": "Es mes",
     "totalDistance": "Distansia",
     "today": "oji",
-    "deliveries": "Entregas"
+    "deliveries": "Entregas",
+    "enterCode": "Kodigu",
+    "codeValidate": "Konfirma entrega",
+    "codeError": "Kodigu ka sertu. Tenta di nobu.",
+    "codeLocked": "Kodigu blokiadu dipus di 5 tentativa. Konfirma entrega ku fotografia.",
+    "useProofInstead": "Tira fotografia",
+    "proofRequired": "Pa kaba, bu mesti kodigu di kliente o un fotografia."
   },
   "businessEdit": {
     "prepTime": "Tempu medju di prepara kumida (minutus)",

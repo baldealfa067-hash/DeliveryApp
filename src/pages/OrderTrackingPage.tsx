@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadError } from "@/components/LoadError";
+import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -229,17 +230,23 @@ const OrderTrackingPage = () => {
           <Card className="mb-4 border-2 border-primary/40 bg-primary/5">
             <CardContent className="p-4 text-center">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-                {t("orderTracking.deliveryCode", "Código de entrega")}
+                {t("orderTracking.deliveryCode")}
               </p>
               <p className="text-4xl font-bold tracking-widest text-primary">
                 {order.delivery_code}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                {t("orderTracking.deliveryCodeHint", "Mostra este código ao motorista quando chegar")}
+                {t("orderTracking.deliveryCodeHint")}
               </p>
             </CardContent>
           </Card>
         )}
+
+      {/* Fase 9.3 -- a prova de entrega, depois de concluida (§37). So faz sentido
+          numa entrega; num pedido para comer no local nao ha nada a provar. */}
+      {order.consumption_option === "entrega" && order.status === "concluido" && (
+        <div className="mb-4"><DeliveryProofView orderId={order.id} /></div>
+      )}
 
       {/* Delivery Address */}
       {order.address && (

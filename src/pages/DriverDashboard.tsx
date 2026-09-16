@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -84,6 +85,7 @@ const DriverDashboard = () => {
   const [proofDialogOpen, setProofDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [codeLocked, setCodeLocked] = useState(false);
   const [codeDialogOpen, setCodeDialogOpen] = useState(false);
   const [codeDeliveryId, setCodeDeliveryId] = useState<string | null>(null);
   const [codeInput, setCodeInput] = useState("");
@@ -221,17 +223,13 @@ const DriverDashboard = () => {
       setPhotoPreview(null);
       setSelectedDeliveryId(null);
     } catch (err) {
+      // Antes so ia para a consola: o motorista via o dialogo nao fechar e nao
+      // sabia porque. Com a prova obrigatoria, esta mensagem e a unica pista.
+      toast.error(err instanceof Error ? err.message : t("driverDashboard.proofRequired"));
       console.error("[driver] proof error:", err);
     }
   };
 
-  const handleConfirmDelivery = async (deliveryId: string) => {
-    try {
-      await completeDelivery.mutateAsync(deliveryId);
-    } catch (err) {
-      console.error("[driver] confirm delivery error:", err);
-    }
-  };
 
   const handleCodeValidate = async () => {
     if (!codeDeliveryId || codeInput.trim().length !== 6) return;
@@ -246,7 +244,15 @@ const DriverDashboard = () => {
         setCodeError(true);
       }
     } catch (err) {
-      setCodeError(true);
+      // Ao 5o erro o servidor bloqueia o codigo DESTA entrega. Dizer so "codigo
+      // incorreto" deixava o motorista a tentar para sempre um codigo que ja
+      // nunca vai passar -- a saida e a fotografia, e o ecra tem de o dizer.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/bloqueado/i.test(msg)) {
+        setCodeLocked(true);
+      } else {
+        setCodeError(true);
+      }
       console.error("[driver] code validate error:", err);
     }
   };
@@ -651,7 +657,7 @@ const DriverDashboard = () => {
                                 setCodeError(false);
                                 setCodeDialogOpen(true);
                               }} className="gap-1">
-                                <CheckCircle2 className="h-3.5 w-3.5" /> {t("driverDashboard.enterCode", "Código")}
+                                <CheckCircle2 className="h-3.5 w-3.5" /> {t("driverDashboard.enterCode")}
                               </Button>
                               <Button size="sm" variant="outline" onClick={() => {
                                 setSelectedDeliveryId(d.id);
@@ -659,9 +665,10 @@ const DriverDashboard = () => {
                               }} className="gap-1">
                                 <Camera className="h-3.5 w-3.5" /> {t("driverDashboard.proof")}
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleConfirmDelivery(d.id)} disabled={completeDelivery.isPending} className="gap-1 text-xs">
-                                {t("driverDashboard.confirmDelivery", "Sem código")}
-                              </Button>
+                              {/* Fase 9.3: o botao "Sem codigo" saiu. Concluia a entrega sem
+                                  deixar rasto nenhum, e o backend passou a recusar esse
+                                  caminho de qualquer forma. Ficam as duas saidas com
+                                  prova: o codigo do cliente, ou uma fotografia. */}
                             </>
                           )}
                         </div>
@@ -715,13 +722,26 @@ const DriverDashboard = () => {
               onChange={(e) => { setCodeInput(e.target.value.slice(0, 6)); setCodeError(false); }}
               className="text-center text-2xl tracking-widest font-bold h-14"
             />
-            {codeError && (
-              <p className="text-sm text-destructive text-center">{t("driverDashboard.codeError", "Código incorreto. Tenta novamente.")}</p>
+            {codeError && !codeLocked && (
+              <p className="text-sm text-destructive text-center">{t("driverDashboard.codeError")}</p>
+            )}
+            {codeLocked && (
+              <div className="space-y-2 text-center">
+                <p className="text-sm text-destructive">{t("driverDashboard.codeLocked")}</p>
+                <Button variant="outline" className="w-full h-11" onClick={() => {
+                  setSelectedDeliveryId(codeDeliveryId);
+                  setCodeDialogOpen(false);
+                  setCodeLocked(false);
+                  setProofDialogOpen(true);
+                }}>
+                  <Camera className="h-4 w-4 mr-2" />{t("driverDashboard.useProofInstead")}
+                </Button>
+              </div>
             )}
           </div>
           <DialogFooter>
             <Button onClick={handleCodeValidate} disabled={codeInput.trim().length !== 6 || validateCode.isPending}>
-              {validateCode.isPending ? t("common.saving") : t("driverDashboard.codeValidate", "Confirmar entrega")}
+              {validateCode.isPending ? t("common.saving") : t("driverDashboard.codeValidate")}
             </Button>
           </DialogFooter>
         </DialogContent>

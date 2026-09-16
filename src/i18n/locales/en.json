@@ -1171,7 +1171,12 @@
     "progress": "Order Status",
     "deliveryAddress": "Delivery Address",
     "messageRestaurant": "Contact Restaurant",
-    "estimatedTime": "Approximately {{time}} minutes"
+    "estimatedTime": "Approximately {{time}} minutes",
+    "proofTitle": "Proof of delivery",
+    "proofByCode": "Delivered with the confirmation code",
+    "proofByPhoto": "Delivered with a photo",
+    "deliveryCode": "Delivery code",
+    "deliveryCodeHint": "Show this code to the driver when they arrive"
   },
   "orderStatus": {
     "novo": "New Order",
@@ -1308,7 +1313,13 @@
     "thisMonth": "This month",
     "totalDistance": "Distance",
     "today": "today",
-    "deliveries": "Deliveries"
+    "deliveries": "Deliveries",
+    "enterCode": "Code",
+    "codeValidate": "Confirm delivery",
+    "codeError": "Wrong code. Try again.",
+    "codeLocked": "Code locked after 5 attempts. Confirm the delivery with a photo.",
+    "useProofInstead": "Take a photo",
+    "proofRequired": "To finish you need the customer's code or a photo."
   },
   "notifications": {
     "title": "Notifications",

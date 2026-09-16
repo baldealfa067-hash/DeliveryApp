@@ -810,6 +810,27 @@ a 9.4 criam ecrãs novos — traduzir antes seria traduzir duas vezes.
    `providerDetail`, `requests`, `beautyEdit`) — pertencem ao bloco de limpeza do
    Bornaal, que é separado.
 
+**9.1 e 9.2 — concluídas.** `tsc` 18 → 4 (os 4 que restam são do Bornaal),
+`eslint` 9 erros → 0. Primeira carga do cliente 360 → 262 KB gzip.
+
+**9.3 — Prova de entrega — CONCLUÍDA.** Imposta por um trigger `BEFORE UPDATE` em
+`orders` (`exige_prova_de_entrega`), que apanha os **seis** caminhos que levavam uma
+entrega a `concluido` — só um exigia prova. Três coisas que quem mexer aqui a
+seguir tem de saber:
+
+- **O restaurante perdeu o fallback** de concluir uma entrega por conta do
+  motorista. É a leitura fiel da decisão: ele não está na entrega e não a pode
+  provar. A saída para o motorista sem telemóvel é a **válvula do admin**, isenta
+  do trigger e registada no histórico.
+- **`create_delivery_proof` ignora `p_qr_validated`.** Antes aceitava-o do cliente,
+  e um motorista declarava o código validado sem código nenhum. Só
+  `validate_delivery_code` escreve `qr_validated = true`.
+- **O código bloqueia ao 5.º erro** — mesmo com o código certo a seguir — e a
+  saída passa a ser a fotografia. O limite não é um beco sem saída.
+- **Os testes antigos que concluíam com `complete_delivery` sozinho deixaram de
+  passar, de propósito:** codificavam o caminho inseguro. Um teste que conclua uma
+  entrega tem de validar o código ou enviar foto primeiro (ou usar o admin).
+
 **Achado da auditoria que é erro meu:** a UI das Fases 2.3 a 7.3 foi escrita com
 texto fixo em português, fora do i18n (~57 frases em 6 ficheiros). O contador de
 cobertura dizia 100% em en/fr porque conta as chaves que existem, e esses ecrãs

@@ -35,6 +35,7 @@ import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 import { OrderTotals, temTaxaDeEntrega, totalAPagar } from "@/components/OrderTotals";
 import { cn } from "@/lib/utils";
+import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { toast } from "sonner";
 import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
 
@@ -617,6 +618,12 @@ const OrderDetail = ({
           )}
           {order.voice_note_url && (
             <VoiceNote url={order.voice_note_url} customerName={order.customer_name} />
+          )}
+          {/* Fase 9.3 -- o restaurante ve a prova da entrega (§37): e ele que fica
+              com a divida de comida a receber, e precisa de saber que o pedido
+              chegou mesmo ao cliente. */}
+          {order.consumption_option === "entrega" && order.status === "concluido" && (
+            <DeliveryProofView orderId={order.id} />
           )}
           <Button
             variant="outline"

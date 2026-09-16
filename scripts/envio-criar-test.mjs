@@ -230,8 +230,12 @@ async function main() {
 
   const recolher = await rpc(motorista.token, "pickup_delivery", { p_delivery_id: entregaId });
   recolher.status < 300 ? ok("recolher") : ko("pickup_delivery falhou", erro(recolher));
-  const concluir = await rpc(motorista.token, "complete_delivery", { p_delivery_id: entregaId });
-  concluir.status < 300 ? ok("entregar") : ko("complete_delivery falhou", erro(concluir));
+  // FASE 9.3: concluir exige prova (codigo OU foto). O caminho realista e o
+  // do codigo: quem o tem da-o ao motorista, que o valida -- e a validacao
+  // regista a prova e conclui. `complete_delivery` sozinho ja nao conclui.
+  const codigo = (await tabela(cliente.token, `orders?select=delivery_code&id=eq.${r.order_id}`)).corpo?.[0]?.delivery_code;
+  const concluir = await rpc(motorista.token, "validate_delivery_code", { p_delivery_id: entregaId, p_code: codigo });
+  concluir.corpo === true ? ok("entregar", "com o codigo do cliente") : ko("validacao do codigo falhou", erro(concluir));
 
   const fim = (await tabela(cliente.token, `orders?select=status&id=eq.${r.order_id}`)).corpo?.[0]?.status;
   fim === "concluido" ? ok("o envio ficou `concluido`") : ko("estado final errado", fim);

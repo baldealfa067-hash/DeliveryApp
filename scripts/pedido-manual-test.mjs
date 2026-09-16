@@ -208,8 +208,14 @@ async function main() {
   entregaId ? ok("entrega criada e oferecida a frota") : ko("sem entrega");
   await rpc(motorista.token, "accept_delivery", { p_delivery_id: entregaId });
   await rpc(motorista.token, "pickup_delivery", { p_delivery_id: entregaId });
-  const fim = await rpc(motorista.token, "complete_delivery", { p_delivery_id: entregaId });
-  fim.status < 300 ? ok("motorista concluiu a entrega") : ko("complete_delivery falhou", erro(fim));
+  // FASE 9.3: concluir exige prova (codigo OU foto). O caminho realista e o
+  // do codigo: quem o tem da-o ao motorista, que o valida -- e a validacao
+  // regista a prova e conclui. `complete_delivery` sozinho ja nao conclui.
+  // Pedido MANUAL: nao ha conta de cliente. Quem tem o codigo e o restaurante,
+  // que o passa ao cliente por telefone -- por isso le-se com o token dele.
+  const codigo = (await tabela(dono.token, `orders?select=delivery_code&id=eq.${idEntrega}`)).corpo?.[0]?.delivery_code;
+  const fim = await rpc(motorista.token, "validate_delivery_code", { p_delivery_id: entregaId, p_code: codigo });
+  fim.corpo === true ? ok("motorista concluiu a entrega", "com o codigo que o restaurante deu") : ko("validacao do codigo falhou", erro(fim));
 
   // --- 4. O PONTO DELICADO: isentar comissao sem isentar o §28 -----------
   console.log("\n4. Isencao cirurgica: comissao nao, divida de comida sim");

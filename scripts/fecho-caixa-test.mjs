@@ -137,8 +137,12 @@ async function main() {
   const entregaId = (await tabela(dono.token, `deliveries?select=id&order_id=eq.${pedidoId}`)).corpo?.[0]?.id;
   await rpc(motorista.token, "accept_delivery", { p_delivery_id: entregaId });
   await rpc(motorista.token, "pickup_delivery", { p_delivery_id: entregaId });
-  const fim = await rpc(motorista.token, "complete_delivery", { p_delivery_id: entregaId });
-  fim.status < 300 ? ok("entrega concluida pelo motorista") : ko("complete_delivery falhou", erro(fim));
+  // FASE 9.3: concluir exige prova (codigo OU foto). O caminho realista e o
+  // do codigo: quem o tem da-o ao motorista, que o valida -- e a validacao
+  // regista a prova e conclui. `complete_delivery` sozinho ja nao conclui.
+  const codigo = (await tabela(cliente.token, `orders?select=delivery_code&id=eq.${pedidoId}`)).corpo?.[0]?.delivery_code;
+  const fim = await rpc(motorista.token, "validate_delivery_code", { p_delivery_id: entregaId, p_code: codigo });
+  fim.corpo === true ? ok("entrega concluida pelo motorista", "com o codigo do cliente") : ko("validacao do codigo falhou", erro(fim));
 
   // Os dois lados da mesma divida.
   const daFrota = async () => (await rpc(frota.token, "get_fleet_financials")).corpo ?? {};
