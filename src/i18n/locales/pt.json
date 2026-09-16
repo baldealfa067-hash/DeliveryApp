@@ -815,7 +815,7 @@
     "reasonRequired": "Indique o motivo da rejeição"
   },
   "currentAccount": {
-    "totalSales": "Total Vendido",
+    "totalSales": "Vendas sujeitas a comissão",
     "commissionGenerated": "Comissão Gerada",
     "commissionPaid": "Já Pago",
     "balance": "Dívida",

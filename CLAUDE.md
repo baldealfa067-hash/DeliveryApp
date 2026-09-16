@@ -655,15 +655,31 @@ mentem sobre a operação real.
 5. **Pedido manual NÃO gera comissão da plataforma.** A plataforma não trouxe
    este cliente.
 
-**Por resolver dentro do ponto 5, sinalizado a 2026-09-16:** se um pedido manual
-pedir entrega, a frota cobra a taxa e usa o dispatch da plataforma. A decisão diz
-"não gera comissão da plataforma", o que lido à letra tira também os 5% da frota
-(§26), e não só os do restaurante (§25). Está implementado **à letra** — nenhuma
-das duas comissões — porque foi o que ficou dito. Se a intenção era só isentar o
-restaurante, é uma condição a mudar no `tg_ledger_por_estado_do_pedido`.
+**O ponto 5, precisado a 2026-09-16** (a primeira leitura isentava as duas
+comissões; corrigido no mesmo dia):
+
+- **Comissão do restaurante (§25): isenta SEMPRE** num pedido manual. Ele não
+  usou a plataforma para conseguir este cliente — o cliente ligou, ou entrou
+  pela porta.
+- **Comissão da frota (§26): aplica-se quando o pedido manual usa ENTREGA.** Aí
+  o motorista fez trabalho real através do despacho da plataforma, e essa parte
+  gera comissão como qualquer outra entrega despachada.
+
+A distinção é sobre **quem usou a plataforma para quê**. O restaurante não a usou
+para vender; a frota usou-a para entregar. São duas perguntas diferentes e
+tinham a mesma resposta por engano.
+
 O que **continua a acontecer** num pedido manual pago a dinheiro é a dívida de
 comida da frota ao restaurante (§28): isso não é comissão, é dinheiro de
-terceiros, e tem de ser sempre registado.
+terceiros, e tem de ser sempre registado — isentá-la reabria o buraco que a
+Fase 2.3 fechou.
+
+**Rótulo, mesma data:** na conta corrente do restaurante, "Vendas" passou a
+"Vendas sujeitas a comissão" (`currentAccount.totalSales`, nos 4 idiomas). Esse
+número sai do ledger e por isso **não** inclui os pedidos manuais, enquanto a aba
+Vendas conta a tabela `orders` inteira. Os dois estão certos e vão divergir; o
+rótulo antigo levava um restaurante com muitos pedidos manuais a pensar que
+estava a perder vendas.
 
 ---
 

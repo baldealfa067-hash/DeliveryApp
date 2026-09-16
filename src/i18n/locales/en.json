@@ -815,7 +815,7 @@
     "reasonRequired": "Please provide the reason for rejection"
   },
   "currentAccount": {
-    "totalSales": "Total Sales",
+    "totalSales": "Sales subject to commission",
     "commissionGenerated": "Commission Due",
     "commissionPaid": "Already Paid",
     "balance": "Balance Due",

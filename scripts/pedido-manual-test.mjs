@@ -145,8 +145,14 @@ async function main() {
   // A ISENCAO (decisao 5).
   let c = await comissao();
   Number(c.commission_due) === 0
-    ? ok("NENHUMA comissao gerada (decisao 5)", `divida a plataforma ${c.commission_due}`)
-    : ko("PEDIDO MANUAL GEROU COMISSAO", `${c.commission_due}`);
+    ? ok("venda ao balcao: NENHUMA comissao de restaurante (§25)", `divida a plataforma ${c.commission_due}`)
+    : ko("PEDIDO MANUAL GEROU COMISSAO DE RESTAURANTE", `${c.commission_due}`);
+
+  // Sem entrega nao ha frota nem taxa, logo nao pode haver comissao de frota.
+  const fBalcao = await financasFrota();
+  Number(fBalcao.comissao_gerada) === 0
+    ? ok("venda ao balcao: nenhuma comissao de frota", "nao houve entrega")
+    : ko("gerou comissao de frota sem entrega", `${fBalcao.comissao_gerada}`);
 
   // --- 2. o total nao vem do ecra ----------------------------------------
   console.log("\n2. O preco e do menu, nao de quem lanca");
@@ -213,9 +219,13 @@ async function main() {
   Number(c.commission_due) === 0
     ? ok("restaurante: comissao continua a ZERO", "nem sobre a comida")
     : ko("gerou comissao de restaurante", `${c.commission_due}`);
-  Number(f.comissao_gerada) === 0
-    ? ok("frota: comissao a ZERO", "decisao 5 aplicada a letra, §26 incluido")
-    : ko("gerou comissao de frota", `${f.comissao_gerada}`);
+  // DECISAO CORRIGIDA (2026-09-16): a frota PAGA comissao no pedido manual com
+  // entrega. O restaurante nao usou a plataforma para arranjar o cliente; a
+  // frota usou-a para entregar. Sao duas perguntas diferentes.
+  const comissaoFrotaEsperada = Math.round(TAXA * 5 / 100);
+  Number(f.comissao_gerada) === comissaoFrotaEsperada
+    ? ok(`frota: comissao de ${comissaoFrotaEsperada} sobre a taxa de entrega (§26)`, "5% de " + TAXA)
+    : ko("comissao da frota errada", `${f.comissao_gerada}, esperava ${comissaoFrotaEsperada}`);
 
   // E agora o que NAO pode ter desaparecido.
   Number(c.food_receivable) === PRECO
@@ -234,9 +244,18 @@ async function main() {
     ? ok("ledger: so o par da divida de comida", JSON.stringify(tipos))
     : ko("linhas de ledger inesperadas", JSON.stringify(tipos));
 
-  tipos.some((t) => t.startsWith("comissao"))
-    ? ko("HA LINHA DE COMISSAO num pedido manual", JSON.stringify(tipos))
-    : ok("nenhuma linha `comissao_*` foi escrita (decisao 5)");
+  // CUIDADO A LER ISTO: esta consulta e feita com o JWT do RESTAURANTE, que nao
+  // ve as linhas da conta da frota (`comissao_frota` nao traz business_id).
+  // Portanto isto prova que o RESTAURANTE nao foi cobrado -- nao prova nada
+  // sobre a frota. A frota verifica-se a seguir, com o token dela.
+  tipos.some((t) => t === "comissao_restaurante")
+    ? ko("HA COMISSAO DE RESTAURANTE num pedido manual", JSON.stringify(tipos))
+    : ok("no ledger do restaurante nao ha `comissao_restaurante` (§25)");
+
+  const linhasFrota = (await tabela(frota.token, `ledger_entries?select=entry_type,amount&order_id=eq.${idEntrega}&entry_type=eq.comissao_frota`)).corpo ?? [];
+  linhasFrota.length === 1 && Number(linhasFrota[0].amount) === comissaoFrotaEsperada
+    ? ok("no ledger da frota HA `comissao_frota` (§26)", `${linhasFrota[0].amount} FCFA`)
+    : ko("a comissao da frota nao foi escrita", JSON.stringify(linhasFrota));
 
   // E o fecho de caixa da Fase 2.3 tem de funcionar sobre isto.
   const fecho = (await rpc(frota.token, "get_fleet_cash_closing")).corpo ?? {};

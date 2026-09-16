@@ -815,7 +815,7 @@
     "reasonRequired": "Veuillez fournir la raison du rejet"
   },
   "currentAccount": {
-    "totalSales": "Total Vendu",
+    "totalSales": "Ventes soumises à commission",
     "commissionGenerated": "Commission Générée",
     "commissionPaid": "Déjà Payé",
     "balance": "Dû",
