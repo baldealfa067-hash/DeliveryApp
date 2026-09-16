@@ -1,18 +1,28 @@
 #!/usr/bin/env node
 /**
- * FASE 2.2 — o pedido preso SEM entrega, por HTTP real.
+ * FASE 2.2 — guarda de regressao: um pedido de entrega SEM GPS tem de ser
+ * despachado na mesma, e NAO pode ser marcado como preso.
  *
- * O CENARIO, que so' apareceu a testar: um restaurante sem lat/lng no perfil
- * recebe um pedido de entrega. Ao marcar "pronto", o `update_order_status` NAO
- * cria linha em `deliveries` (precisa das coordenadas dos dois lados para a
- * distancia) mas poe o pedido em `aguardando_motorista` na mesma. O cliente ve
- * "a procurar motorista"; nenhuma frota ve nada; e `expire_stale_dispatch`
- * nunca o apanha porque faz JOIN a `deliveries`.
+ * HISTORIA DESTE FICHEIRO, que explica porque ele testa o contrario do que
+ * testava. Na versao original media-se o cenario avariado: um restaurante sem
+ * lat/lng recebia um pedido de entrega, o `update_order_status` nao criava
+ * linha em `deliveries` (exigia coordenadas dos dois lados para a distancia) e
+ * o pedido ficava parado em `pronto` -- invisivel a todas as frotas e invisivel
+ * ao `expire_stale_dispatch`, que faz JOIN a `deliveries`. O
+ * `alert_stuck_orders` foi construido para romper esse silencio.
  *
- * Aqui mede-se que o `alert_stuck_orders` (pg_cron, ao minuto) rompe esse
- * silencio -- e que so' avisa UMA vez, que e' a parte que um teste ingenuo
- * deixaria passar: um job ao minuto que nao seja idempotente manda 60 avisos
- * por hora do mesmo pedido.
+ * DECISAO DO DONO DO PROJECTO (2026-09-16): o cenario deixou de ser legitimo. A
+ * entrega passa a existir com ou sem GPS -- a indicacao de voz e' o mecanismo
+ * real de navegacao (§21) e recusar por falta de coordenadas deixava sem
+ * servico quem nao da permissao de localizacao. Logo este teste passou a ser a
+ * GUARDA DE REGRESSAO dessa decisao.
+ *
+ * O `alert_stuck_orders` NAO foi removido: fica como rede de seguranca para
+ * qualquer outro motivo de bloqueio. O que este teste exige dele e' o oposto de
+ * antes -- que NAO dispare aqui, porque um falso positivo por pedido de
+ * entrega ensinaria o dono a ignorar o aviso. Que ele ainda DISPARA quando ha
+ * mesmo um pedido sem entrega verifica-se por injeccao de falha, descrita no
+ * fim deste ficheiro.
  *
  *   node scripts/alertas-preso-test.mjs
  */
@@ -67,7 +77,7 @@ const tabela = async (token, caminho, init = {}) => {
   let corpo = null; try { corpo = await r.json(); } catch { /* vazio */ }
   return { status: r.status, corpo };
 };
-const presos = async (c) =>
+const presosDe = async (c) =>
   ((await rpc(c.token, "get_my_notifications", { p_limit: 200 })).corpo ?? []).filter((n) => n.type === "pedido_preso");
 
 async function main() {
@@ -107,49 +117,34 @@ async function main() {
     if (r.status >= 400) ko(`transicao para ${estado}`, JSON.stringify(r.corpo).slice(0, 160));
   }
 
-  // FICA EM `pronto`, e nao em `aguardando_motorista`: e' o ramo sem
-  // coordenadas do update_order_status, que nao converte o estado. Para um
-  // pedido de ENTREGA, `pronto` nao e' estado de repouso -- e' o preso.
+  // --- 1. a entrega existe, apesar de nao haver coordenadas -------------
+  console.log("\n1. Sem GPS, a entrega e criada na mesma");
   const est = (await tabela(dono.token, `orders?select=status&id=eq.${pedidoId}`)).corpo?.[0]?.status;
-  est === "pronto"
-    ? ok("o pedido de entrega ficou parado em `pronto`")
-    : ko("estado inesperado", est);
+  est === "aguardando_motorista"
+    ? ok("o pedido avancou para `aguardando_motorista`", "antes ficava preso em `pronto`")
+    : ko("REGRESSAO: o pedido nao avancou", `ficou em ${est}`);
 
-  const ent = await tabela(dono.token, `deliveries?select=id&order_id=eq.${pedidoId}`);
-  (ent.corpo ?? []).length === 0
-    ? ok("e NAO existe entrega nenhuma — o pedido esta preso")
-    : ko("houve entrega; este teste nao reproduz o cenario", JSON.stringify(ent.corpo));
+  const ent = (await tabela(dono.token,
+    `deliveries?select=id,distance_km,restaurant_lat,customer_lat&order_id=eq.${pedidoId}`)).corpo?.[0];
+  ent?.id
+    ? ok("linha em `deliveries` criada sem coordenadas")
+    : ko("REGRESSAO: pedido de entrega sem entrega associada");
 
-  const rondas = await tabela(dono.token, `dispatch_attempts?select=id&order_id=eq.${pedidoId}`);
-  (rondas.corpo ?? []).length === 0
-    ? ok("nenhuma ronda de dispatch — invisivel ao expire_stale_dispatch")
-    : ko("houve ronda", JSON.stringify(rondas.corpo));
+  // §40: a distancia e' NULL, nunca um numero. A formula de haversine com NULLs
+  // NAO da NULL -- `GREATEST(-1.0, NULL)` ignora o NULL, da -1.0, e acos(-1.0)
+  // e' pi, o que sairia como ~20.015 km com ar credivel.
+  ent && ent.distance_km === null
+    ? ok("`distance_km` e NULL, nao um valor inventado")
+    : ko("DISTANCIA INVENTADA", `distance_km = ${ent?.distance_km}`);
 
-  console.log(`\n1. A espera do alert_stuck_orders (pg_cron ao minuto) — ${hora()}`);
-  let achou = null;
-  for (let i = 0; i < 9 && !achou; i++) {
-    await dormir(30_000);
-    achou = (await presos(dono)).find((n) => n.reference_id === pedidoId) ?? null;
-    if (!achou) console.log(`     ${hora()} ainda nada`);
-  }
-  achou
-    ? ok("o restaurante foi avisado do pedido preso", `${hora()} — "${achou.title}"`)
-    : ko("PEDIDO PRESO EM SILENCIO", "4,5 minutos sem aviso");
-
-  if (achou) {
-    /Verifique a morada do seu perfil/.test(achou.message ?? achou.body ?? "")
-      ? ok("o aviso diz o que fazer a seguir (§83)")
-      : ko("aviso sem accao", JSON.stringify(achou.message ?? achou.body ?? "").slice(0, 160));
-
-    // A parte que um teste ingenuo nao apanha: o job corre ao MINUTO.
-    console.log("\n2. Idempotencia — o job volta a correr daqui a 1 min");
-    const antes = (await presos(dono)).filter((n) => n.reference_id === pedidoId).length;
-    await dormir(80_000);
-    const depois = (await presos(dono)).filter((n) => n.reference_id === pedidoId).length;
-    depois === antes && antes === 1
-      ? ok("continua UM unico aviso depois de o job voltar a correr", "nao spamma de minuto a minuto")
-      : ko("AVISO REPETIDO pelo agendador", `${antes} -> ${depois}`);
-  }
+  // --- 2. a rede de seguranca nao ladra ao caso legitimo ----------------
+  console.log("\n2. alert_stuck_orders nao pode dar falso positivo");
+  console.log("   (o job corre ao minuto; espera-se para ele ter chance de errar)");
+  await dormir(150_000);
+  const presos = (await presosDe(dono)).filter((n) => n.reference_id === pedidoId);
+  presos.length === 0
+    ? ok("nenhum aviso de `pedido_preso` para um pedido saudavel", `${hora()}`)
+    : ko("FALSO POSITIVO", JSON.stringify(presos.map((n) => n.title)));
 
   console.log(`\n  SQL de limpeza (privilegio de admin):`);
   console.log(`    DELETE FROM auth.users WHERE email LIKE 'rlstest-%@deliveryapp.test';\n`);
@@ -161,3 +156,26 @@ main()
     console.log(`\n${passou} passou, ${falhou} falhou\n`);
     process.exit(falhou > 0 ? 1 : 0);
   });
+
+/*
+ * INJECCAO DE FALHA — como se verifica que a rede de seguranca ainda dispara.
+ *
+ * Depois da decisao de 2026-09-16 ja nao ha maneira de produzir, so por HTTP, um
+ * pedido de entrega sem linha em `deliveries`: e' precisamente isso que a
+ * correccao garante. Para confirmar que o `alert_stuck_orders` continua a
+ * funcionar, fabrica-se a avaria com privilegio de admin e mede-se a RESPOSTA
+ * pelo caminho normal, com o JWT do restaurante:
+ *
+ *   1. correr este teste ate ao fim e guardar o `order_id`
+ *   2. como admin:
+ *        DELETE FROM public.dispatch_attempts WHERE order_id = '<id>';
+ *        DELETE FROM public.deliveries        WHERE order_id = '<id>';
+ *        UPDATE public.orders SET status = 'pronto' WHERE id = '<id>';
+ *   3. esperar > 2 min (a folga) e mais um minuto (o pg_cron)
+ *   4. pelo HTTP do restaurante, confirmar que chega uma notificacao
+ *      `pedido_preso` com `reference_id` = <id>, e SO UMA.
+ *
+ * O privilegio serve para CRIAR a avaria, nunca para a medir -- a medicao e'
+ * sempre pelo caminho que um utilizador real percorre. Verificado assim em
+ * 2026-09-16.
+ */
