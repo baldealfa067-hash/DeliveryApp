@@ -24,8 +24,14 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 const TYPE_ICONS: Record<string, string> = {
   info: "ℹ️",
   order: "🍔",
+  order_update: "🍔",
   appointment: "💇",
   delivery: "🛵",
+  nova_entrega: "🛵",
+  // Fase 2.2 — alertas ao restaurante.
+  stock: "📦",
+  dispatch_expirado: "⏳",
+  pedido_preso: "⚠️",
   system: "⚙️",
   report: "⚠️",
 };
@@ -96,6 +102,18 @@ const NotificationCard = ({ notification }: { notification: Notification }) => {
   const icon = TYPE_ICONS[notification.type] ?? "ℹ️";
 
   const handleClick = () => {
+    // O `link` vem primeiro porque quem o preenche escolheu-o de proposito: o
+    // alerta de stock leva o dono ao menu, o de dispatch leva-o ao painel onde
+    // pode reoferecer. Cair para o `reference_type` mandava-o para o ecra do
+    // pedido, que e' so' de leitura e nao deixa fazer nada.
+    //
+    // Antes da Fase 2.2 este `handleClick` so' olhava para o `reference_type`,
+    // portanto qualquer notificacao que trouxesse apenas `link` -- as da frota,
+    // as do motorista -- nao ia a lado nenhum quando lhe tocavam.
+    if (notification.link) {
+      navigate(notification.link);
+      return;
+    }
     if (notification.reference_type && notification.reference_id) {
       switch (notification.reference_type) {
         case "order":
