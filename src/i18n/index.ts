@@ -13,7 +13,10 @@ function getInitialLang(): Lang {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && (SUPPORTED as readonly string[]).includes(saved)) return saved as Lang;
-  } catch {}
+  } catch {
+    // localStorage pode estar bloqueado (modo privado, definicoes do browser).
+    // Nao e erro: cai para portugues.
+  }
   return "pt";
 }
 
@@ -32,7 +35,9 @@ i18n.use(initReactI18next).init({
 i18n.on("languageChanged", (lng) => {
   try {
     localStorage.setItem(STORAGE_KEY, lng);
-  } catch {}
+  } catch {
+    // Sem localStorage a escolha de idioma so dura a sessao. Nao ha o que fazer.
+  }
 });
 
 export default i18n;

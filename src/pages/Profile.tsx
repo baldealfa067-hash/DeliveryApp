@@ -30,6 +30,11 @@ const Profile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isBusiness, isClient, isAdmin, roles, loading, signOut } = useAuth();
+  // O Supabase NAO tem `user.name`: o nome gravado no registo vive em
+  // `user_metadata.name`. Lia-se `user.name`, sempre undefined, e caia no email --
+  // que num cliente de telefone+PIN e sintetico (`c<telefone>@deliveryapp.gw`).
+  // O cliente via "c955123456" como o seu proprio nome.
+  const nomeDoUtilizador = (user?.user_metadata as { name?: string } | undefined)?.name?.trim() || undefined;
   const isProvider = false;
   const isBeleza = false;
   const qc = useQueryClient();
@@ -68,7 +73,7 @@ const Profile = () => {
           setProfileId((data as { id?: string }).id ?? null);
         }
       });
-  }, [user, isAdmin, loading, navigate]);
+  }, [user, isAdmin, isBusiness, isProvider, loading, navigate]);
 
   useEffect(() => {
     if (!profileId) return;
@@ -123,7 +128,7 @@ const Profile = () => {
     }
     if (isClient) {
       const clientEmail = user?.email ?? "";
-      const clientInitials = (user?.name?.split(' ')[0] ?? clientEmail.split('@')[0] ?? 'U').slice(0, 2).toUpperCase();
+      const clientInitials = (nomeDoUtilizador?.split(' ')[0] ?? clientEmail.split('@')[0] ?? 'U').slice(0, 2).toUpperCase();
       return (
         <div className="max-w-lg mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold mb-4">{t("profile.myProfile")}</h1>
@@ -133,7 +138,7 @@ const Profile = () => {
                 <AvatarFallback className="text-lg">{clientInitials}</AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-lg">{user?.name ?? clientEmail.split('@')[0]}</CardTitle>
+                <CardTitle className="text-lg">{nomeDoUtilizador ?? clientEmail.split('@')[0]}</CardTitle>
                 <p className="text-sm text-muted-foreground">{t("profile.client")}</p>
               </div>
             </CardHeader>
@@ -180,8 +185,8 @@ const Profile = () => {
     );
   }
 
-  const email = user?.email ?? user?.name?.split(' ')[0] ?? "";
-  const initials = (profile?.name ?? (user?.email ?? user?.name ?? 'Utilizador').split(' ')[0] ?? 'U').slice(0, 2).toUpperCase();
+  const email = user?.email ?? nomeDoUtilizador?.split(' ')[0] ?? "";
+  const initials = (profile?.name ?? (user?.email ?? nomeDoUtilizador ?? 'Utilizador').split(' ')[0] ?? 'U').slice(0, 2).toUpperCase();
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">

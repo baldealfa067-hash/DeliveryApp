@@ -35,6 +35,10 @@ export function brokeredPreviewStorage() {
     new Promise((resolve) => {
       const requestId = newId();
       let done = false;
+      // `let` necessario: `finish` fecha sobre `timer` antes de ele ser atribuido
+      // mais abaixo. So pode ser `const` reestruturando o fluxo, e isto e codigo
+      // de infraestrutura do editor.
+      // eslint-disable-next-line prefer-const
       let timer: ReturnType<typeof setTimeout>;
       const finish = (r: { ok: boolean; value?: string | null } | null) => {
         if (done) return;

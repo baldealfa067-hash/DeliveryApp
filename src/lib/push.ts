@@ -96,7 +96,12 @@ export const subscriptionMatchesVapidKey = (sub: PushSubscription | null): boole
   const bytes = sub.options?.applicationServerKey;
   if (!bytes) return false;
   const current = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-  const stored = bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  // `applicationServerKey` vem tipado como ArrayBuffer, mas os browsers entregam
+  // tambem vistas (Uint8Array). O ramo de vista e real -- so o tipo nao o sabe.
+  const vista = bytes as ArrayBuffer | ArrayBufferView;
+  const stored = vista instanceof ArrayBuffer
+    ? new Uint8Array(vista)
+    : new Uint8Array(vista.buffer, vista.byteOffset, vista.byteLength);
   if (stored.length !== current.length) return false;
   return current.every((b, i) => b === stored[i]);
 };
@@ -108,7 +113,12 @@ export const unsubscribeFromPush = async (): Promise<void> => {
   }
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (userId) {
-    await supabase.from("push_subscriptions").delete().eq("user_id", userId).catch(() => {});
+    // O builder do Supabase NAO tem `.catch` (so `then`) -- medido em runtime.
+    // `.catch(...)` aqui rebentava com TypeError ANTES do await, e a subscricao
+    // nunca era apagada: o utilizador desligava as notificacoes e continuava a
+    // recebe-las. O erro da query vem em `error`, nao numa rejeicao.
+    const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", userId);
+    if (error) console.warn("[push] nao foi possivel apagar a subscricao:", error.message);
   }
 };
 

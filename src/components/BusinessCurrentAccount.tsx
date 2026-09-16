@@ -106,7 +106,7 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
 
     // Add order movements (sales)
     orders.forEach((order) => {
-      if (COMPLETE_ORDER_STATUSES.includes(order.status as any)) {
+      if (COMPLETE_ORDER_STATUSES.includes(order.status as (typeof COMPLETE_ORDER_STATUSES)[number])) {
         items.push({
           id: `order-${order.id}`,
           date: order.created_at,

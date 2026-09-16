@@ -78,7 +78,8 @@ const SendPage = () => {
 
   // GPS em silêncio (§21). Vale como origem: quem envia está quase sempre no
   // ponto de recolha quando faz o pedido.
-  useEffect(() => { geo.detect(); /* eslint-disable-next-line */ }, []);
+  const detectarGps = geo.detect;
+  useEffect(() => { detectarGps(); }, [detectarGps]);
 
   const podeEnviar = useMemo(
     () => recolhaMorada.trim() && destinoMorada.trim() && destinoBairro && telefone.trim() && preco,

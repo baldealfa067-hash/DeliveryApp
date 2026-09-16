@@ -403,9 +403,12 @@ export const ChatDialog = ({
                 (nextMsg &&
                   new Date(nextMsg.created_at).getTime() - new Date(msg.created_at).getTime() > 5 * 60 * 1000);
 
-              const isVoice = (msg as Record<string, unknown>).message_type === "voice";
+              // `message_type` existe na tabela mas nao no tipo `Message`; le-se sem
+              // o cast impossivel `Message -> Record` que o tsc recusava.
+              const tipoMsg = (msg as { message_type?: string | null }).message_type;
+              const isVoice = tipoMsg === "voice";
               const isImage = !isVoice && (
-                (msg as Record<string, unknown>).message_type === "image" ||
+                tipoMsg === "image" ||
                 msg.content.match(/\.(jpg|jpeg|png|gif|webp)/i) ||
                 (msg.content.includes("/portfolio/") && !msg.content.includes("/voice/"))
               );

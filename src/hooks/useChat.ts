@@ -69,11 +69,12 @@ export const useSendMessage = () => {
       messageType?: string;
       imageUrl?: string;
     }) => {
-      const insertData: Record<string, unknown> = {
-        sender_id: senderId,
-        receiver_id: receiverId,
-        content,
-      };
+      // Tipado pela propria tabela em vez de `Record<string, unknown>`, que o
+      // cliente do Supabase nao aceita num insert.
+      const insertData: {
+        sender_id: string; receiver_id: string; content: string;
+        message_type?: string; image_url?: string;
+      } = { sender_id: senderId, receiver_id: receiverId, content };
       if (messageType) insertData.message_type = messageType;
       if (imageUrl) insertData.image_url = imageUrl;
       const { error: msgError } = await supabase.from("messages").insert(insertData);
@@ -81,11 +82,14 @@ export const useSendMessage = () => {
 
       // Create notification for the receiver (non-blocking, only for authenticated senders)
       if (senderId && !senderId.startsWith("anon-")) {
-        supabase
+        // Promise.resolve(...) porque o builder e tipado como PromiseLike, sem
+        // `.catch`. Em runtime o `.then()` ja devolvia uma Promise nativa e o
+        // `.catch` funcionava (medido) -- isto so torna o tipo honesto.
+        Promise.resolve(supabase
           .from("profiles")
           .select("name")
           .eq("user_id", senderId)
-          .maybeSingle()
+          .maybeSingle())
           .then(({ data: senderProfile }) => {
             const senderName = senderProfile?.name || "Alguém";
             let preview: string;

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- mocks parciais do cliente
+   Supabase; tipa-los por inteiro custa mais do que protege num teste. */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockFleetsMaybeSingle = vi.fn();

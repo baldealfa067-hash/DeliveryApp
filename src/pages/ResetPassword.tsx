@@ -21,7 +21,10 @@ const ResetPassword = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: { listener } } = supabase.auth.onAuthStateChange((event) => {
+    // A API devolve `{ data: { subscription } }`. Lia-se `listener`, que era
+    // sempre undefined: a limpeza `listener.unsubscribe()` rebentava ao sair do
+    // ecra e o listener de autenticacao ficava a vazar.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setReady(true);
       }
@@ -31,7 +34,7 @@ const ResetPassword = () => {
       if (session) setReady(true);
     });
 
-    return () => listener.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

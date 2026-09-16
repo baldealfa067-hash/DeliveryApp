@@ -95,6 +95,15 @@ const DriverDashboard = () => {
   const validateCode = useValidateDeliveryCode();
 
   // Auto-update location — must be before any early returns (Rules of Hooks)
+  // Refs para o callback do GPS ler sempre o estado actual (ver o comentario
+  // dentro do watchPosition) sem que o watch tenha de ser recriado.
+  const minhasEntregasRef = useRef(myDeliveries);
+  minhasEntregasRef.current = myDeliveries;
+  const atualizarTrackingRef = useRef(updateTracking.mutate);
+  atualizarTrackingRef.current = updateTracking.mutate;
+  const atualizarPosicaoRef = useRef(updateDriverLocation.mutate);
+  atualizarPosicaoRef.current = updateDriverLocation.mutate;
+
   useEffect(() => {
     if (!driver?.is_available) return;
     const watchId = navigator.geolocation?.watchPosition(
@@ -108,12 +117,20 @@ const DriverDashboard = () => {
         const now = Date.now();
         if (now - lastLocationPushRef.current > 30000) {
           lastLocationPushRef.current = now;
-          updateDriverLocation.mutate(coords);
+          atualizarPosicaoRef.current(coords);
         }
 
-        const deliveryId = myDeliveries.find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
+        // Le-se da REF, nao da variavel capturada. Este callback nasce quando o
+        // motorista liga a disponibilidade -- nessa altura a lista de entregas
+        // esta vazia -- e o efeito so volta a correr se a disponibilidade mudar.
+        // Ao ler `myDeliveries` directamente, uma entrega aceite DEPOIS nunca era
+        // vista: no fluxo normal (ligar -> aceitar) o tracking nunca era enviado e
+        // o cliente nunca via o motorista a mexer-se (§52). Com a ref le-se
+        // sempre a lista actual sem reiniciar o watchPosition.
+        const deliveryId = minhasEntregasRef.current
+          .find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
         if (deliveryId) {
-          updateTracking.mutate({ ...coords, deliveryId });
+          atualizarTrackingRef.current({ ...coords, deliveryId });
         }
       },
       () => {},

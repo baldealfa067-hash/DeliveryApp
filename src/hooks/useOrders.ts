@@ -1,3 +1,4 @@
+import type { Json } from "@/integrations/supabase/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -73,7 +74,7 @@ export const useCreateOrder = () => {
         p_customer_id: params.customerId,
         p_customer_name: params.customerName,
         p_customer_phone: params.customerPhone,
-        p_items: params.items as unknown as Record<string, unknown>[],
+        p_items: params.items as unknown as Json,
         p_total: params.total,
         p_consumption_option: params.consumptionOption,
         p_address: params.address ?? null,
