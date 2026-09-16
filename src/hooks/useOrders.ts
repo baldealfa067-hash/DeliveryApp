@@ -27,6 +27,8 @@ export interface Order {
   payment_method: string;
   payment_proof_url: string | null;
   payment_status: string;
+  /** Fase 2.4 — "app" (cliente na aplicação) ou "manual" (telefone/balcão). */
+  source?: string | null;
 }
 
 export interface OrderHistoryEntry {

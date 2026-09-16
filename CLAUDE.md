@@ -594,6 +594,79 @@ Depois disso, apresente um Plano de Reconstrução do DeliveryApp por fases, ind
 
 ---
 
+# Decisões de sub-fases confirmadas
+
+**Porque esta secção existe.** As sub-fases (2.1, 2.2, 2.3, …) não constam do
+roadmap por fases do documento mestre — foram sendo combinadas em conversa. Até
+2026-09-16 essas decisões só existiam no diálogo: quando uma nova sessão pegava
+no trabalho, "já combinado" não estava escrito em lado nenhum e era preciso
+perguntar outra vez, ou pior, adivinhar. Tudo o que for decidido para uma
+sub-fase entra aqui **antes** de se escrever código.
+
+## Fase 2.3 — Fecho de caixa — CONCLUÍDA (2026-09-16)
+
+O problema: §28 manda o cliente pagar ao motorista, que deve a comida ao
+restaurante. A Fase 6 registava a dívida (`divida_comida`/`credito_comida`) e
+não tinha forma nenhuma de a saldar — `pagamento_comissao` só serve a dívida à
+plataforma (§54). A dívida entre frota e restaurante crescia e nunca descia.
+
+- **Liquidação real, não relatório.** A frota **declara** o dinheiro que
+  entregou; o restaurante **confirma** (liquida o ledger) ou **contesta** (a
+  dívida fica de pé, com o motivo registado). Tabela `cash_settlements`, estados
+  `declarado`/`confirmado`/`contestado`/`cancelado`.
+- **Quem confirma é o RESTAURANTE**, não o admin. É o dinheiro dele; a
+  plataforma não tem de estar no meio de cada acerto diário. Mesmo padrão do §54
+  (declara → alguém valida), com o validador trocado.
+- **Contestar exige motivo.** Sem ele a frota recebe "não" sem saber o que
+  corrigir (§84).
+- **Teto contra a dívida VIVA**, e o teto conta também o que já está declarado
+  por confirmar. Sem isso, três declarações de 10.000 sobre uma dívida de 10.000,
+  todas confirmadas, davam −20.000. A confirmação revalida no momento, porque um
+  cancelamento pelo meio pode ter reduzido a dívida (§56).
+- **Aba "Caixa" separada de "Financeiro"** no painel da frota. Não se somam: ali
+  é comissão devida à plataforma (§26), aqui é dinheiro de terceiros que passou
+  pelas mãos do motorista (§28). Juntos levavam a frota a pensar que devia o
+  total a uma pessoa. No restaurante fica dentro da conta corrente, que é onde
+  ele já vem perguntar "quanto tenho a haver".
+
+**Armadilha registada para quem mexer no ledger a seguir:** as funções de
+leitura da Fase 6 (`get_business_commission`, `get_fleet_financials`) somam por
+`entry_type` EXACTO, não por contraparte. Um `entry_type` novo, por mais
+correcto que tenha o sinal, **não aparece em conta nenhuma** enquanto essas
+funções não o conhecerem — a liquidação parece funcionar e a dívida fica igual
+no ecrã. Ao acrescentar um tipo, ensinar os leitores no mesmo passo.
+
+## Fase 2.4 — Pedidos manuais — decisões tomadas
+
+O restaurante tem de poder lançar no sistema um pedido que não veio pela app
+(telefone, balcão, cliente habitual). Sem isso o stock e as vendas do painel
+mentem sobre a operação real.
+
+1. **Mesma tabela `orders`**, marcado com `source = 'manual'`. Não é uma tabela
+   nem um fluxo paralelo — §70 quer o conceito de pedido flexível, não
+   duplicado.
+2. **Pode pedir entrega, e é opcional.** Um pedido manual tanto pode ser
+   consumido no local como sair para entrega pela frota, pelo mesmo dispatch.
+3. **O stock desconta na CRIAÇÃO do pedido**, não na confirmação. O pedido
+   manual já é um facto consumado quando é lançado — a comida já saiu.
+4. **A reposição de stock é manual.** Não reinicia ao abrir nem ao fechar o dia;
+   quem repõe é o dono, por `set_menu_item_stock`, e fica registada em
+   `stock_adjustments` como qualquer outra.
+5. **Pedido manual NÃO gera comissão da plataforma.** A plataforma não trouxe
+   este cliente.
+
+**Por resolver dentro do ponto 5, sinalizado a 2026-09-16:** se um pedido manual
+pedir entrega, a frota cobra a taxa e usa o dispatch da plataforma. A decisão diz
+"não gera comissão da plataforma", o que lido à letra tira também os 5% da frota
+(§26), e não só os do restaurante (§25). Está implementado **à letra** — nenhuma
+das duas comissões — porque foi o que ficou dito. Se a intenção era só isentar o
+restaurante, é uma condição a mudar no `tg_ledger_por_estado_do_pedido`.
+O que **continua a acontecer** num pedido manual pago a dinheiro é a dívida de
+comida da frota ao restaurante (§28): isso não é comissão, é dinheiro de
+terceiros, e tem de ser sempre registado.
+
+---
+
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)
 
 Aprovada e executada. Não avançar para a Fase 2 sem aprovação explícita do

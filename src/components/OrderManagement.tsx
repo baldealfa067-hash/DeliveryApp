@@ -506,7 +506,17 @@ const OrderCard = ({ order, onOpen }: { order: Order; onOpen: () => void }) => {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-title">#{order.order_number}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-title">#{order.order_number}</p>
+            {/* Fase 2.4 — a origem importa ao bolso do dono: um pedido manual
+                não gera comissão da plataforma. Marca-se só o manual; o da
+                aplicação é o caso normal e não precisa de etiqueta. */}
+            {order.source === "manual" && (
+              <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                Manual
+              </span>
+            )}
+          </div>
           <p className="text-caption text-muted-foreground">{hora(order.created_at)}</p>
         </div>
         <div className="shrink-0">

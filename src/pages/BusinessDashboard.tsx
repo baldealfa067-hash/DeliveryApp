@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
+import { ManualOrderDialog } from "@/components/ManualOrderDialog";
 import { BusinessCashSettlements } from "@/components/BusinessCashSettlements";
 import logo from "@/assets/logo.png";
 
@@ -249,7 +250,10 @@ const BusinessDashboard = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="pedidos" className="mt-0">
+            <TabsContent value="pedidos" className="mt-0 space-y-3">
+              {/* Fase 2.4 — pedidos por telefone e balcão entram na mesma lista
+                  e na mesma tabela; o que muda é `source`. */}
+              <ManualOrderDialog businessId={profile.id} />
               <OrderManagement businessId={profile.id} />
             </TabsContent>
 
