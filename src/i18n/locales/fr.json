@@ -531,7 +531,7 @@
     "orderHint": "La commande s'ouvre dans le WhatsApp de l'établissement, sans paiement dans l'app.",
     "confirmOrder": "Confirmer la commande",
     "confirmOrderDesc": "Vérifiez les détails de votre commande avant d'envoyer.",
-    "customerName": "Votre nom",
+    "customerName": "Nom de la personne qui reçoit",
     "customerPhone": "Téléphone de contact",
     "phonePlaceholder": "Ex: 956 123 456",
     "orderNotes": "Remarques (facultatif)",
@@ -583,10 +583,12 @@
     "changeProof": "Changer",
     "attachProof": "Joindre justificatif",
     "paymentProofError": "Erreur lors de l'envoi du justificatif",
-    "amountToTransfer": "Montant à transférer",
+    "amountToTransfer": "Montant à transférer (repas + livraison) :",
     "soldOut": "Épuisé",
     "stockLeft": "Il reste {{count}}",
-    "otherRecipientHint": "Commande pour quelqu'un d'autre ? Remplacez le nom et le téléphone par ceux de la personne qui reçoit. Votre compte ne change pas."
+    "otherRecipientHint": "Commande pour quelqu'un d'autre ? Remplacez le nom et le téléphone par ceux de la personne qui reçoit. Votre compte ne change pas.",
+    "recipientNamePlaceholder": "Ex : Maria Silva",
+    "choosePaymentNow": "Compte prêt. Choisissez maintenant comment payer et touchez Passer commande."
   },
   "providerDetail": {
     "loading": "Chargement...",

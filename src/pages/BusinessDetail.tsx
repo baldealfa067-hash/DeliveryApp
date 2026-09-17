@@ -130,6 +130,9 @@ const BusinessDetail = () => {
   const [paymentMethod, setPaymentMethod] = useState<"entrega" | "online">("entrega");
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
   const [paymentProofUploading, setPaymentProofUploading] = useState(false);
+  const [paymentInfoLoaded, setPaymentInfoLoaded] = useState(false);
+  const [confirmarAposLogin, setConfirmarAposLogin] = useState(false);
+  const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const paymentProofRef = useRef<HTMLInputElement>(null);
   const [voicePlaying, setVoicePlaying] = useState(false);
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -200,12 +203,14 @@ const BusinessDetail = () => {
     // Estas colunas deixaram de ser legiveis directamente por `authenticated`:
     // qualquer conta descarregava os dados de pagamento de todos os negocios
     // numa query. Saem agora por RPC, um negocio de cada vez.
+    setPaymentInfoLoaded(false);
     (
       supabase.rpc as unknown as (
         fn: string, args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: unknown }>
     )("get_business_payment_info", { p_business_id: id }).then(({ data, error }) => {
       if (cancelado) return;
+      setPaymentInfoLoaded(true);
       if (error) {
         console.error("[checkout] get_business_payment_info:", error);
         return;
@@ -217,6 +222,22 @@ const BusinessDetail = () => {
       cancelado = true;
     };
   }, [id, user]);
+
+  /* Quem entra SEM sessão só fica a saber que o restaurante aceita Orange Money
+     depois do login (o código não é público). Abrir logo a confirmação, como
+     antes, fechava o pedido em "pagar na entrega" sem o cliente ter visto a
+     outra opção. Se o restaurante tem Orange Money, leva-o à escolha do
+     pagamento; se não tem, segue directo para a confirmação. */
+  useEffect(() => {
+    if (!confirmarAposLogin || !paymentInfoLoaded) return;
+    setConfirmarAposLogin(false);
+    if (paymentInfo?.merchant_code || paymentInfo?.payment_number) {
+      paymentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast.info(t("businessDetail.choosePaymentNow"));
+    } else {
+      setOrderConfirmOpen(true);
+    }
+  }, [confirmarAposLogin, paymentInfoLoaded, paymentInfo, t]);
 
   // Silent GPS capture for delivery orders (no map shown)
   useEffect(() => {
@@ -368,6 +389,9 @@ const BusinessDetail = () => {
   const businessMerchantCode = paymentInfo?.merchant_code ?? "";
   const businessPaymentNumber = paymentInfo?.payment_number ?? "";
   const hasOnlinePayment = !!(businessMerchantCode || businessPaymentNumber);
+  // Fase 6.1: no Orange Money o restaurante recebe TUDO -- comida e entrega. Mostrar
+  // só a comida fazia o cliente transferir a menos.
+  const valorOrangeMoney = cartTotal + (deliveryPrice?.preco ?? 0);
 
   const sendOrder = async () => {
     if (!id) return;
@@ -380,7 +404,8 @@ const BusinessDetail = () => {
       if (!deliveryPhone.trim()) return toast.error(t("businessDetail.enterPhone"));
       if (!bairro.trim()) return toast.error(t("businessDetail.selectBairro"));
     }
-    requireAuth(() => setOrderConfirmOpen(true));
+    if (user) setOrderConfirmOpen(true);
+    else requireAuth(() => setConfirmarAposLogin(true));
   };
 
   const confirmOrder = async () => {
@@ -818,124 +843,146 @@ const BusinessDetail = () => {
                   )}
                 </div>
 
-                {/* Payment method selection */}
-                <div className="mb-3">
-                  <Label className="text-xs">{t("businessDetail.paymentMethod")}</Label>
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    <Badge
-                      variant={paymentMethod === "entrega" ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1.5 text-xs gap-1"
-                      onClick={() => setPaymentMethod("entrega")}
-                    >
-                      <Banknote className="h-3.5 w-3.5" />
-                      {t("businessDetail.payOnDelivery")}
-                    </Badge>
-                    {hasOnlinePayment && (
-                      <Badge
-                        variant={paymentMethod === "online" ? "default" : "outline"}
-                        className="cursor-pointer px-3 py-1.5 text-xs gap-1"
-                        onClick={() => setPaymentMethod("online")}
-                      >
-                        <CreditCard className="h-3.5 w-3.5" />
-                        {t("businessDetail.payNow")}
-                      </Badge>
+                {/* Pagamento (§22, §23). Duas escolhas grandes, lado a lado em
+                    importância. Quando o restaurante tem Orange Money, o código
+                    está SEMPRE à vista dentro do cartão -- não aparece só depois
+                    de escolher a opção. Tocar no código também escolhe Orange
+                    Money, para ninguém pagar e deixar o pedido em "na entrega". */}
+                <div ref={paymentSectionRef} className="mb-3 space-y-2" role="radiogroup" aria-label={t("businessDetail.paymentMethod")}>
+                  <Label className="text-sm font-semibold">{t("businessDetail.paymentMethod")}</Label>
+
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={paymentMethod === "entrega"}
+                    onClick={() => setPaymentMethod("entrega")}
+                    className={cn(
+                      "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-colors",
+                      paymentMethod === "entrega" ? "border-primary bg-primary/5" : "border-border bg-background",
                     )}
-                  </div>
-                </div>
+                  >
+                    <span className={cn("h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center", paymentMethod === "entrega" ? "border-primary" : "border-muted-foreground/40")}>
+                      {paymentMethod === "entrega" && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                    </span>
+                    <Banknote className="h-5 w-5 shrink-0 text-primary" />
+                    <span className="font-medium">{t("businessDetail.payOnDelivery")}</span>
+                  </button>
 
-                {paymentMethod === "online" && hasOnlinePayment && (
-                  <div className="mb-3 rounded-lg border-2 border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950 p-3 space-y-2">
-                    <p className="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
-                      {t("businessDetail.transferTo")}
-                    </p>
+                  {hasOnlinePayment && (
+                    <div
+                      className={cn(
+                        "rounded-xl border-2 p-3 space-y-2 transition-colors",
+                        paymentMethod === "online"
+                          ? "border-orange-500 bg-orange-50 dark:bg-orange-950"
+                          : "border-orange-200 bg-background dark:border-orange-800",
+                      )}
+                    >
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={paymentMethod === "online"}
+                        onClick={() => setPaymentMethod("online")}
+                        className="w-full flex items-center gap-3 text-left"
+                      >
+                        <span className={cn("h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center", paymentMethod === "online" ? "border-orange-600" : "border-muted-foreground/40")}>
+                          {paymentMethod === "online" && <span className="h-2.5 w-2.5 rounded-full bg-orange-600" />}
+                        </span>
+                        <CreditCard className="h-5 w-5 shrink-0 text-orange-600" />
+                        <span className="font-medium">{t("businessDetail.payNow")}</span>
+                      </button>
 
-                    {/* Amount */}
-                    <p className="text-lg font-bold text-orange-800 dark:text-orange-200">
-                      {formatCFA(cartTotal)}
-                    </p>
+                      <p className="text-sm">
+                        {t("businessDetail.amountToTransfer")}{" "}
+                        <strong className="text-orange-800 dark:text-orange-200">{formatCFA(valorOrangeMoney)}</strong>
+                      </p>
 
-                    {/* Merchant USSD code — preferred */}
-                    {businessMerchantCode && (
-                      <div className="space-y-1.5">
-                        <a
-                          href={`tel:${businessMerchantCode.replace(/#/g, "%23")}`}
-                          className="flex items-center justify-center gap-2 w-full rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg py-3 px-4 transition-colors"
-                        >
-                          <Phone className="h-5 w-5" />
-                          {businessMerchantCode}
-                        </a>
+                      {/* Merchant USSD code — preferred */}
+                      {businessMerchantCode && (
+                        <div className="space-y-1.5">
+                          <a
+                            href={`tel:${businessMerchantCode.replace(/#/g, "%23")}`}
+                            onClick={() => setPaymentMethod("online")}
+                            className="flex items-center justify-center gap-2 w-full rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg py-3 px-4 transition-colors"
+                          >
+                            <Phone className="h-5 w-5" />
+                            {businessMerchantCode}
+                          </a>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] text-muted-foreground">{t("businessDetail.tapToPayUssd")}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1 text-xs h-6"
+                              onClick={() => {
+                                navigator.clipboard.writeText(businessMerchantCode);
+                                toast.success(t("businessDetail.codeCopied"));
+                              }}
+                            >
+                              <Copy className="h-3 w-3" /> {t("businessDetail.copyCode")}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Fallback: payment number */}
+                      {!businessMerchantCode && businessPaymentNumber && (
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] text-muted-foreground">{t("businessDetail.tapToPayUssd")}</span>
+                          <span className="text-lg font-bold">{businessPaymentNumber}</span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="gap-1 text-xs h-6"
+                            className="gap-1 text-xs"
                             onClick={() => {
-                              navigator.clipboard.writeText(businessMerchantCode);
-                              toast.success(t("businessDetail.codeCopied"));
+                              navigator.clipboard.writeText(businessPaymentNumber);
+                              toast.success(t("businessDetail.numberCopied"));
                             }}
                           >
-                            <Copy className="h-3 w-3" /> {t("businessDetail.copyCode")}
+                            <Copy className="h-3.5 w-3.5" /> {t("businessDetail.copyNumber")}
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Fallback: payment number */}
-                    {!businessMerchantCode && businessPaymentNumber && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold">{businessPaymentNumber}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1 text-xs"
-                          onClick={() => {
-                            navigator.clipboard.writeText(businessPaymentNumber);
-                            toast.success(t("businessDetail.numberCopied"));
-                          }}
-                        >
-                          <Copy className="h-3.5 w-3.5" /> {t("businessDetail.copyNumber")}
-                        </Button>
-                      </div>
-                    )}
+                      {paymentMethod === "online" && (
+                        <>
+                          <p className="text-[11px] text-muted-foreground">
+                            {t("businessDetail.paymentInstructions")}
+                          </p>
 
-                    {/* Instructions */}
-                    <p className="text-[11px] text-muted-foreground">
-                      {t("businessDetail.paymentInstructions")}
-                    </p>
-
-                    {/* Proof upload */}
-                    <input
-                      ref={paymentProofRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePaymentProofChange}
-                    />
-                    {paymentProofUrl ? (
-                      <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
-                        <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setPaymentProofUrl(null); if (paymentProofRef.current) paymentProofRef.current.value = ""; }}>
-                          {t("businessDetail.changeProof")}
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full gap-2"
-                        onClick={() => paymentProofRef.current?.click()}
-                        disabled={paymentProofUploading}
-                      >
-                        {paymentProofUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        {t("businessDetail.attachProof")}
-                      </Button>
-                    )}
-                  </div>
-                )}
+                          {/* Proof upload */}
+                          <input
+                            ref={paymentProofRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handlePaymentProofChange}
+                          />
+                          {paymentProofUrl ? (
+                            <div className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-green-600" />
+                              <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
+                              <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setPaymentProofUrl(null); if (paymentProofRef.current) paymentProofRef.current.value = ""; }}>
+                                {t("businessDetail.changeProof")}
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full gap-2"
+                              onClick={() => paymentProofRef.current?.click()}
+                              disabled={paymentProofUploading}
+                            >
+                              {paymentProofUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                              {t("businessDetail.attachProof")}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
@@ -1176,6 +1223,10 @@ const BusinessDetail = () => {
               <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-3 text-sm space-y-1">
                 <p className="font-semibold text-blue-700 dark:text-blue-300 text-xs uppercase">{t("businessDetail.deliveryInfo")}</p>
                 <p><span className="text-muted-foreground">{t("businessDetail.bairro")}:</span> <strong>{bairro}</strong></p>
+                <p>
+                  <span className="text-muted-foreground">{t("businessDetail.paymentMethod")}:</span>{" "}
+                  <strong>{paymentMethod === "online" ? t("businessDetail.payNow") : t("businessDetail.payOnDelivery")}</strong>
+                </p>
                 {referencePoint && <p><span className="text-muted-foreground">{t("businessDetail.referencePoint")}:</span> {referencePoint}</p>}
               </div>
             )}
@@ -1184,7 +1235,7 @@ const BusinessDetail = () => {
               <Label htmlFor="order-name">{t("businessDetail.customerName")}</Label>
               <Input
                 id="order-name"
-                placeholder={t("businessDetail.yourName")}
+                placeholder={t("businessDetail.recipientNamePlaceholder")}
                 value={orderCustomerName}
                 onChange={(e) => setOrderCustomerName(e.target.value)}
               />

@@ -843,10 +843,13 @@
     "changeProof": "Troka",
     "attachProof": "Anexa komprovativu",
     "paymentProofError": "Eror na mandason di komprovativu",
-    "amountToTransfer": "Valor pa transferi",
+    "amountToTransfer": "Balur pa manda (kumida + entrega):",
     "soldOut": "Kaba",
     "stockLeft": "Fika {{count}}",
-    "otherRecipientHint": "Pididu pa utru pekadur? Troka nomi ku telfoni pa di kin ku na risibi. Bu konta ka na muda."
+    "otherRecipientHint": "Pididu pa utru pekadur? Troka nomi ku telfoni pa di kin ku na risibi. Bu konta ka na muda.",
+    "customerName": "Nomi di kin ku na risibi",
+    "recipientNamePlaceholder": "Ex: Maria Silva",
+    "choosePaymentNow": "Konta pruntu. Skoji gosi kuma ku bu na paga, toka na Fazer Pedido."
   },
   "notifications": {
     "title": "Notifikasons",

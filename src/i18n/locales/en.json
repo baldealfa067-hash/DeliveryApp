@@ -531,7 +531,7 @@
     "orderHint": "The order will be sent directly to the restaurant.",
     "confirmOrder": "Confirm Order",
     "confirmOrderDesc": "Review your order details before sending.",
-    "customerName": "Your name",
+    "customerName": "Name of the person receiving",
     "customerPhone": "Contact phone",
     "phonePlaceholder": "E.g. 956 123 456",
     "orderNotes": "Notes (optional)",
@@ -583,10 +583,12 @@
     "changeProof": "Change",
     "attachProof": "Attach proof",
     "paymentProofError": "Error uploading proof",
-    "amountToTransfer": "Amount to transfer",
+    "amountToTransfer": "Amount to transfer (food + delivery):",
     "soldOut": "Sold out",
     "stockLeft": "{{count}} left",
-    "otherRecipientHint": "Ordering for someone else? Replace the name and phone with those of the person receiving it. Your account does not change."
+    "otherRecipientHint": "Ordering for someone else? Replace the name and phone with those of the person receiving it. Your account does not change.",
+    "recipientNamePlaceholder": "E.g. Maria Silva",
+    "choosePaymentNow": "Account ready. Now choose how you want to pay and tap Place Order."
   },
   "providerDetail": {
     "loading": "Loading...",

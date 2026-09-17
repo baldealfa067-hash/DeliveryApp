@@ -531,7 +531,7 @@
     "orderHint": "O pedido será enviado diretamente para o restaurante.",
     "confirmOrder": "Confirmar Pedido",
     "confirmOrderDesc": "Revise os detalhes do seu pedido antes de enviar.",
-    "customerName": "O seu nome",
+    "customerName": "Nome de quem recebe",
     "customerPhone": "Telefone de contacto",
     "phonePlaceholder": "Ex: 956 123 456",
     "orderNotes": "Observações (opcional)",
@@ -583,10 +583,12 @@
     "changeProof": "Alterar",
     "attachProof": "Anexar comprovativo",
     "paymentProofError": "Erro ao enviar comprovativo",
-    "amountToTransfer": "Valor a transferir",
+    "amountToTransfer": "Valor a transferir (comida + entrega):",
     "soldOut": "Esgotado",
     "stockLeft": "Restam {{count}}",
-    "otherRecipientHint": "Pedido para outra pessoa? Troque o nome e o telefone pelos de quem vai receber. A sua conta não muda."
+    "otherRecipientHint": "Pedido para outra pessoa? Troque o nome e o telefone pelos de quem vai receber. A sua conta não muda.",
+    "recipientNamePlaceholder": "Ex: Maria Silva",
+    "choosePaymentNow": "Conta pronta. Escolha agora como quer pagar e toque em Fazer Pedido."
   },
   "providerDetail": {
     "loading": "A carregar...",
