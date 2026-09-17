@@ -1266,7 +1266,8 @@
     "rejectPayment": "Comprovativo inválido",
     "paymentStatus_pendente": "Pagamento pendente",
     "paymentStatus_validado": "Pagamento confirmado",
-    "paymentStatus_rejeitado": "Pagamento rejeitado"
+    "paymentStatus_rejeitado": "Pagamento rejeitado",
+    "proofUnavailable": "Não foi possível abrir o comprovativo. Atualize a página."
   },
   "myAppointments": {
     "title": "Os Meus Agendamentos",

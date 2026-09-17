@@ -887,9 +887,30 @@ não só no ecrã (§46):
 - **Pedido `entrega` não guarda comprovativo**, mesmo que o ecrã o envie.
 - **Pedidos antigos não são tocados**: há 1 pedido online sem comprovativo em
   produção, de antes da regra. Fica como está (§56).
-- **Achados, NÃO corrigidos aqui** (decisão do dono): o bucket `portfolio` é
-  público, portanto quem tiver a URL de um comprovativo vê-o; e o cliente pode
-  apagar o próprio comprovativo depois do pedido (policy DELETE da pasta dele).
+- **Os dois achados foram depois aprovados e corrigidos** — ver a secção seguinte.
+
+**Comprovativos privados (2026-09-17, aprovado pelo dono).**
+
+- **Bucket privado `comprovativos`**, separado de `portfolio` (que é público e
+  continua a servir galeria, fotos e notas de voz). Caminho `<uid do cliente>/<ficheiro>`.
+  `orders.payment_proof_url` passa a guardar o NOME do objecto, não uma URL: a
+  imagem só se abre por URL assinado de 5 minutos (`createSignedUrl`), o mesmo
+  padrão dos documentos de verificação.
+- **Quem lê (policy SELECT, via `pode_ver_comprovativo`):** o cliente que o enviou,
+  o dono do restaurante do pedido a que está ligado, e o admin. Mais ninguém — nem
+  outro restaurante, nem o anónimo. O URL assinado, enquanto vive, abre para quem o
+  tiver: é o limite do mecanismo, e por isso a vida é curta.
+- **Apagar:** só o próprio cliente e só enquanto o comprovativo NÃO está ligado a
+  nenhum pedido (policy DELETE, via `comprovativo_ligado_a_pedido`). Sem policy de
+  UPDATE: ninguém substitui a imagem de um comprovativo já enviado.
+- **Um comprovativo, um pedido:** índice único parcial em `orders.payment_proof_url`
+  e verificação em `create_order`. Sem isto, a mesma captura pagava dois pedidos.
+- **Nota que corrige uma suposição do pedido:** as notas de voz NÃO usavam URLs
+  assinados — estão no `portfolio` público. Tal como o comprovativo de comissão
+  (`commission_payments.proof_url`, §54). Ficam como estão até o dono decidir.
+- **4 comprovativos antigos** de clientes reais continuam no `portfolio` público,
+  sem nenhum pedido ligado. Não foram movidos nem apagados: movê-los exige a sessão
+  do dono de cada ficheiro ou a chave de serviço, e apagá-los é decisão do dono (§56).
 
 ---
 

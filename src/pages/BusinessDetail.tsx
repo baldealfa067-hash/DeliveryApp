@@ -33,6 +33,7 @@ import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
 import { Mic, Square, Play, Pause, RotateCcw, Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
 import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { contactFromUser } from "@/lib/clientAuth";
+import { COMPROVATIVOS_BUCKET, caminhoComprovativo } from "@/lib/comprovativos";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -128,7 +129,10 @@ const BusinessDetail = () => {
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
   const [voiceUploading, setVoiceUploading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"entrega" | "online">("entrega");
+  /** Nome do objecto no bucket privado `comprovativos` (não é uma URL). */
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  /** Miniatura local do ficheiro escolhido: o bucket é privado, não há URL pública. */
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
   const [paymentProofUploading, setPaymentProofUploading] = useState(false);
   const [paymentInfoLoaded, setPaymentInfoLoaded] = useState(false);
   const [confirmarAposLogin, setConfirmarAposLogin] = useState(false);
@@ -363,13 +367,17 @@ const BusinessDetail = () => {
     if (!user?.id) return null;
     setPaymentProofUploading(true);
     try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const fileName = `${user.id}/orders/payment/${Date.now()}-${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("portfolio").upload(fileName, file, { contentType: file.type });
+      // Bucket PRIVADO: só o cliente, o restaurante do pedido e o admin o abrem, e
+      // só por URL assinado. Guarda-se o nome do objecto, não uma URL.
+      const fileName = caminhoComprovativo(user.id, file);
+      const { error } = await supabase.storage.from(COMPROVATIVOS_BUCKET).upload(fileName, file, { contentType: file.type });
       if (error) throw error;
-      const { data } = supabase.storage.from("portfolio").getPublicUrl(fileName);
-      setPaymentProofUrl(data.publicUrl);
-      return data.publicUrl;
+      setPaymentProofUrl(fileName);
+      setPaymentProofPreview((antiga) => {
+        if (antiga) URL.revokeObjectURL(antiga);
+        return URL.createObjectURL(file);
+      });
+      return fileName;
     } catch (err) {
       console.error("[payment] upload error:", err);
       toast.error(t("businessDetail.paymentProofError"));
@@ -474,6 +482,7 @@ const BusinessDetail = () => {
       setVoiceNoteUrl(null);
       setPaymentMethod("entrega");
       setPaymentProofUrl(null);
+      setPaymentProofPreview(null);
       recorder.reset();
       voiceAudioRef.current = null;
     } catch (err) {
@@ -985,10 +994,19 @@ const BusinessDetail = () => {
                           {paymentProofUrl ? (
                             <div className="flex items-center gap-2">
                               {/* A miniatura deixa ver que é a imagem certa, sem ter de confiar num "anexado". */}
-                              <img src={paymentProofUrl} alt="" className="h-12 w-12 rounded-md border object-cover" />
+                              {paymentProofPreview && (
+                                <img src={paymentProofPreview} alt="" className="h-12 w-12 rounded-md border object-cover" />
+                              )}
                               <Check className="h-4 w-4 text-green-600" />
                               <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
-                              <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setPaymentProofUrl(null); if (paymentProofRef.current) paymentProofRef.current.value = ""; }}>
+                              <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => {
+                                // Ainda não está ligado a pedido nenhum, portanto o servidor deixa
+                                // apagar: não fica lixo privado de um comprovativo que se trocou.
+                                if (paymentProofUrl) void supabase.storage.from(COMPROVATIVOS_BUCKET).remove([paymentProofUrl]);
+                                setPaymentProofUrl(null);
+                                setPaymentProofPreview(null);
+                                if (paymentProofRef.current) paymentProofRef.current.value = "";
+                              }}>
                                 {t("businessDetail.changeProof")}
                               </Button>
                             </div>

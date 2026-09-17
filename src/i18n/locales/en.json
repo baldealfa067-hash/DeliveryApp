@@ -1266,7 +1266,8 @@
     "rejectPayment": "Invalid proof",
     "paymentStatus_pendente": "Payment pending",
     "paymentStatus_validado": "Payment confirmed",
-    "paymentStatus_rejeitado": "Payment rejected"
+    "paymentStatus_rejeitado": "Payment rejected",
+    "proofUnavailable": "Could not open the proof of payment. Refresh the page."
   },
   "myAppointments": {
     "title": "My Appointments",

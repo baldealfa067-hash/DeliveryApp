@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { toast } from "sonner";
 import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
+import { useComprovativoUrl } from "@/lib/comprovativos";
 
 const DELIVERY_IN_PROGRESS_STATUSES = [
   "aguardando_motorista",
@@ -720,17 +721,7 @@ const OrderDetail = ({
             <PaymentBadge status={order.payment_status} />
           </div>
           {order.payment_proof_url && (
-            <button
-              type="button"
-              onClick={() => onPreviewProof(order.payment_proof_url as string)}
-              className="block w-full"
-            >
-              <img
-                src={order.payment_proof_url}
-                alt={t("orderManagement.paymentProof")}
-                className="max-h-48 w-full cursor-pointer rounded-md border object-contain transition-opacity hover:opacity-90"
-              />
-            </button>
+            <ComprovativoMiniatura refComprovativo={order.payment_proof_url} onPreview={onPreviewProof} />
           )}
           {order.payment_status === "pendente" && (
             // Empilhados em ecrã estreito: os rótulos são longos e os botões têm
@@ -762,3 +753,29 @@ const OrderDetail = ({
 };
 
 export default OrderManagement;
+
+/** Comprovativo do bucket privado: pede um URL assinado (o Storage decide se este
+ *  restaurante o pode ver) e passa esse URL, não o caminho, para a pré-visualização. */
+const ComprovativoMiniatura = ({
+  refComprovativo,
+  onPreview,
+}: {
+  refComprovativo: string;
+  onPreview: (url: string) => void;
+}) => {
+  const { t } = useTranslation();
+  const { data: url, isLoading, isError } = useComprovativoUrl(refComprovativo);
+  if (isLoading) return <Skeleton className="h-48 w-full rounded-md" />;
+  if (isError || !url) {
+    return <p className="text-caption text-muted-foreground">{t("orderManagement.proofUnavailable")}</p>;
+  }
+  return (
+    <button type="button" onClick={() => onPreview(url)} className="block w-full">
+      <img
+        src={url}
+        alt={t("orderManagement.paymentProof")}
+        className="max-h-48 w-full cursor-pointer rounded-md border object-contain transition-opacity hover:opacity-90"
+      />
+    </button>
+  );
+};

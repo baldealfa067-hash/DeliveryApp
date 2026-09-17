@@ -1266,7 +1266,8 @@
     "rejectPayment": "Justificatif invalide",
     "paymentStatus_pendente": "Paiement en attente",
     "paymentStatus_validado": "Paiement confirmé",
-    "paymentStatus_rejeitado": "Paiement rejeté"
+    "paymentStatus_rejeitado": "Paiement rejeté",
+    "proofUnavailable": "Impossible d'ouvrir le justificatif. Actualisez la page."
   },
   "myAppointments": {
     "title": "Mes Réservations",

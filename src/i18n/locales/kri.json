@@ -694,7 +694,8 @@
     "rejectPayment": "Komprovativu invalidu",
     "paymentStatus_pendente": "Pagamentu pendenti",
     "paymentStatus_validado": "Pagamentu konfirmadu",
-    "paymentStatus_rejeitado": "Pagamentu rejeitadu"
+    "paymentStatus_rejeitado": "Pagamentu rejeitadu",
+    "proofUnavailable": "Ka pudi abri komprovativu. Atualiza pájina."
   },
   "beautyDetail": {
     "notFound": "Négoisiu na kuskutra.",
