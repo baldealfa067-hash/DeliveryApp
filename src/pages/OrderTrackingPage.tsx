@@ -8,6 +8,7 @@ import {
   XCircle,
   Loader2,
   MessageSquare,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadError } from "@/components/LoadError";
@@ -223,6 +224,43 @@ const OrderTrackingPage = () => {
         </CardContent>
       </Card>
 
+      {/* Ligar sobre o pedido (§52: "quem está cuidando dele?"). O telefone do
+          motorista só chega do servidor enquanto ele está com o pedido. Um envio
+          não tem restaurante. Botões grandes, tocar e ligar (§50, §51). */}
+      {((order.business_id && order.business_phone) || order.driver_phone) && (
+        <Card className="mb-4">
+          <CardContent className="p-4 space-y-2">
+            <h2 className="text-sm font-semibold">{t("orderTracking.callAboutOrder")}</h2>
+            {order.driver_phone && (
+              <Button asChild size="lg" className="w-full h-14 gap-3 justify-start text-base">
+                <a href={`tel:${order.driver_phone}`}>
+                  <Phone className="h-5 w-5 shrink-0" />
+                  <span className="flex flex-col items-start leading-tight">
+                    <span>{t("orderTracking.callDriver")}</span>
+                    <span className="text-xs font-normal opacity-90">
+                      {[order.driver_name, order.driver_phone].filter(Boolean).join(" · ")}
+                    </span>
+                  </span>
+                </a>
+              </Button>
+            )}
+            {order.business_id && order.business_phone && (
+              <Button asChild size="lg" variant={order.driver_phone ? "outline" : "default"} className="w-full h-14 gap-3 justify-start text-base">
+                <a href={`tel:${order.business_phone}`}>
+                  <Phone className="h-5 w-5 shrink-0" />
+                  <span className="flex flex-col items-start leading-tight">
+                    <span>{t("orderTracking.callRestaurant")}</span>
+                    <span className="text-xs font-normal opacity-90">
+                      {[order.business_name, order.business_phone].filter(Boolean).join(" · ")}
+                    </span>
+                  </span>
+                </a>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Delivery Code — shown when driver is handling the order */}
       {order.consumption_option === "entrega" &&
         ["motorista_encontrado", "pedido_recolhido", "a_caminho"].includes(order.status) &&
@@ -260,12 +298,15 @@ const OrderTrackingPage = () => {
 
       {/* Actions */}
       <div className="space-y-2">
+        {/* Um envio não tem restaurante: o link ia para /loja/null. */}
+        {order.business_id && (
         <Link to={`/loja/${order.business_id}`}>
           <Button variant="outline" className="w-full gap-2">
             <MessageSquare className="h-4 w-4" />
             {t("orderTracking.messageRestaurant")}
           </Button>
         </Link>
+        )}
       </div>
     </div>
   );

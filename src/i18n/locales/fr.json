@@ -1177,7 +1177,10 @@
     "proofByCode": "Livré avec le code de confirmation",
     "proofByPhoto": "Livré avec une photo",
     "deliveryCode": "Code de livraison",
-    "deliveryCodeHint": "Montrez ce code au livreur à son arrivée"
+    "deliveryCodeHint": "Montrez ce code au livreur à son arrivée",
+    "callAboutOrder": "Appeler au sujet de la commande",
+    "callRestaurant": "Appeler le restaurant",
+    "callDriver": "Appeler le livreur"
   },
   "orderStatus": {
     "novo": "Nouvelle commande",

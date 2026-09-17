@@ -837,6 +837,25 @@ cobertura dizia 100% em en/fr porque conta as chaves que existem, e esses ecrãs
 não tinham chave nenhuma. **Regra daqui em diante: texto de interface novo entra
 já com chave nos 4 ficheiros.**
 
+## Checkout e contacto — decisões tomadas (2026-09-17)
+
+Polimento pedido pelo dono ao rever os ecrãs reais: checkout em 4 pontos (1 →
+nome/telefone pré-preenchidos, 2 → código de pagamento sempre visível, 3 →
+código OU número, 4 → comprovativo obrigatório), mais o contacto directo abaixo.
+
+**Ligar ao restaurante e ao motorista a partir do pedido.** A decisão sobre o
+motorista foi tomada por mim, não pelo dono — fica aqui para ser confirmada.
+
+- **Telefone do restaurante: sempre visível** no acompanhamento do pedido. Já é
+  público (`profiles.phone`, decisão de 2026-09-09); não se abre nada novo.
+- **Telefone do motorista: só enquanto ele está com o pedido** —
+  `motorista_encontrado`, `pedido_recolhido`, `a_caminho`. Antes de aceitar não
+  há motorista; depois de concluir, o cliente não precisa do número pessoal de
+  quem entregou, e guardá-lo para sempre expunha o motorista sem razão.
+- **Chega pela RPC `get_customer_orders`**, não por policy nova em `drivers`
+  (que continua própria linha + admin). A RPC decide a janela; a tabela não abre.
+- **Envio (Fase 7) não tem restaurante**: sem botão de ligar ao restaurante.
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)

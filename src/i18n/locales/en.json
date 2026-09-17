@@ -1177,7 +1177,10 @@
     "proofByCode": "Delivered with the confirmation code",
     "proofByPhoto": "Delivered with a photo",
     "deliveryCode": "Delivery code",
-    "deliveryCodeHint": "Show this code to the driver when they arrive"
+    "deliveryCodeHint": "Show this code to the driver when they arrive",
+    "callAboutOrder": "Call about this order",
+    "callRestaurant": "Call the restaurant",
+    "callDriver": "Call the driver"
   },
   "orderStatus": {
     "novo": "New Order",

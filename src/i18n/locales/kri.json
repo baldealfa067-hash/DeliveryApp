@@ -621,7 +621,10 @@
     "proofByCode": "Entregadu ku kodigu di konfirmason",
     "proofByPhoto": "Entregadu ku fotografia",
     "deliveryCode": "Kodigu di entrega",
-    "deliveryCodeHint": "Mostra es kodigu pa motorista ora ki i tchiga"
+    "deliveryCodeHint": "Mostra es kodigu pa motorista ora ki i tchiga",
+    "callAboutOrder": "Liga riba di pididu",
+    "callRestaurant": "Liga pa resturanti",
+    "callDriver": "Liga pa motorista"
   },
   "orderStatus": {
     "novo": "Pedidu Nobu",

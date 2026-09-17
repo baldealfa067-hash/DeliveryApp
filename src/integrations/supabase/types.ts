@@ -2088,6 +2088,7 @@ export type Database = {
           bairro: string
           business_id: string
           business_name: string
+          business_phone: string | null
           consumption_option: string
           created_at: string
           customer_id: string
@@ -2095,6 +2096,8 @@ export type Database = {
           customer_phone: string
           delivery_code: string
           delivery_fee: number
+          driver_name: string | null
+          driver_phone: string | null
           id: string
           items: Json
           notes: string

@@ -1177,7 +1177,10 @@
     "proofByCode": "Entregue com o código de confirmação",
     "proofByPhoto": "Entregue com fotografia",
     "deliveryCode": "Código de entrega",
-    "deliveryCodeHint": "Mostra este código ao motorista quando chegar"
+    "deliveryCodeHint": "Mostra este código ao motorista quando chegar",
+    "callAboutOrder": "Ligar sobre o pedido",
+    "callRestaurant": "Ligar ao restaurante",
+    "callDriver": "Ligar ao motorista"
   },
   "orderStatus": {
     "novo": "Novo Pedido",

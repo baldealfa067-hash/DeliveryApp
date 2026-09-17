@@ -30,6 +30,11 @@ export interface Order {
   payment_status: string;
   /** Fase 2.4 — "app" (cliente na aplicação) ou "manual" (telefone/balcão). */
   source?: string | null;
+  /** Só em `get_customer_orders`. O do motorista vem NULL fora da janela em que
+   *  ele está com o pedido (motorista_encontrado → a_caminho). */
+  business_phone?: string | null;
+  driver_name?: string | null;
+  driver_phone?: string | null;
 }
 
 export interface OrderHistoryEntry {
