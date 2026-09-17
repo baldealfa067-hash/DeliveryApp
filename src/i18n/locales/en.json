@@ -598,7 +598,11 @@
     "otherRecipientHint": "Ordering for someone else? Replace the name and phone with those of the person receiving it. Your account does not change.",
     "recipientNamePlaceholder": "E.g. Maria Silva",
     "choosePaymentNow": "Account ready. Now choose how you want to pay and tap Place Order.",
-    "paymentInstructionsNumber": "1. Copy the number. 2. In Orange Money, send the amount to that number. 3. Take a screenshot of the confirmation and attach it here."
+    "paymentInstructionsNumber": "1. Copy the number. 2. In Orange Money, send the amount to that number. 3. Take a screenshot of the confirmation and attach it here.",
+    "attachProofRequired": "Attach proof of payment (required)",
+    "proofRequiredHint": "Without proof of payment the order cannot be placed.",
+    "proofRequired": "Attach the Orange Money proof of payment to place the order.",
+    "proofStillUploading": "Please wait, the proof is still uploading."
   },
   "providerDetail": {
     "loading": "Loading...",

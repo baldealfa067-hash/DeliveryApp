@@ -392,6 +392,23 @@ const BusinessDetail = () => {
   // Fase 6.1: no Orange Money o restaurante recebe TUDO -- comida e entrega. Mostrar
   // só a comida fazia o cliente transferir a menos.
   const valorOrangeMoney = cartTotal + (deliveryPrice?.preco ?? 0);
+  // Ponto 4: Orange Money sem comprovativo não avança. O servidor recusa na mesma
+  // (create_order); isto só evita que o cliente chegue ao fim para levar um erro.
+  const pagaOrangeMoney = activeConsumption === "entrega" && paymentMethod === "online";
+  const faltaComprovativo = pagaOrangeMoney && !paymentProofUrl;
+  const travarSemComprovativo = () => {
+    if (!pagaOrangeMoney) return false;
+    if (paymentProofUploading) {
+      toast.info(t("businessDetail.proofStillUploading"));
+      return true;
+    }
+    if (!paymentProofUrl) {
+      toast.error(t("businessDetail.proofRequired"));
+      paymentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return true;
+    }
+    return false;
+  };
 
   const sendOrder = async () => {
     if (!id) return;
@@ -404,6 +421,7 @@ const BusinessDetail = () => {
       if (!deliveryPhone.trim()) return toast.error(t("businessDetail.enterPhone"));
       if (!bairro.trim()) return toast.error(t("businessDetail.selectBairro"));
     }
+    if (travarSemComprovativo()) return;
     if (user) setOrderConfirmOpen(true);
     else requireAuth(() => setConfirmarAposLogin(true));
   };
@@ -413,6 +431,10 @@ const BusinessDetail = () => {
     if (!orderCustomerName.trim()) return toast.error(t("businessDetail.enterName"));
     const phoneForOrder = activeConsumption === "entrega" ? deliveryPhone.trim() : orderCustomerPhone.trim();
     if (!phoneForOrder) return toast.error(t("businessDetail.enterPhone"));
+    if (travarSemComprovativo()) {
+      setOrderConfirmOpen(false);
+      return;
+    }
     setSending(true);
     try {
       // Upload voice note if recorded
@@ -962,6 +984,8 @@ const BusinessDetail = () => {
                           />
                           {paymentProofUrl ? (
                             <div className="flex items-center gap-2">
+                              {/* A miniatura deixa ver que é a imagem certa, sem ter de confiar num "anexado". */}
+                              <img src={paymentProofUrl} alt="" className="h-12 w-12 rounded-md border object-cover" />
                               <Check className="h-4 w-4 text-green-600" />
                               <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
                               <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setPaymentProofUrl(null); if (paymentProofRef.current) paymentProofRef.current.value = ""; }}>
@@ -969,16 +993,21 @@ const BusinessDetail = () => {
                               </Button>
                             </div>
                           ) : (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="w-full gap-2"
-                              onClick={() => paymentProofRef.current?.click()}
-                              disabled={paymentProofUploading}
-                            >
-                              {paymentProofUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                              {t("businessDetail.attachProof")}
-                            </Button>
+                            <div className="space-y-1.5">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full h-12 gap-2 border-2 border-orange-400 text-base"
+                                onClick={() => paymentProofRef.current?.click()}
+                                disabled={paymentProofUploading}
+                              >
+                                {paymentProofUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                {t("businessDetail.attachProofRequired")}
+                              </Button>
+                              <p className="text-xs font-medium text-orange-800 dark:text-orange-200">
+                                {t("businessDetail.proofRequiredHint")}
+                              </p>
+                            </div>
                           )}
                         </>
                       )}
@@ -1274,7 +1303,7 @@ const BusinessDetail = () => {
             </Button>
             <Button
               onClick={confirmOrder}
-              disabled={sending || !orderCustomerName.trim() || !(activeConsumption === "entrega" ? deliveryPhone : orderCustomerPhone).trim()}
+              disabled={sending || faltaComprovativo || !orderCustomerName.trim() || !(activeConsumption === "entrega" ? deliveryPhone : orderCustomerPhone).trim()}
               className="gap-2 min-h-12"
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}

@@ -859,7 +859,11 @@
     "customerName": "Nomi di kin ku na risibi",
     "recipientNamePlaceholder": "Ex: Maria Silva",
     "choosePaymentNow": "Konta pruntu. Skoji gosi kuma ku bu na paga, toka na Fazer Pedido.",
-    "paymentInstructionsNumber": "1. Kopia númeru. 2. Na Orange Money, manda balur pa es númeru. 3. Tira kaptura di konfirmason i junta li."
+    "paymentInstructionsNumber": "1. Kopia númeru. 2. Na Orange Money, manda balur pa es númeru. 3. Tira kaptura di konfirmason i junta li.",
+    "attachProofRequired": "Junta komprovativu (obrigatóriu)",
+    "proofRequiredHint": "Sin komprovativu di pagamentu ka pudi fasi pididu.",
+    "proofRequired": "Junta komprovativu di pagamentu Orange Money pa bu pudi fasi pididu.",
+    "proofStillUploading": "Spera, komprovativu inda na bai."
   },
   "notifications": {
     "title": "Notifikasons",

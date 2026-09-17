@@ -118,6 +118,14 @@ async function fase1() {
   const businessId = perfil.corpo?.[0]?.id;
   if (!businessId) throw new Error(`sem perfil de restaurante: ${JSON.stringify(perfil.corpo)}`);
 
+  // Checkout, ponto 4 (2026-09-17): `create_order` so aceita `online` se o
+  // restaurante recebe por Orange Money. Sem isto o pedido online da fase 2 e'
+  // recusado antes de o ledger ser exercitado.
+  const om = await tabela(restaurante.token, `profiles?id=eq.${businessId}`, { method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ merchant_code: "#144#32*000000#", orange_money_method: "codigo" }) });
+  if (om.status >= 400) throw new Error(`orange_money_method: ${JSON.stringify(om.corpo)}`);
+
   // BAIRRO PROPRIO DO TESTE, e nao o nome real "Sabi". `get_delivery_price`
   // escolhe a frota mais BARATA de todas as que cobrem o bairro (empate
   // desempatado pela mais antiga), portanto um nome real fazia este teste
@@ -179,6 +187,12 @@ async function fase2() {
   ok("conta de admin confirmada por HTTP");
 
   // --- pedido ONLINE de 10.000, entrega em Sabi (1.000) ---------------------
+  // Ponto 4: `online` exige um comprovativo que EXISTE na pasta do proprio cliente.
+  const caminhoProva = `${cliente.user_id}/orders/payment/${Date.now()}-ledger.png`;
+  const up = await fetch(`${URL_BASE}/storage/v1/object/portfolio/${caminhoProva}`, { method: "POST",
+    headers: { apikey: ANON, Authorization: `Bearer ${cliente.token}`, "Content-Type": "image/png" },
+    body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64") });
+  if (up.status >= 300) throw new Error(`upload do comprovativo: HTTP ${up.status}`);
   const novo = await rpc(cliente.token, "create_order", {
     p_business_id: businessId,
     p_customer_id: cliente.user_id,
@@ -190,6 +204,7 @@ async function fase2() {
     p_address: "Rua de teste",
     p_bairro: e.bairro,
     p_payment_method: "online",
+    p_payment_proof_url: `${URL_BASE}/storage/v1/object/public/portfolio/${caminhoProva}`,
   });
   if (novo.status !== 200) throw new Error(`create_order: ${JSON.stringify(novo.corpo)}`);
   const orderId = typeof novo.corpo === "string" ? novo.corpo : novo.corpo?.id ?? novo.corpo;

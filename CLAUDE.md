@@ -871,6 +871,26 @@ dono; o desenho é meu.
 - **Privada**, como o código e o número: não entra no GRANT por coluna nem em
   `PUBLIC_PROFILE_COLUMNS`. O dono lê-a por `get_my_profile_private`.
 
+**Ponto 4 — comprovativo obrigatório, e o servidor fecha o "pagar agora"**
+(aprovado pelo dono, juntos por serem a mesma função). Imposto em `create_order`,
+não só no ecrã (§46):
+
+- **`online` só se o restaurante recebe por Orange Money** (`orange_money_method`
+  não nulo). Antes, um JWT marcava "pago por Orange Money" num restaurante sem
+  código nem número — o cliente não tinha para onde pagar, e o restaurante via um
+  pedido "pago" que nunca recebeu.
+- **`online` exige comprovativo, e o comprovativo tem de EXISTIR**: um objecto no
+  bucket `portfolio`, na pasta `<auth.uid()>/orders/payment/`. Não basta texto no
+  campo — um `"x"` passava. A pasta é a do próprio cliente (a policy de storage
+  só deixa escrever lá), portanto não serve o comprovativo de outra pessoa.
+  A escolha é minha: é a leitura fiel de "obrigatório", e não uma URL qualquer.
+- **Pedido `entrega` não guarda comprovativo**, mesmo que o ecrã o envie.
+- **Pedidos antigos não são tocados**: há 1 pedido online sem comprovativo em
+  produção, de antes da regra. Fica como está (§56).
+- **Achados, NÃO corrigidos aqui** (decisão do dono): o bucket `portfolio` é
+  público, portanto quem tiver a URL de um comprovativo vê-o; e o cliente pode
+  apagar o próprio comprovativo depois do pedido (policy DELETE da pasta dele).
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)

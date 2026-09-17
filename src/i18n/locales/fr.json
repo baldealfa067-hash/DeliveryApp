@@ -598,7 +598,11 @@
     "otherRecipientHint": "Commande pour quelqu'un d'autre ? Remplacez le nom et le téléphone par ceux de la personne qui reçoit. Votre compte ne change pas.",
     "recipientNamePlaceholder": "Ex : Maria Silva",
     "choosePaymentNow": "Compte prêt. Choisissez maintenant comment payer et touchez Passer commande.",
-    "paymentInstructionsNumber": "1. Copiez le numéro. 2. Dans Orange Money, envoyez le montant à ce numéro. 3. Faites une capture de la confirmation et joignez-la ici."
+    "paymentInstructionsNumber": "1. Copiez le numéro. 2. Dans Orange Money, envoyez le montant à ce numéro. 3. Faites une capture de la confirmation et joignez-la ici.",
+    "attachProofRequired": "Joindre le justificatif (obligatoire)",
+    "proofRequiredHint": "Sans justificatif de paiement, la commande ne peut pas être passée.",
+    "proofRequired": "Joignez le justificatif du paiement Orange Money pour passer la commande.",
+    "proofStillUploading": "Patientez, le justificatif est encore en cours d'envoi."
   },
   "providerDetail": {
     "loading": "Chargement...",

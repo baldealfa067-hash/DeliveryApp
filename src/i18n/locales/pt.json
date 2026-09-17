@@ -598,7 +598,11 @@
     "otherRecipientHint": "Pedido para outra pessoa? Troque o nome e o telefone pelos de quem vai receber. A sua conta não muda.",
     "recipientNamePlaceholder": "Ex: Maria Silva",
     "choosePaymentNow": "Conta pronta. Escolha agora como quer pagar e toque em Fazer Pedido.",
-    "paymentInstructionsNumber": "1. Copie o número. 2. No Orange Money, envie o valor para esse número. 3. Tire captura da confirmação e anexe aqui."
+    "paymentInstructionsNumber": "1. Copie o número. 2. No Orange Money, envie o valor para esse número. 3. Tire captura da confirmação e anexe aqui.",
+    "attachProofRequired": "Anexar comprovativo (obrigatório)",
+    "proofRequiredHint": "Sem o comprovativo do pagamento não é possível fazer o pedido.",
+    "proofRequired": "Anexe o comprovativo do pagamento Orange Money para poder fazer o pedido.",
+    "proofStillUploading": "Aguarde, o comprovativo ainda está a ser enviado."
   },
   "providerDetail": {
     "loading": "A carregar...",
