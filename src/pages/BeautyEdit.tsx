@@ -69,6 +69,7 @@ type BeautyItem = { id: string; name: string; price_type: PriceType; price: numb
 type PerfilPrivado = {
   merchant_code: string | null;
   payment_number: string | null;
+  orange_money_method: string | null;
   verification_doc_url: string | null;
   verification_selfie_url: string | null;
   verification_reason: string | null;
@@ -233,8 +234,8 @@ const BeautyEdit = () => {
       user_id: user.id,
     };
     const { error, data } = profileId
-      ? await supabase.from("profiles").update(payload).eq("id", profileId).select().single()
-      : await supabase.from("profiles").insert(payload).select().single();
+      ? await supabase.from("profiles").update(payload).eq("id", profileId).select(PUBLIC_PROFILE_COLUMNS).single()
+      : await supabase.from("profiles").insert(payload).select(PUBLIC_PROFILE_COLUMNS).single();
     setSaving(false);
     if (error) return toast.error(error.message);
     if (data) {

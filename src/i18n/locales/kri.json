@@ -807,13 +807,22 @@
     "merchantCode": "Código Orange Money",
     "merchantCodeHint": "Código USSD di kumersanti (ex: #144#32*123456#)",
     "paymentNumber": "Número pa pagamentu",
-    "paymentNumberHint": "Alternativa si ka ten código di kumersanti",
+    "paymentNumberHint": "Númeru Orange Money pa kliente manda dinheru",
     "stockMinus": "Minus un",
     "stockPlus": "Mas un",
     "stockStartTracking": "Kontrola stock",
     "stockStopTracking": "Para di kontrola",
     "stockAdjustReason": "Ajusti na painel",
-    "stockStopReason": "Kontrolu di stock disligadu"
+    "stockStopReason": "Kontrolu di stock disligadu",
+    "orangeMoneyHow": "Kuma ku bu misti risibi pa Orange Money?",
+    "orangeMoneyCode": "Kódigu di komersianti",
+    "orangeMoneyCodeDesc": "Kliente ta toka na kódigu i pagamentu ta abri na si telemovel.",
+    "orangeMoneyNumber": "Númeru di telfoni",
+    "orangeMoneyNumberDesc": "Kliente ta kopia númeru i i ta fasi transferénsia.",
+    "orangeMoneyNone": "N ka ta risibi pa Orange Money",
+    "orangeMoneyNoneDesc": "Klientes ta paga ku dinheru na entrega.",
+    "orangeMoneyNeedsCode": "Skirbi kódigu di komersianti, o skoji utru manera di risibi.",
+    "orangeMoneyNeedsNumber": "Skirbi númeru di telfoni, o skoji utru manera di risibi."
   },
   "businessDetail": {
     "consumption": {
@@ -849,7 +858,8 @@
     "otherRecipientHint": "Pididu pa utru pekadur? Troka nomi ku telfoni pa di kin ku na risibi. Bu konta ka na muda.",
     "customerName": "Nomi di kin ku na risibi",
     "recipientNamePlaceholder": "Ex: Maria Silva",
-    "choosePaymentNow": "Konta pruntu. Skoji gosi kuma ku bu na paga, toka na Fazer Pedido."
+    "choosePaymentNow": "Konta pruntu. Skoji gosi kuma ku bu na paga, toka na Fazer Pedido.",
+    "paymentInstructionsNumber": "1. Kopia númeru. 2. Na Orange Money, manda balur pa es númeru. 3. Tira kaptura di konfirmason i junta li."
   },
   "notifications": {
     "title": "Notifikasons",

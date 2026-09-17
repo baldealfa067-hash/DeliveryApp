@@ -473,13 +473,22 @@
     "merchantCode": "Código Orange Money",
     "merchantCodeHint": "Código USSD do comerciante (ex: #144#32*123456#)",
     "paymentNumber": "N.º telemóvel para pagamento",
-    "paymentNumberHint": "Alternativa se não tiver código de comerciante",
+    "paymentNumberHint": "O número Orange Money para onde os clientes transferem",
     "stockMinus": "Menos um",
     "stockPlus": "Mais um",
     "stockStartTracking": "Controlar stock",
     "stockStopTracking": "Deixar de controlar",
     "stockAdjustReason": "Ajuste no painel",
-    "stockStopReason": "Controlo de stock desligado"
+    "stockStopReason": "Controlo de stock desligado",
+    "orangeMoneyHow": "Como quer receber por Orange Money?",
+    "orangeMoneyCode": "Código de comerciante",
+    "orangeMoneyCodeDesc": "O cliente toca no código e o pagamento abre no telemóvel dele.",
+    "orangeMoneyNumber": "Número de telefone",
+    "orangeMoneyNumberDesc": "O cliente copia o número e faz a transferência.",
+    "orangeMoneyNone": "Não recebo por Orange Money",
+    "orangeMoneyNoneDesc": "Os clientes pagam em dinheiro na entrega.",
+    "orangeMoneyNeedsCode": "Escreva o código de comerciante, ou escolha outra forma de receber.",
+    "orangeMoneyNeedsNumber": "Escreva o número de telefone, ou escolha outra forma de receber."
   },
   "businessDetail": {
     "viewCart": "Ver carrinho",
@@ -588,7 +597,8 @@
     "stockLeft": "Restam {{count}}",
     "otherRecipientHint": "Pedido para outra pessoa? Troque o nome e o telefone pelos de quem vai receber. A sua conta não muda.",
     "recipientNamePlaceholder": "Ex: Maria Silva",
-    "choosePaymentNow": "Conta pronta. Escolha agora como quer pagar e toque em Fazer Pedido."
+    "choosePaymentNow": "Conta pronta. Escolha agora como quer pagar e toque em Fazer Pedido.",
+    "paymentInstructionsNumber": "1. Copie o número. 2. No Orange Money, envie o valor para esse número. 3. Tire captura da confirmação e anexe aqui."
   },
   "providerDetail": {
     "loading": "A carregar...",

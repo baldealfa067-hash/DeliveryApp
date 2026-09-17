@@ -856,6 +856,21 @@ motorista foi tomada por mim, não pelo dono — fica aqui para ser confirmada.
   (que continua própria linha + admin). A RPC decide a janela; a tabela não abre.
 - **Envio (Fase 7) não tem restaurante**: sem botão de ligar ao restaurante.
 
+**Ponto 3 — o restaurante escolhe como recebe por Orange Money.** Pedido pelo
+dono; o desenho é meu.
+
+- **`profiles.orange_money_method`**: `'codigo'` (USSD, o cliente toca e paga),
+  `'numero'` (o cliente copia e transfere) ou NULL (não recebe por Orange Money —
+  só dinheiro na entrega). Os dois valores continuam guardados: trocar de método
+  não obriga a reescrever o outro.
+- **Quem decide o que o cliente vê é o servidor**: `get_business_payment_info`
+  devolve só o do método escolhido. Um CHECK impede escolher um método sem o
+  valor correspondente preenchido.
+- **Migração:** restaurante com código fica em `'codigo'` (era o que o checkout já
+  lhe mostrava); só com número fica em `'numero'`. Nenhum cliente vê diferença.
+- **Privada**, como o código e o número: não entra no GRANT por coluna nem em
+  `PUBLIC_PROFILE_COLUMNS`. O dono lê-a por `get_my_profile_private`.
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)

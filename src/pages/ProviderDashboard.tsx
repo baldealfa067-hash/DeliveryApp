@@ -207,8 +207,8 @@ const ProviderDashboard = () => {
       user_id: user.id,
     };
     const { error, data } = profileId
-      ? await supabase.from("profiles").update(payload).eq("id", profileId).select().single()
-      : await supabase.from("profiles").insert(payload).select().single();
+      ? await supabase.from("profiles").update(payload).eq("id", profileId).select(PUBLIC_PROFILE_COLUMNS).single()
+      : await supabase.from("profiles").insert(payload).select(PUBLIC_PROFILE_COLUMNS).single();
     setSaving(false);
     if (error) return toast.error(error.message);
     if (data) setProfileId(data.id);

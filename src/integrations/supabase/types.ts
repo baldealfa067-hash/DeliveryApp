@@ -1355,6 +1355,7 @@ export type Database = {
           lng: number | null
           location: string
           merchant_code: string | null
+          orange_money_method: string | null
           name: string
           payment_number: string | null
           phone: string
@@ -1384,6 +1385,7 @@ export type Database = {
           lng?: number | null
           location: string
           merchant_code?: string | null
+          orange_money_method?: string | null
           name: string
           payment_number?: string | null
           phone: string
@@ -1413,6 +1415,7 @@ export type Database = {
           lng?: number | null
           location?: string
           merchant_code?: string | null
+          orange_money_method?: string | null
           name?: string
           payment_number?: string | null
           phone?: string
@@ -2241,6 +2244,7 @@ export type Database = {
         Args: never
         Returns: {
           merchant_code: string
+          orange_money_method: string
           payment_number: string
           verification_doc_url: string
           verification_reason: string

@@ -473,13 +473,22 @@
     "merchantCode": "Code Orange Money",
     "merchantCodeHint": "Code USSD du commerçant (ex : #144#32*123456#)",
     "paymentNumber": "N° téléphone pour paiement",
-    "paymentNumberHint": "Alternative si vous n'avez pas de code commerçant",
+    "paymentNumberHint": "Le numéro Orange Money vers lequel les clients transfèrent",
     "stockMinus": "Un de moins",
     "stockPlus": "Un de plus",
     "stockStartTracking": "Suivre le stock",
     "stockStopTracking": "Arrêter le suivi",
     "stockAdjustReason": "Ajustement depuis le tableau de bord",
-    "stockStopReason": "Suivi du stock désactivé"
+    "stockStopReason": "Suivi du stock désactivé",
+    "orangeMoneyHow": "Comment voulez-vous recevoir les paiements Orange Money ?",
+    "orangeMoneyCode": "Code marchand",
+    "orangeMoneyCodeDesc": "Le client touche le code et le paiement s'ouvre sur son téléphone.",
+    "orangeMoneyNumber": "Numéro de téléphone",
+    "orangeMoneyNumberDesc": "Le client copie le numéro et fait le transfert.",
+    "orangeMoneyNone": "Je n'accepte pas Orange Money",
+    "orangeMoneyNoneDesc": "Les clients paient en espèces à la livraison.",
+    "orangeMoneyNeedsCode": "Saisissez le code marchand, ou choisissez une autre façon de recevoir.",
+    "orangeMoneyNeedsNumber": "Saisissez le numéro de téléphone, ou choisissez une autre façon de recevoir."
   },
   "businessDetail": {
     "viewCart": "Voir le panier",
@@ -588,7 +597,8 @@
     "stockLeft": "Il reste {{count}}",
     "otherRecipientHint": "Commande pour quelqu'un d'autre ? Remplacez le nom et le téléphone par ceux de la personne qui reçoit. Votre compte ne change pas.",
     "recipientNamePlaceholder": "Ex : Maria Silva",
-    "choosePaymentNow": "Compte prêt. Choisissez maintenant comment payer et touchez Passer commande."
+    "choosePaymentNow": "Compte prêt. Choisissez maintenant comment payer et touchez Passer commande.",
+    "paymentInstructionsNumber": "1. Copiez le numéro. 2. Dans Orange Money, envoyez le montant à ce numéro. 3. Faites une capture de la confirmation et joignez-la ici."
   },
   "providerDetail": {
     "loading": "Chargement...",

@@ -925,29 +925,31 @@ const BusinessDetail = () => {
                         </div>
                       )}
 
-                      {/* Fallback: payment number */}
+                      {/* Número normal (o restaurante escolheu "número"): não há USSD para
+                          abrir, a acção é COPIAR. O botão grande é o de copiar, e copiar
+                          também escolhe Orange Money, como tocar no código. */}
                       {!businessMerchantCode && businessPaymentNumber && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold">{businessPaymentNumber}</span>
-                          <Button
+                        <div className="space-y-1.5">
+                          <p className="text-center text-2xl font-bold tracking-wide">{businessPaymentNumber}</p>
+                          <button
                             type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1 text-xs"
                             onClick={() => {
-                              navigator.clipboard.writeText(businessPaymentNumber);
+                              setPaymentMethod("online");
+                              void navigator.clipboard?.writeText(businessPaymentNumber);
                               toast.success(t("businessDetail.numberCopied"));
                             }}
+                            className="flex items-center justify-center gap-2 w-full rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg py-3 px-4 transition-colors"
                           >
-                            <Copy className="h-3.5 w-3.5" /> {t("businessDetail.copyNumber")}
-                          </Button>
+                            <Copy className="h-5 w-5" />
+                            {t("businessDetail.copyNumber")}
+                          </button>
                         </div>
                       )}
 
                       {paymentMethod === "online" && (
                         <>
                           <p className="text-[11px] text-muted-foreground">
-                            {t("businessDetail.paymentInstructions")}
+                            {businessMerchantCode ? t("businessDetail.paymentInstructions") : t("businessDetail.paymentInstructionsNumber")}
                           </p>
 
                           {/* Proof upload */}

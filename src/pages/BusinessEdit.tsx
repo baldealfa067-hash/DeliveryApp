@@ -54,12 +54,16 @@ const CONSUMPTION_OPTIONS: { value: ConsumptionOption; labelKey: string; descKey
   { value: "entrega", labelKey: "businessEdit.delivery", descKey: "businessEdit.deliveryDesc" },
 ];
 
+type OrangeMoneyMethod = "" | "codigo" | "numero";
+
 type Form = {
   name: string;
   category: string;
   phone: string;
   merchant_code: string;
   payment_number: string;
+  /** "" = não recebe por Orange Money. */
+  orange_money_method: OrangeMoneyMethod;
   location: string;
   description: string;
   photo_url: string;
@@ -73,6 +77,7 @@ const empty: Form = {
   phone: "",
   merchant_code: "",
   payment_number: "",
+  orange_money_method: "",
   location: "",
   description: "",
   photo_url: "",
@@ -93,6 +98,7 @@ type MenuItem = { id: string; name: string; price: number; photo_url: string | n
 type PerfilPrivado = {
   merchant_code: string | null;
   payment_number: string | null;
+  orange_money_method: string | null;
   verification_doc_url: string | null;
   verification_selfie_url: string | null;
   verification_reason: string | null;
@@ -167,6 +173,8 @@ const BusinessDashboard = () => {
             ...f,
             merchant_code: priv.merchant_code ?? "",
             payment_number: priv.payment_number ?? "",
+            orange_money_method:
+              priv.orange_money_method === "codigo" || priv.orange_money_method === "numero" ? priv.orange_money_method : "",
           }));
         });
         setForm({
@@ -175,6 +183,7 @@ const BusinessDashboard = () => {
           phone: data.phone ?? "",
           merchant_code: "",
           payment_number: "",
+          orange_money_method: "",
           location: data.location ?? "",
           description: data.description ?? "",
           photo_url: data.photo_url ?? "",
@@ -268,6 +277,14 @@ const BusinessDashboard = () => {
     if (prepTime !== null && (!Number.isInteger(prepTime) || prepTime < 1 || prepTime > 480)) {
       return toast.error(t("businessEdit.prepTimeInvalid"));
     }
+    // A base recusa na mesma (CHECK profiles_orange_money_method_coerente); isto
+    // só evita o erro técnico e diz ao dono o que falta.
+    if (form.orange_money_method === "codigo" && !form.merchant_code.trim()) {
+      return toast.error(t("businessEdit.orangeMoneyNeedsCode"));
+    }
+    if (form.orange_money_method === "numero" && !form.payment_number.trim()) {
+      return toast.error(t("businessEdit.orangeMoneyNeedsNumber"));
+    }
     setSaving(true);
     const payload = {
       name: form.name.trim(),
@@ -275,6 +292,7 @@ const BusinessDashboard = () => {
       phone: form.phone.trim(),
       merchant_code: form.merchant_code.trim() || null,
       payment_number: form.payment_number.trim() || null,
+      orange_money_method: form.orange_money_method || null,
       location: form.location.trim(),
       description: form.description.trim() || null,
       photo_url: form.photo_url.trim() || null,
@@ -286,8 +304,8 @@ const BusinessDashboard = () => {
     };
     const write = (body: typeof payload | Omit<typeof payload, "prep_time_minutes">) =>
       profileId
-        ? supabase.from("profiles").update(body).eq("id", profileId).select().single()
-        : supabase.from("profiles").insert(body).select().single();
+        ? supabase.from("profiles").update(body).eq("id", profileId).select(PUBLIC_PROFILE_COLUMNS).single()
+        : supabase.from("profiles").insert(body).select(PUBLIC_PROFILE_COLUMNS).single();
 
     let { error, data } = await write(payload);
     // A coluna prep_time_minutes chegou na migração 20260906000011. Se o front
@@ -490,16 +508,50 @@ const BusinessDashboard = () => {
                 />
                 <p className="mt-0.5 text-caption text-muted-foreground">{t("businessEdit.prepTimeHint")}</p>
               </Field>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Checkout, ponto 3: o dono ESCOLHE como recebe. O cliente vê só o
+                  método escolhido (o servidor filtra em get_business_payment_info).
+                  Os dois valores ficam guardados: trocar não apaga o outro. */}
+              <Field label={t("businessEdit.orangeMoneyHow")}>
+                <div className="grid gap-2" role="radiogroup" aria-label={t("businessEdit.orangeMoneyHow")}>
+                  {([
+                    { v: "codigo", label: t("businessEdit.orangeMoneyCode"), desc: t("businessEdit.orangeMoneyCodeDesc") },
+                    { v: "numero", label: t("businessEdit.orangeMoneyNumber"), desc: t("businessEdit.orangeMoneyNumberDesc") },
+                    { v: "", label: t("businessEdit.orangeMoneyNone"), desc: t("businessEdit.orangeMoneyNoneDesc") },
+                  ] as { v: OrangeMoneyMethod; label: string; desc: string }[]).map((o) => {
+                    const escolhido = form.orange_money_method === o.v;
+                    return (
+                      <button
+                        key={o.v || "nenhum"}
+                        type="button"
+                        role="radio"
+                        aria-checked={escolhido}
+                        onClick={() => setForm({ ...form, orange_money_method: o.v })}
+                        className={`flex items-start gap-3 rounded-xl border-2 p-3 text-left transition-colors ${escolhido ? "border-primary bg-primary/5" : "border-border"}`}
+                      >
+                        <span className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center ${escolhido ? "border-primary" : "border-muted-foreground/40"}`}>
+                          {escolhido && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                        </span>
+                        <span>
+                          <span className="block font-medium">{o.label}</span>
+                          <span className="block text-xs text-muted-foreground">{o.desc}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+              {form.orange_money_method === "codigo" && (
                 <Field label={t("businessEdit.merchantCode")}>
                   <Input placeholder="#144#32*123456#" value={form.merchant_code} onChange={(e) => setForm({ ...form, merchant_code: e.target.value })} />
                   <p className="text-[10px] text-muted-foreground mt-0.5">{t("businessEdit.merchantCodeHint")}</p>
                 </Field>
+              )}
+              {form.orange_money_method === "numero" && (
                 <Field label={t("businessEdit.paymentNumber")}>
-                  <Input placeholder="955 123 456" value={form.payment_number} onChange={(e) => setForm({ ...form, payment_number: e.target.value })} />
+                  <Input type="tel" placeholder="955 123 456" value={form.payment_number} onChange={(e) => setForm({ ...form, payment_number: e.target.value })} />
                   <p className="text-[10px] text-muted-foreground mt-0.5">{t("businessEdit.paymentNumberHint")}</p>
                 </Field>
-              </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t("businessEdit.locationRequired")}>
                   <Select value={form.location} onValueChange={(v) => setForm({ ...form, location: v })}>

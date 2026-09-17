@@ -473,13 +473,22 @@
     "merchantCode": "Orange Money Code",
     "merchantCodeHint": "Merchant USSD code (e.g. #144#32*123456#)",
     "paymentNumber": "Phone number for payment",
-    "paymentNumberHint": "Alternative if you don't have a merchant code",
+    "paymentNumberHint": "The Orange Money number customers transfer to",
     "stockMinus": "One less",
     "stockPlus": "One more",
     "stockStartTracking": "Track stock",
     "stockStopTracking": "Stop tracking",
     "stockAdjustReason": "Adjusted from dashboard",
-    "stockStopReason": "Stock tracking turned off"
+    "stockStopReason": "Stock tracking turned off",
+    "orangeMoneyHow": "How do you want to receive Orange Money payments?",
+    "orangeMoneyCode": "Merchant code",
+    "orangeMoneyCodeDesc": "The customer taps the code and the payment opens on their phone.",
+    "orangeMoneyNumber": "Phone number",
+    "orangeMoneyNumberDesc": "The customer copies the number and makes the transfer.",
+    "orangeMoneyNone": "I don't accept Orange Money",
+    "orangeMoneyNoneDesc": "Customers pay cash on delivery.",
+    "orangeMoneyNeedsCode": "Enter the merchant code, or choose another way to receive.",
+    "orangeMoneyNeedsNumber": "Enter the phone number, or choose another way to receive."
   },
   "businessDetail": {
     "viewCart": "View cart",
@@ -588,7 +597,8 @@
     "stockLeft": "{{count}} left",
     "otherRecipientHint": "Ordering for someone else? Replace the name and phone with those of the person receiving it. Your account does not change.",
     "recipientNamePlaceholder": "E.g. Maria Silva",
-    "choosePaymentNow": "Account ready. Now choose how you want to pay and tap Place Order."
+    "choosePaymentNow": "Account ready. Now choose how you want to pay and tap Place Order.",
+    "paymentInstructionsNumber": "1. Copy the number. 2. In Orange Money, send the amount to that number. 3. Take a screenshot of the confirmation and attach it here."
   },
   "providerDetail": {
     "loading": "Loading...",
