@@ -842,7 +842,8 @@
     "paymentProofError": "Eror na mandason di komprovativu",
     "amountToTransfer": "Valor pa transferi",
     "soldOut": "Kaba",
-    "stockLeft": "Fika {{count}}"
+    "stockLeft": "Fika {{count}}",
+    "otherRecipientHint": "Pididu pa utru pekadur? Troka nomi ku telfoni pa di kin ku na risibi. Bu konta ka na muda."
   },
   "notifications": {
     "title": "Notifikasons",

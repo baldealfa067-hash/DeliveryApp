@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePhone, isValidPhone, isValidPin, clientEmail, derivePassword } from "./clientAuth";
+import { normalizePhone, isValidPhone, isValidPin, clientEmail, derivePassword, contactFromUser } from "./clientAuth";
 
 describe("normalizePhone", () => {
   it("reduz as várias formas do mesmo número à mesma canónica", () => {
@@ -68,5 +68,26 @@ describe("derivePassword", () => {
     expect(p).toMatch(/[a-z]/);
     expect(p).toMatch(/[0-9]/);
     expect(p).toMatch(/[^A-Za-z0-9]/);
+  });
+});
+
+describe("contactFromUser", () => {
+  it("lê nome e telefone dos metadados do registo", () => {
+    expect(contactFromUser({ email: "c955123456@deliveryapp.gw", user_metadata: { name: " Maria ", phone: "955123456" } }))
+      .toEqual({ name: "Maria", phone: "955123456" });
+  });
+
+  it("recupera o telefone do email sintético quando falta nos metadados", () => {
+    expect(contactFromUser({ email: clientEmail("+245 955 123 456"), user_metadata: { name: "Maria" } }))
+      .toEqual({ name: "Maria", phone: "955123456" });
+  });
+
+  it("conta de email normal não inventa telefone", () => {
+    expect(contactFromUser({ email: "c123@gmail.com", user_metadata: { name: "Loja" } }))
+      .toEqual({ name: "Loja", phone: "" });
+  });
+
+  it("sem sessão devolve vazio", () => {
+    expect(contactFromUser(null)).toEqual({ name: "", phone: "" });
   });
 });

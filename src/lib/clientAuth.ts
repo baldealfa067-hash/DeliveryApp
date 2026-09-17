@@ -49,6 +49,26 @@ export const clientEmail = (rawPhone: string): string =>
   `c${normalizePhone(rawPhone)}@${EMAIL_DOMAIN}`;
 
 /**
+ * Nome e telefone da conta, para pré-preencher o checkout (o cliente não tem de
+ * escrever o que já nos deu no registo). O registo telefone+PIN grava ambos em
+ * `user_metadata`; `profiles.phone` nasce vazio e não serve. Se o telefone
+ * faltar nos metadados, recupera-se do email sintético, que o contém.
+ * Contas de email (restaurante, frota) não têm telefone: devolve "".
+ */
+export const contactFromUser = (
+  user: { email?: string | null; user_metadata?: Record<string, unknown> | null } | null | undefined,
+): { name: string; phone: string } => {
+  const meta = user?.user_metadata ?? {};
+  const name = typeof meta.name === "string" ? meta.name.trim() : "";
+  let phone = typeof meta.phone === "string" ? normalizePhone(meta.phone) : "";
+  if (!phone) {
+    const m = new RegExp(`^c(\\d+)@${EMAIL_DOMAIN.replace(".", "\\.")}$`).exec(user?.email ?? "");
+    if (m) phone = m[1];
+  }
+  return { name, phone };
+};
+
+/**
  * Password determinística. O prefixo fixo garante maiúscula, minúscula, dígito
  * e símbolo, para passar em regras de complexidade do lado do Supabase.
  */

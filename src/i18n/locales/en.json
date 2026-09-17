@@ -585,7 +585,8 @@
     "paymentProofError": "Error uploading proof",
     "amountToTransfer": "Amount to transfer",
     "soldOut": "Sold out",
-    "stockLeft": "{{count}} left"
+    "stockLeft": "{{count}} left",
+    "otherRecipientHint": "Ordering for someone else? Replace the name and phone with those of the person receiving it. Your account does not change."
   },
   "providerDetail": {
     "loading": "Loading...",

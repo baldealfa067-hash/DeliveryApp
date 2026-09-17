@@ -585,7 +585,8 @@
     "paymentProofError": "Erro ao enviar comprovativo",
     "amountToTransfer": "Valor a transferir",
     "soldOut": "Esgotado",
-    "stockLeft": "Restam {{count}}"
+    "stockLeft": "Restam {{count}}",
+    "otherRecipientHint": "Pedido para outra pessoa? Troque o nome e o telefone pelos de quem vai receber. A sua conta não muda."
   },
   "providerDetail": {
     "loading": "A carregar...",

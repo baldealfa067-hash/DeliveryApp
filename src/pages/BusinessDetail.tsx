@@ -32,6 +32,7 @@ import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
 import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
 import { Mic, Square, Play, Pause, RotateCcw, Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
 import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
+import { contactFromUser } from "@/lib/clientAuth";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -137,6 +138,21 @@ const BusinessDetail = () => {
   const [orderCustomerName, setOrderCustomerName] = useState("");
   const [orderCustomerPhone, setOrderCustomerPhone] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
+  /* Nome e telefone vêm da conta: o cliente não repete o que já deu no registo.
+     Só enche campos VAZIOS -- se ele os trocou (pedido para a mãe), não se
+     escreve por cima. É só para este pedido; o perfil não é tocado. */
+  const preencherContacto = () => {
+    const { name, phone } = contactFromUser(user);
+    if (name) setOrderCustomerName((v) => v || name);
+    if (phone) {
+      setDeliveryPhone((v) => v || phone);
+      setOrderCustomerPhone((v) => v || phone);
+    }
+  };
+  useEffect(() => {
+    if (user) preencherContacto();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   const createOrder = useCreateOrder();
   const { data: bairros = [] } = useBairros();
   /* §14/§83: o cliente tem de saber a taxa de entrega ANTES de confirmar.
@@ -405,6 +421,7 @@ const BusinessDetail = () => {
       setOrderCustomerName("");
       setOrderCustomerPhone("");
       setOrderNotes("");
+      preencherContacto();
       setOrderConfirmOpen(false);
       setCustomerLocation(null);
       setVoiceNoteUrl(null);
@@ -1158,7 +1175,6 @@ const BusinessDetail = () => {
             {activeConsumption === "entrega" && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-3 text-sm space-y-1">
                 <p className="font-semibold text-blue-700 dark:text-blue-300 text-xs uppercase">{t("businessDetail.deliveryInfo")}</p>
-                <p><span className="text-muted-foreground">{t("businessDetail.customerPhone")}:</span> <strong>{deliveryPhone}</strong></p>
                 <p><span className="text-muted-foreground">{t("businessDetail.bairro")}:</span> <strong>{bairro}</strong></p>
                 {referencePoint && <p><span className="text-muted-foreground">{t("businessDetail.referencePoint")}:</span> {referencePoint}</p>}
               </div>
@@ -1173,18 +1189,21 @@ const BusinessDetail = () => {
                 onChange={(e) => setOrderCustomerName(e.target.value)}
               />
             </div>
-            {activeConsumption !== "entrega" && (
-              <div className="grid gap-2">
-                <Label htmlFor="order-phone">{t("businessDetail.customerPhone")}</Label>
-                <Input
-                  id="order-phone"
-                  type="tel"
-                  placeholder={t("businessDetail.phonePlaceholder")}
-                  value={orderCustomerPhone}
-                  onChange={(e) => setOrderCustomerPhone(e.target.value)}
-                />
-              </div>
-            )}
+            {/* Na entrega é o mesmo campo da página: mudá-lo aqui muda o
+                telefone que o motorista vai usar. */}
+            <div className="grid gap-2">
+              <Label htmlFor="order-phone">{t("businessDetail.customerPhone")}</Label>
+              <Input
+                id="order-phone"
+                type="tel"
+                placeholder={t("businessDetail.phonePlaceholder")}
+                value={activeConsumption === "entrega" ? deliveryPhone : orderCustomerPhone}
+                onChange={(e) =>
+                  activeConsumption === "entrega" ? setDeliveryPhone(e.target.value) : setOrderCustomerPhone(e.target.value)
+                }
+              />
+              <p className="text-xs text-muted-foreground">{t("businessDetail.otherRecipientHint")}</p>
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="order-notes">{t("businessDetail.orderNotes")}</Label>
               <Textarea
@@ -1202,7 +1221,7 @@ const BusinessDetail = () => {
             </Button>
             <Button
               onClick={confirmOrder}
-              disabled={sending || !orderCustomerName.trim() || (activeConsumption !== "entrega" && !orderCustomerPhone.trim())}
+              disabled={sending || !orderCustomerName.trim() || !(activeConsumption === "entrega" ? deliveryPhone : orderCustomerPhone).trim()}
               className="gap-2 min-h-12"
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}

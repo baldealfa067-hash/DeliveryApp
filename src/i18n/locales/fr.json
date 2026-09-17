@@ -585,7 +585,8 @@
     "paymentProofError": "Erreur lors de l'envoi du justificatif",
     "amountToTransfer": "Montant à transférer",
     "soldOut": "Épuisé",
-    "stockLeft": "Il reste {{count}}"
+    "stockLeft": "Il reste {{count}}",
+    "otherRecipientHint": "Commande pour quelqu'un d'autre ? Remplacez le nom et le téléphone par ceux de la personne qui reçoit. Votre compte ne change pas."
   },
   "providerDetail": {
     "loading": "Chargement...",
