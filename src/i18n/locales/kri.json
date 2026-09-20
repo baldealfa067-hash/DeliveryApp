@@ -865,10 +865,22 @@
     "attachProofRequired": "Junta komprovativu (obrigatóriu)",
     "proofRequiredHint": "Sin komprovativu di pagamentu ka pudi fasi pididu.",
     "proofRequired": "Junta komprovativu di pagamentu Orange Money pa bu pudi fasi pididu.",
-    "proofStillUploading": "Spera, komprovativu inda na bai."
+    "proofStillUploading": "Spera, komprovativu inda na bai.",
+    "rateFromOrder": "Avalia na un pedidu ki ja kaba, na bu historia di pedidu."
   },
   "notifications": {
     "title": "Notifikasons",
     "empty": "Nenhum notifikason na momentu."
+  },
+  "rateOrder": {
+    "title": "Kuma ki kuri?",
+    "restaurant": "Restorante",
+    "driver": "Motorista",
+    "commentOptional": "Komentariu (si bu misti)",
+    "submit": "Manda avaliason",
+    "sending": "Na manda…",
+    "pickStars": "Skuji di 1 te 5 strela",
+    "thanks": "Obrigadu pa bu avaliason",
+    "alreadyRated": "Bu ja avalia: {{target}}"
   }
 }

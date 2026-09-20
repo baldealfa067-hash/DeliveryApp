@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       admin_notifications: {
@@ -285,6 +260,41 @@ export type Database = {
         }
         Relationships: []
       }
+      business_hours: {
+        Row: {
+          business_id: string
+          closes_at: string
+          created_at: string
+          id: string
+          opens_at: string
+          weekday: number
+        }
+        Insert: {
+          business_id: string
+          closes_at: string
+          created_at?: string
+          id?: string
+          opens_at: string
+          weekday: number
+        }
+        Update: {
+          business_id?: string
+          closes_at?: string
+          created_at?: string
+          id?: string
+          opens_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_hours_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_order_counters: {
         Row: {
           business_id: string
@@ -304,6 +314,69 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_settlements: {
+        Row: {
+          amount: number
+          business_id: string
+          contest_reason: string | null
+          created_at: string
+          declared_at: string
+          declared_by: string | null
+          dia: string
+          fleet_id: string
+          id: string
+          note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          contest_reason?: string | null
+          created_at?: string
+          declared_at?: string
+          declared_by?: string | null
+          dia?: string
+          fleet_id: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          contest_reason?: string | null
+          created_at?: string
+          declared_at?: string
+          declared_by?: string | null
+          dia?: string
+          fleet_id?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_settlements_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_settlements_fleet_id_fkey"
+            columns: ["fleet_id"]
+            isOneToOne: false
+            referencedRelation: "fleets"
             referencedColumns: ["id"]
           },
         ]
@@ -440,6 +513,7 @@ export type Database = {
       deliveries: {
         Row: {
           accepted_at: string | null
+          code_attempts: number
           created_at: string
           customer_address: string | null
           customer_lat: number | null
@@ -460,6 +534,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          code_attempts?: number
           created_at?: string
           customer_address?: string | null
           customer_lat?: number | null
@@ -480,6 +555,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          code_attempts?: number
           created_at?: string
           customer_address?: string | null
           customer_lat?: number | null
@@ -836,6 +912,7 @@ export type Database = {
           payment_id: string | null
           rate: number | null
           reverses_id: string | null
+          settlement_id: string | null
         }
         Insert: {
           account_kind: string
@@ -856,6 +933,7 @@ export type Database = {
           payment_id?: string | null
           rate?: number | null
           reverses_id?: string | null
+          settlement_id?: string | null
         }
         Update: {
           account_kind?: string
@@ -876,6 +954,7 @@ export type Database = {
           payment_id?: string | null
           rate?: number | null
           reverses_id?: string | null
+          settlement_id?: string | null
         }
         Relationships: [
           {
@@ -925,6 +1004,13 @@ export type Database = {
             columns: ["reverses_id"]
             isOneToOne: false
             referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "cash_settlements"
             referencedColumns: ["id"]
           },
         ]
@@ -1155,6 +1241,67 @@ export type Database = {
           },
         ]
       }
+      order_ratings: {
+        Row: {
+          business_id: string | null
+          comment: string | null
+          created_at: string
+          customer_id: string
+          customer_name: string | null
+          driver_id: string | null
+          id: string
+          order_id: string
+          rating: number
+          target: string
+        }
+        Insert: {
+          business_id?: string | null
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          customer_name?: string | null
+          driver_id?: string | null
+          id?: string
+          order_id: string
+          rating: number
+          target: string
+        }
+        Update: {
+          business_id?: string | null
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          customer_name?: string | null
+          driver_id?: string | null
+          id?: string
+          order_id?: string
+          rating?: number
+          target?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_ratings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_ratings_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_status_history: {
         Row: {
           created_at: string
@@ -1194,7 +1341,7 @@ export type Database = {
         Row: {
           address: string | null
           bairro: string | null
-          business_id: string
+          business_id: string | null
           consumption_option: string
           created_at: string
           customer_id: string | null
@@ -1207,12 +1354,20 @@ export type Database = {
           fleet_id: string | null
           id: string
           items: Json
+          kind: string
           notes: string | null
           order_number: number
           payment_method: string | null
           payment_proof_url: string | null
           payment_status: string | null
+          pickup_address: string | null
+          pickup_bairro: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          pickup_voice_note_url: string | null
           preparation_time: number | null
+          send_item_type: string | null
+          source: string
           status: string
           total: number
           updated_at: string
@@ -1221,7 +1376,7 @@ export type Database = {
         Insert: {
           address?: string | null
           bairro?: string | null
-          business_id: string
+          business_id?: string | null
           consumption_option: string
           created_at?: string
           customer_id?: string | null
@@ -1234,12 +1389,20 @@ export type Database = {
           fleet_id?: string | null
           id?: string
           items?: Json
+          kind?: string
           notes?: string | null
           order_number?: number
           payment_method?: string | null
           payment_proof_url?: string | null
           payment_status?: string | null
+          pickup_address?: string | null
+          pickup_bairro?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_voice_note_url?: string | null
           preparation_time?: number | null
+          send_item_type?: string | null
+          source?: string
           status?: string
           total?: number
           updated_at?: string
@@ -1248,7 +1411,7 @@ export type Database = {
         Update: {
           address?: string | null
           bairro?: string | null
-          business_id?: string
+          business_id?: string | null
           consumption_option?: string
           created_at?: string
           customer_id?: string | null
@@ -1261,12 +1424,20 @@ export type Database = {
           fleet_id?: string | null
           id?: string
           items?: Json
+          kind?: string
           notes?: string | null
           order_number?: number
           payment_method?: string | null
           payment_proof_url?: string | null
           payment_status?: string | null
+          pickup_address?: string | null
+          pickup_bairro?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_voice_note_url?: string | null
           preparation_time?: number | null
+          send_item_type?: string | null
+          source?: string
           status?: string
           total?: number
           updated_at?: string
@@ -1344,6 +1515,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepting_orders: boolean
           bornaal_id: string | null
           category: string
           consumption_options: string[]
@@ -1355,8 +1527,8 @@ export type Database = {
           lng: number | null
           location: string
           merchant_code: string | null
-          orange_money_method: string | null
           name: string
+          orange_money_method: string | null
           payment_number: string | null
           phone: string
           photo_url: string | null
@@ -1374,6 +1546,7 @@ export type Database = {
           verification_submitted_at: string | null
         }
         Insert: {
+          accepting_orders?: boolean
           bornaal_id?: string | null
           category: string
           consumption_options?: string[]
@@ -1385,8 +1558,8 @@ export type Database = {
           lng?: number | null
           location: string
           merchant_code?: string | null
-          orange_money_method?: string | null
           name: string
+          orange_money_method?: string | null
           payment_number?: string | null
           phone: string
           photo_url?: string | null
@@ -1404,6 +1577,7 @@ export type Database = {
           verification_submitted_at?: string | null
         }
         Update: {
+          accepting_orders?: boolean
           bornaal_id?: string | null
           category?: string
           consumption_options?: string[]
@@ -1415,8 +1589,8 @@ export type Database = {
           lng?: number | null
           location?: string
           merchant_code?: string | null
-          orange_money_method?: string | null
           name?: string
+          orange_money_method?: string | null
           payment_number?: string | null
           phone?: string
           photo_url?: string | null
@@ -1871,16 +2045,41 @@ export type Database = {
           verification_selfie_url: string
         }[]
       }
+      alert_stuck_orders: { Args: never; Returns: number }
       assert_can_order_for: {
         Args: { p_business_id: string; p_customer_id: string }
+        Returns: undefined
+      }
+      assert_nota_voz_do_proprio: {
+        Args: { p_ref: string }
         Returns: undefined
       }
       calculate_quality_score: {
         Args: { p_provider_id: string }
         Returns: number
       }
+      cancel_cash_settlement: {
+        Args: { p_settlement_id: string }
+        Returns: undefined
+      }
       claim_anonymous_requests: { Args: never; Returns: number }
       complete_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
+      comprovativo_comissao_ligado: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
+      comprovativo_ligado_a_pedido: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
+      confirm_cash_settlement: {
+        Args: { p_settlement_id: string }
+        Returns: Json
+      }
+      contest_cash_settlement: {
+        Args: { p_reason: string; p_settlement_id: string }
+        Returns: undefined
+      }
       create_appointment: {
         Args: {
           p_appointment_date: string
@@ -1920,6 +2119,21 @@ export type Database = {
         Args: { p_bairro?: string; p_name: string; p_phone: string }
         Returns: string
       }
+      create_manual_order: {
+        Args: {
+          p_address?: string
+          p_bairro?: string
+          p_business_id: string
+          p_concluir?: boolean
+          p_consumption_option: string
+          p_customer_name?: string
+          p_customer_phone?: string
+          p_items: Json
+          p_notes?: string
+          p_payment_method?: string
+        }
+        Returns: string
+      }
       create_notification: {
         Args: {
           p_message: string
@@ -1951,6 +2165,39 @@ export type Database = {
         }
         Returns: string
       }
+      create_send_order: {
+        Args: {
+          p_address: string
+          p_bairro: string
+          p_customer_lat?: number
+          p_customer_lng?: number
+          p_customer_name: string
+          p_customer_phone: string
+          p_description: string
+          p_payment_method?: string
+          p_pickup_address: string
+          p_pickup_bairro?: string
+          p_pickup_lat?: number
+          p_pickup_lng?: number
+          p_pickup_voice_note_url?: string
+          p_send_item_type: string
+          p_voice_note_url?: string
+        }
+        Returns: Json
+      }
+      declare_cash_settlement: {
+        Args: {
+          p_amount: number
+          p_business_id: string
+          p_dia?: string
+          p_note?: string
+        }
+        Returns: string
+      }
+      divida_comida_em_aberto: {
+        Args: { p_business_id: string; p_fleet_id: string }
+        Returns: number
+      }
       expire_stale_dispatch: { Args: never; Returns: number }
       generate_bornaal_id: { Args: never; Returns: string }
       get_all_commissions: {
@@ -1979,6 +2226,7 @@ export type Database = {
           order_total: number
           payment_method: string
           payment_status: string
+          pickup_voice_note_url: string
           restaurant_address: string
           restaurant_lat: number
           restaurant_lng: number
@@ -2002,6 +2250,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_business_cash_settlements: {
+        Args: { p_business_id: string }
+        Returns: Json
+      }
       get_business_commission: {
         Args: { p_business_id: string }
         Returns: {
@@ -2022,6 +2274,7 @@ export type Database = {
           total: number
         }[]
       }
+      get_business_hours: { Args: { p_business_id: string }; Returns: Json }
       get_business_orders: {
         Args: { p_business_id: string; p_status?: string }
         Returns: {
@@ -2044,6 +2297,7 @@ export type Database = {
           payment_proof_url: string
           payment_status: string
           preparation_time: number
+          source: string
           status: string
           total: number
           voice_note_url: string
@@ -2054,6 +2308,13 @@ export type Database = {
         Returns: {
           merchant_code: string
           payment_number: string
+        }[]
+      }
+      get_business_rating: {
+        Args: { p_business_id: string }
+        Returns: {
+          media: number
+          total: number
         }[]
       }
       get_business_sales_stats: {
@@ -2091,7 +2352,7 @@ export type Database = {
           bairro: string
           business_id: string
           business_name: string
-          business_phone: string | null
+          business_phone: string
           consumption_option: string
           created_at: string
           customer_id: string
@@ -2099,8 +2360,8 @@ export type Database = {
           customer_phone: string
           delivery_code: string
           delivery_fee: number
-          driver_name: string | null
-          driver_phone: string | null
+          driver_name: string
+          driver_phone: string
           id: string
           items: Json
           notes: string
@@ -2134,6 +2395,7 @@ export type Database = {
           preco: number
         }[]
       }
+      get_delivery_proof: { Args: { p_order_id: string }; Returns: Json }
       get_delivery_tracking: {
         Args: { p_delivery_id: string }
         Returns: {
@@ -2165,6 +2427,14 @@ export type Database = {
           week_earnings: number
         }[]
       }
+      get_driver_rating: {
+        Args: { p_driver_id: string }
+        Returns: {
+          media: number
+          total: number
+        }[]
+      }
+      get_fleet_cash_closing: { Args: { p_dia?: string }; Returns: Json }
       get_fleet_driver_detail: { Args: { p_driver_id: string }; Returns: Json }
       get_fleet_drivers: {
         Args: never
@@ -2215,6 +2485,7 @@ export type Database = {
           payment_method: string
           payment_status: string
           picked_up_at: string
+          pickup_voice_note_url: string
           restaurant_address: string
           restaurant_lat: number
           restaurant_lng: number
@@ -2251,6 +2522,16 @@ export type Database = {
           verification_selfie_url: string
         }[]
       }
+      get_my_rateable_orders: {
+        Args: never
+        Returns: {
+          avaliou_motorista: boolean
+          avaliou_restaurante: boolean
+          order_id: string
+          pode_avaliar_motorista: boolean
+          pode_avaliar_restaurante: boolean
+        }[]
+      }
       get_order_history: {
         Args: { p_order_id: string }
         Returns: {
@@ -2274,6 +2555,10 @@ export type Database = {
       increment_provider_view: {
         Args: { p_provider_id: string }
         Returns: undefined
+      }
+      is_business_open: {
+        Args: { p_at?: string; p_business_id: string }
+        Returns: boolean
       }
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean }
       is_driver_of_fleet: { Args: { p_fleet_id: string }; Returns: boolean }
@@ -2302,12 +2587,28 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      nota_voz_ligada_a_pedido: { Args: { p_name: string }; Returns: boolean }
       offer_delivery_to_fleet: {
         Args: { p_attempt?: number; p_delivery_id: string }
         Returns: number
       }
       owns_fleet: { Args: { p_fleet_id: string }; Returns: boolean }
       pickup_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
+      pode_ouvir_nota_voz: { Args: { p_name: string }; Returns: boolean }
+      pode_ver_comprovativo: { Args: { p_name: string }; Returns: boolean }
+      pode_ver_comprovativo_comissao: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
+      rate_order: {
+        Args: {
+          p_comment?: string
+          p_order_id: string
+          p_rating: number
+          p_target: string
+        }
+        Returns: string
+      }
       record_business_order: {
         Args: {
           p_address: string
@@ -2347,6 +2648,14 @@ export type Database = {
         Args: { p_body: string; p_target_groups: string[]; p_title: string }
         Returns: number
       }
+      set_accepting_orders: {
+        Args: { p_aceitar: boolean; p_business_id: string }
+        Returns: boolean
+      }
+      set_business_hours: {
+        Args: { p_business_id: string; p_horario: Json }
+        Returns: number
+      }
       set_driver_active: {
         Args: { p_active: boolean; p_driver_id: string }
         Returns: undefined
@@ -2360,6 +2669,7 @@ export type Database = {
         }
         Returns: number
       }
+      tem_prova_de_entrega: { Args: { p_order_id: string }; Returns: boolean }
       toggle_driver_availability: { Args: never; Returns: boolean }
       update_appointment_status: {
         Args: {
@@ -2578,9 +2888,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: [

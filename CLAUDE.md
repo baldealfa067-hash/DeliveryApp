@@ -838,6 +838,66 @@ cobertura dizia 100% em en/fr porque conta as chaves que existem, e esses ecrãs
 não tinham chave nenhuma. **Regra daqui em diante: texto de interface novo entra
 já com chave nos 4 ficheiros.**
 
+**9.4 — Avaliações — CONCLUÍDA (2026-09-20).** Tabela nova `order_ratings`, que
+**não** reaproveita a `reviews` do Bornaal (essa fica de pé para a beleza). A
+antiga é uma montra sem pedido por trás; esta só existe agarrada a um pedido
+concluído. Juntá-las dava uma média que mistura quem comprou com quem passou pela
+página.
+
+**Três decisões do dono, tomadas depois de a auditoria mostrar a colisão:**
+
+1. **O formulário aberto da página do restaurante SAIU.** Descoberta durante a
+   fase: `BusinessDetail` já tinha uma caixa de avaliação que aceitava qualquer
+   visitante, sem pedido nenhum e **anonimamente**. Enquanto existisse, o caminho
+   antigo continuava aberto e o novo era decorativo.
+2. **A policy de INSERT anónimo em `reviews` foi removida por inteiro**, também
+   para a beleza. Custo real zero: a tabela nunca teve uma linha. **Isto contraria
+   a nota da Fase 1** que a dava como "de propósito" — foi decisão explícita do
+   dono, não esquecimento.
+3. **A avaliação aparece logo**, sem moderação prévia. Quem avalia já provou que
+   fez o pedido, portanto a fraude que a moderação travava está travada à entrada.
+   O admin mantém poder de apagar (policy DELETE).
+
+**Desenho, e porquê:**
+
+- **`authenticated` NÃO tem INSERT na tabela.** Escreve-se só por `rate_order`.
+  Não é preciosismo: com INSERT directo o cliente escolhia `business_id` e
+  `driver_id`, e um 5 no restaurante preferido não custava um pedido. O servidor
+  deriva os dois do próprio pedido — **o motorista sai da entrega**, nunca de um
+  parâmetro.
+- **Sem policy de UPDATE.** Uma avaliação não se reescreve; se estiver errada, o
+  admin apaga.
+- **`UNIQUE (order_id, target)`** e não um SELECT antes do INSERT, que perde a
+  corrida entre dois toques no botão (§73). A `unique_violation` é apanhada e
+  devolvida como "Este pedido ja foi avaliado".
+- **Um envio não tem restaurante para avaliar** (`business_id` nulo), mas **tem
+  motorista** — e esse avalia-se.
+- **A média do motorista NÃO é pública**: só o próprio, o dono da frota e o admin.
+  §38 não pede montra de motorista, e expô-la era o primeiro passo para a
+  penalização que §38 manda adiar.
+- **`driver_id` é `ON DELETE SET NULL`**: se um motorista sair, a avaliação do
+  pedido não desaparece (§56).
+
+**Testado por HTTP real com JWT normal** (`scripts/avaliacoes-test.mjs`, 19
+assertivas, nunca `service_role`): não se avalia pedido alheio, nem duas vezes,
+nem por concluir, nem com 0/6/−1 estrelas, nem anonimamente; **o INSERT directo na
+tabela é recusado** (403) — caminho que uma RPC verde não prova.
+
+**Duas armadilhas apanhadas a escrever o teste, ambas assertivas verdes sobre
+nada:**
+
+- `create_send_order` devolve um **objecto** (`{order_id, …}`), não um uuid. Passar
+  o objecto fazia a recusa vir de erro de sintaxe de uuid, não da regra. Um teste
+  que passa pela razão errada é pior que um que falha.
+- O `delivery_id` de um **envio** lido com o token do motorista vem **vazio, sem
+  erro** — a policy só lhe mostra entregas já dele, e um envio não tem dono de
+  restaurante. Lê-se com o token do cliente.
+
+**Aviso para quem correr o teste:** ele leva pedidos até `concluido`, o que
+**escreve no ledger real**. A limpeza completa (com a desactivação temporária de
+`ledger_entries_sem_delete`) é impressa pelo próprio script no fim. A corrida de
+2026-09-20 pôs 17 linhas no ledger e foi limpa: 19 lançamentos reais intactos.
+
 ## Checkout e contacto — decisões tomadas (2026-09-17)
 
 Polimento pedido pelo dono ao rever os ecrãs reais: checkout em 4 pontos (1 →
@@ -1024,8 +1084,9 @@ checklist.
 - `anon` tem INSERT/UPDATE/DELETE nas 32 tabelas (postura por omissão do
   Supabase; o RLS é o portão). Só `profiles` e `messages` foram fechados.
   Rever as outras exige decidir tabela a tabela quais escritas anónimas são
-  intencionais — `complaints`, `reviews` e `service_requests` têm policies de
-  INSERT para `anon` de propósito
+  intencionais — `complaints` e `service_requests` têm policies de INSERT para
+  `anon` de propósito. **`reviews` já não:** a Fase 9.4 (2026-09-20) removeu-lhe
+  a de INSERT anónimo por decisão do dono, também para a beleza
 - `merchant_code`, `payment_number` e as colunas de KYC continuam legíveis por
   qualquer autenticado. Apertar isso exige movê-las para RPC com verificação
   de dono

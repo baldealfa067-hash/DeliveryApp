@@ -603,7 +603,8 @@
     "attachProofRequired": "Anexar comprovativo (obrigatório)",
     "proofRequiredHint": "Sem o comprovativo do pagamento não é possível fazer o pedido.",
     "proofRequired": "Anexe o comprovativo do pagamento Orange Money para poder fazer o pedido.",
-    "proofStillUploading": "Aguarde, o comprovativo ainda está a ser enviado."
+    "proofStillUploading": "Aguarde, o comprovativo ainda está a ser enviado.",
+    "rateFromOrder": "Avalie a partir de um pedido concluído, no seu histórico de pedidos."
   },
   "providerDetail": {
     "loading": "A carregar...",
@@ -1346,5 +1347,16 @@
   "notifications": {
     "title": "Notificações",
     "empty": "Sem notificações de momento."
+  },
+  "rateOrder": {
+    "title": "Como correu?",
+    "restaurant": "Restaurante",
+    "driver": "Motorista",
+    "commentOptional": "Comentário (opcional)",
+    "submit": "Enviar avaliação",
+    "sending": "A enviar…",
+    "pickStars": "Escolha de 1 a 5 estrelas",
+    "thanks": "Obrigado pela sua avaliação",
+    "alreadyRated": "Já avaliou: {{target}}"
   }
 }

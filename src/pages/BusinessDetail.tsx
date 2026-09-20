@@ -54,7 +54,7 @@ const CONSUMPTION_LABEL_KEYS: Record<string, string> = {
 
 type MenuCategory = { id: string; name: string };
 type MenuItem = { id: string; name: string; price: number; photo_url: string | null; category_id: string | null; track_stock: boolean; stock_qty: number | null; is_orderable: boolean };
-type Review = { id: string; rating: number; comment: string | null; created_at: string; reviewer_name: string | null };
+type Review = { id: string; rating: number; comment: string | null; created_at: string; customer_name: string | null };
 
 const BusinessDetail = () => {
   const { t } = useTranslation();
@@ -90,9 +90,6 @@ const BusinessDetail = () => {
   const [reportDescription, setReportDescription] = useState("");
   const [reportContact, setReportContact] = useState("");
   const queryClient = useQueryClient();
-  const [rating, setRating] = useState(0);
-  const [reviewerName, setReviewerName] = useState("");
-  const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
 
@@ -186,7 +183,11 @@ const BusinessDetail = () => {
         supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", id).maybeSingle(),
         supabase.from("menu_categories").select("id, name").eq("business_id", id).order("name"),
         supabase.from("menu_items").select("id, name, price, photo_url, category_id, track_stock, stock_qty, is_orderable").eq("business_id", id).order("name"),
-        supabase.from("reviews").select("id, rating, comment, created_at, reviewer_name").eq("provider_id", id).eq("status", "aprovado").order("created_at", { ascending: false }),
+        // Fase 9.4: as avaliacoes sao as do pedido concluido (`order_ratings`), nao
+        // as da tabela `reviews` do Bornaal -- essa e a montra da beleza e nao tem
+        // pedido por tras. Leitura publica: o cliente ve-as antes de ter conta.
+        supabase.from("order_ratings").select("id, rating, comment, created_at, customer_name")
+          .eq("business_id", id).eq("target", "restaurante").order("created_at", { ascending: false }),
       ]);
       setBusiness(profile as Record<string, unknown> | null);
       setMenuCategories((cats ?? []) as MenuCategory[]);
@@ -505,39 +506,6 @@ const BusinessDetail = () => {
     setReportContact("");
     setReportStep("form");
     setReportOpen(true);
-  };
-
-  const submitDirectReview = async () => {
-    if (!id) return;
-    if (rating < 1) {
-      toast.error(t("businessDetail.selectStars"));
-      return;
-    }
-    const cleanName = sanitizeName(reviewerName);
-    if (!cleanName) {
-      toast.error(t("businessDetail.enterName"));
-      return;
-    }
-    const cleanComment = sanitizeComment(comment) || null;
-    setSubmitting(true);
-    const { error } = await supabase.from("reviews").insert({
-      provider_id: id,
-      rating,
-      comment: cleanComment,
-      reviewer_name: cleanName,
-      user_id: user?.id ?? null,
-      request_id: null,
-    } as never);
-    setSubmitting(false);
-    if (error) {
-      toast.error(t("businessDetail.reviewError") + ": " + error.message);
-      return;
-    }
-    toast.success(t("businessDetail.reviewSent"));
-    setRating(0);
-    setReviewerName("");
-    setComment("");
-    queryClient.invalidateQueries({ queryKey: ["provider", id] });
   };
 
   const submitReport = async () => {
@@ -1091,37 +1059,18 @@ const BusinessDetail = () => {
       <section>
         <h2 className="font-semibold mb-3">{t("businessDetail.reviewsCount", { count: reviews.length })}</h2>
 
-        <div className="p-4 rounded-lg border bg-card mb-4 space-y-3">
-          <p className="text-sm font-medium">{t("businessDetail.leaveReview")}</p>
-          <div className="flex items-center gap-2">
-            <StarRating rating={rating} onChange={setRating} size="md" />
-          </div>
-          <Input
-            placeholder={t("businessDetail.yourName")}
-            value={reviewerName}
-            onChange={(e) => setReviewerName(e.target.value)}
-          />
-          <Textarea
-            placeholder={t("businessDetail.commentOptional")}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={3}
-          />
-          <Button onClick={submitDirectReview} disabled={submitting} className="w-full">
-            {submitting ? t("businessDetail.sending") : t("businessDetail.submitReview")}
-          </Button>
-          {!user && (
-            <p className="text-xs text-muted-foreground text-center">{t("businessDetail.anonymousReviewNote")}</p>
-          )}
-        </div>
+        {/* O formulario aberto SAIU (Fase 9.4, decisao do dono): avalia-se a partir
+            de um pedido concluido, no ecra dos pedidos. Enquanto existisse, o
+            caminho antigo (sem pedido, anonimo) tornava o novo decorativo. */}
+        <p className="text-xs text-muted-foreground mb-4">{t("businessDetail.rateFromOrder")}</p>
 
         {reviews.length > 0 ? (
           <div className="flex flex-col gap-3">
             {reviews.map((r) => (
               <div key={r.id} className="p-3 rounded-lg border bg-card">
                 <StarRating rating={r.rating} />
-                {r.reviewer_name && (
-                  <p className="text-sm font-medium mt-1">{r.reviewer_name}</p>
+                {r.customer_name && (
+                  <p className="text-sm font-medium mt-1">{r.customer_name}</p>
                 )}
                 {r.comment && <p className="text-sm mt-1">{r.comment}</p>}
                 <p className="text-[11px] text-muted-foreground mt-1">

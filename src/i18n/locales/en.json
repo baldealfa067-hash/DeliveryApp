@@ -603,7 +603,8 @@
     "attachProofRequired": "Attach proof of payment (required)",
     "proofRequiredHint": "Without proof of payment the order cannot be placed.",
     "proofRequired": "Attach the Orange Money proof of payment to place the order.",
-    "proofStillUploading": "Please wait, the proof is still uploading."
+    "proofStillUploading": "Please wait, the proof is still uploading.",
+    "rateFromOrder": "Rate from a completed order, in your order history."
   },
   "providerDetail": {
     "loading": "Loading...",
@@ -1346,5 +1347,16 @@
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet."
+  },
+  "rateOrder": {
+    "title": "How did it go?",
+    "restaurant": "Restaurant",
+    "driver": "Driver",
+    "commentOptional": "Comment (optional)",
+    "submit": "Send rating",
+    "sending": "Sending…",
+    "pickStars": "Pick from 1 to 5 stars",
+    "thanks": "Thank you for your rating",
+    "alreadyRated": "Already rated: {{target}}"
   }
 }

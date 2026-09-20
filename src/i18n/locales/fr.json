@@ -603,7 +603,8 @@
     "attachProofRequired": "Joindre le justificatif (obligatoire)",
     "proofRequiredHint": "Sans justificatif de paiement, la commande ne peut pas être passée.",
     "proofRequired": "Joignez le justificatif du paiement Orange Money pour passer la commande.",
-    "proofStillUploading": "Patientez, le justificatif est encore en cours d'envoi."
+    "proofStillUploading": "Patientez, le justificatif est encore en cours d'envoi.",
+    "rateFromOrder": "Évaluez à partir d'une commande terminée, dans votre historique."
   },
   "providerDetail": {
     "loading": "Chargement...",
@@ -1346,5 +1347,16 @@
   "notifications": {
     "title": "Notifications",
     "empty": "Pas de notifications pour le moment."
+  },
+  "rateOrder": {
+    "title": "Comment ça s'est passé ?",
+    "restaurant": "Restaurant",
+    "driver": "Livreur",
+    "commentOptional": "Commentaire (facultatif)",
+    "submit": "Envoyer l'évaluation",
+    "sending": "Envoi…",
+    "pickStars": "Choisissez de 1 à 5 étoiles",
+    "thanks": "Merci pour votre évaluation",
+    "alreadyRated": "Déjà évalué : {{target}}"
   }
 }

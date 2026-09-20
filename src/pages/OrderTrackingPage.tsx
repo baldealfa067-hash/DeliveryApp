@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadError } from "@/components/LoadError";
+import { RateOrder } from "@/components/RateOrder";
 import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -279,6 +280,10 @@ const OrderTrackingPage = () => {
             </CardContent>
           </Card>
         )}
+
+      {/* Fase 9.4 -- avaliar o restaurante e o motorista, so em pedido concluido.
+          Quem decide o que aparece e o servidor; o componente some-se sozinho. */}
+      {order.status === "concluido" && <RateOrder orderId={order.id} />}
 
       {/* Fase 9.3 -- a prova de entrega, depois de concluida (§37). So faz sentido
           numa entrega; num pedido para comer no local nao ha nada a provar. */}
