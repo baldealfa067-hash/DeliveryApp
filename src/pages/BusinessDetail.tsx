@@ -34,6 +34,7 @@ import { Mic, Square, Play, Pause, RotateCcw, Copy, Upload, Banknote, CreditCard
 import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { contactFromUser } from "@/lib/clientAuth";
 import { COMPROVATIVOS_BUCKET, caminhoComprovativo } from "@/lib/comprovativos";
+import { BUCKET_PRIVADO, caminhoPrivado, tipoSemParametros } from "@/lib/armazenamentoPrivado";
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -331,15 +332,16 @@ const BusinessDetail = () => {
     if (blob.size === 0) return null;
     setVoiceUploading(true);
     try {
-      const ext = blob.type.includes("webm") ? "webm" : blob.type.includes("mp4") ? "mp4" : "webm";
-      const fileName = `${user.id}/orders/voice/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const ext = blob.type.includes("mp4") ? "mp4" : "webm";
+      // Bucket PRIVADO: a morada falada só a ouvem o cliente, o restaurante, o
+      // motorista atribuído e o admin. Guarda-se o nome do objecto, não uma URL.
+      const fileName = caminhoPrivado(user.id, ext);
       const { error } = await supabase.storage
-        .from("portfolio")
-        .upload(fileName, blob, { contentType: blob.type || "audio/webm" });
+        .from(BUCKET_PRIVADO.notasVoz)
+        .upload(fileName, blob, { contentType: tipoSemParametros(blob.type, "audio/webm") });
       if (error) throw error;
-      const { data } = supabase.storage.from("portfolio").getPublicUrl(fileName);
-      setVoiceNoteUrl(data.publicUrl);
-      return data.publicUrl;
+      setVoiceNoteUrl(fileName);
+      return fileName;
     } catch (err) {
       console.error("[voice] upload error:", err);
       return null;

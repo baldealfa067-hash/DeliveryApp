@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
+import { AudioPrivado } from "@/components/MediaPrivada";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -494,7 +496,7 @@ const DriverDashboard = () => {
                 <div className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 border border-primary/30 px-2.5 py-2">
                   <Volume2 className="h-4 w-4 text-primary shrink-0" />
                   <span className="text-xs font-medium text-primary shrink-0">Onde recolher</span>
-                  <audio src={activeDelivery.pickup_voice_note_url} controls className="h-8 flex-1 min-w-0" />
+                  <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={activeDelivery.pickup_voice_note_url} className="h-8 flex-1 min-w-0" />
                 </div>
               )}
               {/* Voice note from customer */}
@@ -502,7 +504,7 @@ const DriverDashboard = () => {
                 <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
                   <Volume2 className="h-4 w-4 text-amber-600 shrink-0" />
                   <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirectionFrom", { name: activeDelivery.customer_name ?? t("driverDashboard.voiceDirection") })}</span>
-                  <audio src={activeDelivery.voice_note_url} controls className="h-8 flex-1 min-w-0" />
+                  <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={activeDelivery.voice_note_url} className="h-8 flex-1 min-w-0" />
                 </div>
               )}
               {/* Google Maps link */}
@@ -632,14 +634,14 @@ const DriverDashboard = () => {
                             <div className="mt-1.5 flex items-center gap-1.5 rounded bg-primary/10 border border-primary/30 px-2 py-1.5">
                               <Volume2 className="h-3.5 w-3.5 text-primary shrink-0" />
                               <span className="text-[10px] font-medium text-primary shrink-0">Onde recolher</span>
-                              <audio src={d.pickup_voice_note_url} controls className="h-7 flex-1 min-w-0" />
+                              <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={d.pickup_voice_note_url} className="h-7 flex-1 min-w-0" />
                             </div>
                           )}
                           {d.voice_note_url && (
                             <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 py-1.5">
                               <Volume2 className="h-3.5 w-3.5 text-amber-600 shrink-0" />
                               <span className="text-[10px] font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirectionFrom", { name: d.customer_name ?? t("driverDashboard.voiceDirection") })}</span>
-                              <audio src={d.voice_note_url} controls className="h-7 flex-1 min-w-0" />
+                              <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={d.voice_note_url} className="h-7 flex-1 min-w-0" />
                             </div>
                           )}
                         </div>

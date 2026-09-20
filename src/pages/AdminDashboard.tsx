@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
+import { ImagemPrivada } from "@/components/MediaPrivada";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -1306,9 +1308,13 @@ const AdminDashboard = () => {
                           </div>
                           <span className="text-xs text-muted-foreground">{new Date(cp.created_at).toLocaleString()}</span>
                           {cp.proof_url && (
-                            <button type="button" onClick={() => setCommProofPreview(cp.proof_url)} className="block w-full">
-                              <img src={cp.proof_url} alt="Comprovativo" className="w-full max-h-40 object-contain rounded-md border cursor-pointer hover:opacity-90" />
-                            </button>
+                            <ImagemPrivada
+                              bucket={BUCKET_PRIVADO.comprovativosComissao}
+                              refFicheiro={cp.proof_url}
+                              alt="Comprovativo"
+                              className="w-full max-h-40 object-contain rounded-md border cursor-pointer hover:opacity-90"
+                              onAbrir={setCommProofPreview}
+                            />
                           )}
                           <div className="flex gap-2">
                             <Button

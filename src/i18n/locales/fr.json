@@ -60,7 +60,8 @@
     "toCombinePrice": "À convenir",
     "message": "Message",
     "view": "Voir",
-    "copy": "Copier"
+    "copy": "Copier",
+    "mediaUnavailable": "Impossible d'ouvrir. Actualisez la page."
   },
   "chat": {
     "startConversation": "Commencer la conversation",

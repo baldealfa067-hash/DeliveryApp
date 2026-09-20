@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
+import { ImagemPrivada } from "@/components/MediaPrivada";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -263,7 +265,12 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
                       {mov.proofUrl && (
                         <>
                           <p className="text-xs font-semibold text-muted-foreground">{t("currentAccount.proof")}</p>
-                          <img src={mov.proofUrl} alt="Comprovativo" className="max-h-32 max-w-full object-contain rounded-md border cursor-pointer hover:opacity-90" />
+                          <ImagemPrivada
+                            bucket={BUCKET_PRIVADO.comprovativosComissao}
+                            refFicheiro={mov.proofUrl}
+                            alt="Comprovativo"
+                            className="max-h-32 max-w-full object-contain rounded-md border"
+                          />
                         </>
                       )}
                     </div>

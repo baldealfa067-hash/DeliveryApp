@@ -84,11 +84,13 @@ const ENVIO = {
   p_description: "Envelope com documentos da camara",
   p_pickup_address: "Mercado de Bandim, banca do Sr. Mane",
   p_pickup_bairro: "Bandim",
-  p_pickup_voice_note_url: "https://exemplo.test/recolha.webm",
+  // Preenchidas depois do signup com gravacoes REAIS no bucket privado `notas-voz`:
+  // desde 2026-09-17 o servidor recusa uma voz que nao exista na pasta do cliente.
+  p_pickup_voice_note_url: null,
   p_address: "Casa azul depois da bomba, perguntar por Ndala",
   p_customer_name: "Cliente Envio",
   p_customer_phone: "955123456",
-  p_voice_note_url: "https://exemplo.test/entrega.webm",
+  p_voice_note_url: null,
   p_pickup_lat: 11.8636, p_pickup_lng: -15.5977,
   p_customer_lat: 11.9500, p_customer_lng: -15.6500,
   p_payment_method: "entrega",
@@ -99,6 +101,14 @@ async function main() {
   console.log("Preparacao");
 
   const cliente = await signup("cliente");
+  for (const [campo, nome] of [["p_pickup_voice_note_url", "recolha"], ["p_voice_note_url", "entrega"]]) {
+    const caminho = `${cliente.user_id}/envios/${nome}/${Date.now()}-${nome}.webm`;
+    const up = await fetch(`${URL_BASE}/storage/v1/object/notas-voz/${caminho}`, { method: "POST",
+      headers: { apikey: ANON, Authorization: `Bearer ${cliente.token}`, "Content-Type": "audio/webm" },
+      body: Buffer.from(`voz de teste ${nome}`) });
+    if (up.status >= 300) throw new Error(`upload da voz (${nome}): HTTP ${up.status}`);
+    ENVIO[campo] = caminho;
+  }
   const frota = await signup("frota");
   const motorista = await signup("motorista");
   const outraFrota = await signup("outrafrota");

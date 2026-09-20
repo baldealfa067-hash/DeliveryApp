@@ -912,6 +912,39 @@ não só no ecrã (§46):
   sem nenhum pedido ligado. Não foram movidos nem apagados: movê-los exige a sessão
   do dono de cada ficheiro ou a chave de serviço, e apagá-los é decisão do dono (§56).
 
+**Notas de voz e comprovativos de comissão privados (2026-09-17, aprovado pelo dono).**
+Mesmo desenho dos comprovativos de pedido.
+
+- **Buckets privados `notas-voz` e `comprovativos-comissao`.** As colunas
+  (`orders.voice_note_url`, `orders.pickup_voice_note_url`,
+  `commission_payments.proof_url`) guardam o NOME do objecto; ouve-se/vê-se por URL
+  assinado de 5 minutos.
+- **Quem ouve uma nota de voz (`pode_ouvir_nota_voz`):** o cliente do pedido, o dono
+  do restaurante do pedido, o motorista ATRIBUÍDO (tem a entrega em `deliveries`) e o
+  admin. Um motorista que ainda só vê a oferta não ouve — o painel dele também só
+  mostra a voz depois de aceitar. A frota não ouve (não pediu, e `deliveries` já lhe
+  está fechada por decisão de 2026-09-10).
+- **Quem vê um comprovativo de comissão (`pode_ver_comprovativo_comissao`):** quem o
+  enviou e o admin.
+- **Apagar:** só o próprio, e só enquanto não está ligado a pedido / pagamento de
+  comissão. Sem policy de UPDATE em nenhum dos dois.
+- **Buraco fechado, que vinha com o desenho:** `create_order` e `create_send_order`
+  gravavam o endereço da voz sem validar nada. Como o acesso passa a depender do
+  pedido, um cliente que pusesse no seu pedido o nome da nota de voz de OUTRO
+  cliente dava ao seu restaurante e ao seu motorista acesso à morada falada de outra
+  pessoa. Agora a voz tem de existir e ser da pasta do próprio cliente
+  (`assert_nota_voz_do_proprio`). O mesmo para o comprovativo de comissão, por
+  trigger em `commission_payments`.
+- **Transição, não permanente:** a validação da voz aceita também o formato antigo
+  (URL pública do `portfolio`) desde que o ficheiro exista e seja da pasta do
+  próprio cliente. Existe para a janela entre a migração e o deploy do frontend, e
+  para bundles antigos em cache. Pode sair quando não houver pedidos novos com esse
+  formato.
+- **Ficheiros existentes:** as vozes antigas continuam a tocar pela URL pública até
+  o script `scripts/mover-para-privado.mjs` (corre com a chave de serviço, pelo dono)
+  as mover e reescrever as referências nos pedidos. O frontend aceita os dois
+  formatos.
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)

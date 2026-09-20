@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BUCKET_PRIVADO, caminhoPrivado } from "@/lib/armazenamentoPrivado";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -70,6 +71,7 @@ const BusinessDashboard = () => {
   const { data: platformSettings } = usePlatformSettings();
   const [commProofUrl, setCommProofUrl] = useState<string | null>(null);
   const [commProofUploading, setCommProofUploading] = useState(false);
+  const [commProofPreview, setCommProofPreview] = useState<string | null>(null);
   const [commAmount, setCommAmount] = useState("");
   const commProofRef = useRef<HTMLInputElement>(null);
   const [commCopied, setCommCopied] = useState(false);
@@ -82,12 +84,16 @@ const BusinessDashboard = () => {
     if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) return toast.error(t("common.imageTooLarge"));
     setCommProofUploading(true);
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/commission/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("portfolio").upload(path, file, { contentType: file.type });
+    // Bucket PRIVADO: só o restaurante que o enviou e o admin o vêem. Guarda-se o
+    // nome do objecto; a miniatura é local.
+    const path = caminhoPrivado(user.id, file.name.split(".").pop() ?? "jpg");
+    const { error } = await supabase.storage.from(BUCKET_PRIVADO.comprovativosComissao).upload(path, file, { contentType: file.type });
     if (error) { setCommProofUploading(false); return toast.error(error.message); }
-    const { data } = supabase.storage.from("portfolio").getPublicUrl(path);
-    setCommProofUrl(data.publicUrl);
+    setCommProofUrl(path);
+    setCommProofPreview((antiga) => {
+      if (antiga) URL.revokeObjectURL(antiga);
+      return URL.createObjectURL(file);
+    });
     setCommProofUploading(false);
   };
 
@@ -415,9 +421,16 @@ const BusinessDashboard = () => {
                         <input ref={commProofRef} type="file" accept="image/*" className="hidden" onChange={handleCommProofUpload} />
                         {commProofUrl ? (
                           <div className="flex items-center gap-2">
+                            {commProofPreview && <img src={commProofPreview} alt="" className="h-12 w-12 rounded-md border object-cover" />}
                             <Check className="h-4 w-4 text-green-600" />
                             <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
-                            <Button variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => { setCommProofUrl(null); if (commProofRef.current) commProofRef.current.value = ""; }}>
+                            <Button variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => {
+                              // Ainda solto: o servidor deixa apagar, e não fica lixo privado.
+                              if (commProofUrl) void supabase.storage.from(BUCKET_PRIVADO.comprovativosComissao).remove([commProofUrl]);
+                              setCommProofUrl(null);
+                              setCommProofPreview(null);
+                              if (commProofRef.current) commProofRef.current.value = "";
+                            }}>
                               {t("businessDetail.changeProof")}
                             </Button>
                           </div>

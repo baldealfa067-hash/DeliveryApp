@@ -60,7 +60,8 @@
     "toCombinePrice": "To be agreed",
     "message": "Message",
     "view": "View",
-    "copy": "Copy"
+    "copy": "Copy",
+    "mediaUnavailable": "Could not open. Refresh the page."
   },
   "chat": {
     "startConversation": "Start the conversation",

@@ -60,7 +60,8 @@
     "toCombinePrice": "Pa kombina",
     "message": "Mensajen",
     "view": "Olha",
-    "copy": "Kopia"
+    "copy": "Kopia",
+    "mediaUnavailable": "Ka pudi abri. Atualiza pájina."
   },
   "chat": {
     "startConversation": "Kumensa koversa",

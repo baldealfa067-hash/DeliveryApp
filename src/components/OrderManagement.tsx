@@ -38,7 +38,8 @@ import { cn } from "@/lib/utils";
 import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { toast } from "sonner";
 import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
-import { useComprovativoUrl } from "@/lib/comprovativos";
+import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
+import { AudioPrivado, ImagemPrivada } from "@/components/MediaPrivada";
 
 const DELIVERY_IN_PROGRESS_STATUSES = [
   "aguardando_motorista",
@@ -154,7 +155,7 @@ const VoiceNote = ({ url, customerName }: { url: string; customerName: string | 
         <Volume2 className="h-4 w-4 shrink-0" aria-hidden="true" />
         {t("orderManagement.voiceDirectionFrom", { name: customerName ?? t("orderManagement.voiceDirection") })}
       </p>
-      <audio src={url} controls className="h-9 w-full min-w-0" />
+      <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={url} className="h-9 w-full min-w-0" />
     </div>
   );
 };
@@ -721,7 +722,13 @@ const OrderDetail = ({
             <PaymentBadge status={order.payment_status} />
           </div>
           {order.payment_proof_url && (
-            <ComprovativoMiniatura refComprovativo={order.payment_proof_url} onPreview={onPreviewProof} />
+            <ImagemPrivada
+              bucket={BUCKET_PRIVADO.comprovativos}
+              refFicheiro={order.payment_proof_url}
+              alt={t("orderManagement.paymentProof")}
+              className="max-h-48 w-full cursor-pointer rounded-md border object-contain transition-opacity hover:opacity-90"
+              onAbrir={onPreviewProof}
+            />
           )}
           {order.payment_status === "pendente" && (
             // Empilhados em ecrã estreito: os rótulos são longos e os botões têm
@@ -753,29 +760,3 @@ const OrderDetail = ({
 };
 
 export default OrderManagement;
-
-/** Comprovativo do bucket privado: pede um URL assinado (o Storage decide se este
- *  restaurante o pode ver) e passa esse URL, não o caminho, para a pré-visualização. */
-const ComprovativoMiniatura = ({
-  refComprovativo,
-  onPreview,
-}: {
-  refComprovativo: string;
-  onPreview: (url: string) => void;
-}) => {
-  const { t } = useTranslation();
-  const { data: url, isLoading, isError } = useComprovativoUrl(refComprovativo);
-  if (isLoading) return <Skeleton className="h-48 w-full rounded-md" />;
-  if (isError || !url) {
-    return <p className="text-caption text-muted-foreground">{t("orderManagement.proofUnavailable")}</p>;
-  }
-  return (
-    <button type="button" onClick={() => onPreview(url)} className="block w-full">
-      <img
-        src={url}
-        alt={t("orderManagement.paymentProof")}
-        className="max-h-48 w-full cursor-pointer rounded-md border object-contain transition-opacity hover:opacity-90"
-      />
-    </button>
-  );
-};

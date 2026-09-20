@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
 import { useAuth } from "@/hooks/useAuth";
+import { BUCKET_PRIVADO, caminhoPrivado, obterUrlPrivado, tipoSemParametros } from "@/lib/armazenamentoPrivado";
 
 /**
  * Campo de gravação de voz, reutilizável.
@@ -57,13 +58,13 @@ export const VoiceRecorderField = ({
       setAEnviar(true);
       try {
         const ext = blob.type.includes("mp4") ? "mp4" : "webm";
-        const nome = `${user.id}/${pasta}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+        // Bucket PRIVADO (ver armazenamentoPrivado.ts). Guarda-se o nome do objecto.
+        const nome = caminhoPrivado(user.id, ext, pasta);
         const { error } = await supabase.storage
-          .from("portfolio")
-          .upload(nome, blob, { contentType: blob.type || "audio/webm" });
+          .from(BUCKET_PRIVADO.notasVoz)
+          .upload(nome, blob, { contentType: tipoSemParametros(blob.type, "audio/webm") });
         if (error) throw error;
-        const { data } = supabase.storage.from("portfolio").getPublicUrl(nome);
-        aoMudar(data.publicUrl);
+        aoMudar(nome);
       } catch {
         // Silencioso de propósito: a voz é um extra, e uma falha aqui não pode
         // impedir o pedido de seguir. O ecrã mostra que não ficou gravada.
@@ -75,11 +76,16 @@ export const VoiceRecorderField = ({
     void enviar();
   }, [recorder.state, recorder.audioBlob, user?.id, valor, pasta, aoMudar]);
 
-  const alternarLeitura = () => {
-    const src = recorder.audioUrl ?? valor;
-    if (!src) return;
+  const alternarLeitura = async () => {
+    // A gravação local toca logo; se só houver o nome guardado (voltou ao ecrã),
+    // pede-se um URL assinado — o bucket é privado.
+    let src = recorder.audioUrl;
+    if (!src && valor && !audioRef.current) {
+      try { src = await obterUrlPrivado(BUCKET_PRIVADO.notasVoz, valor); } catch { return; }
+    }
+    if (!src && !audioRef.current) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(src);
+      audioRef.current = new Audio(src as string);
       audioRef.current.onended = () => setATocar(false);
     }
     if (aTocar) { audioRef.current.pause(); setATocar(false); }
