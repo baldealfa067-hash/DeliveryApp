@@ -810,8 +810,9 @@ a 9.4 criam ecrãs novos — traduzir antes seria traduzir duas vezes.
    `providerDetail`, `requests`, `beautyEdit`) — pertencem ao bloco de limpeza do
    Bornaal, que é separado.
 
-**9.1 e 9.2 — concluídas.** `tsc` 18 → 4 (os 4 que restam são do Bornaal),
-`eslint` 9 erros → 0. Primeira carga do cliente 360 → 262 KB gzip.
+**9.1 e 9.2 — concluídas.** `tsc` 18 → 4, `eslint` 9 erros → 0. Primeira carga do
+cliente 360 → 262 KB gzip. **Os 4 que restavam saíram entretanto: a 2026-09-20
+`tsc --noEmit` e `eslint` estão os dois a zero.**
 
 **9.3 — Prova de entrega — CONCLUÍDA.** Imposta por um trigger `BEFORE UPDATE` em
 `orders` (`exige_prova_de_entrega`), que apanha os **seis** caminhos que levavam uma
@@ -941,9 +942,43 @@ Mesmo desenho dos comprovativos de pedido.
   para bundles antigos em cache. Pode sair quando não houver pedidos novos com esse
   formato.
 - **Ficheiros existentes:** as vozes antigas continuam a tocar pela URL pública até
-  o script `scripts/mover-para-privado.mjs` (corre com a chave de serviço, pelo dono)
-  as mover e reescrever as referências nos pedidos. O frontend aceita os dois
-  formatos.
+  o script `scripts/mover-para-privado.mjs` as mover e reescrever as referências nos
+  pedidos. O frontend aceita os dois formatos.
+
+**Estado a 2026-09-20 (o que foi mesmo feito).**
+
+- **Publicado.** O trabalho dos buckets privados esteve 3 dias na base de dados sem
+  o frontend correspondente estar em produção, e nessa janela **dois pedidos reais
+  gravaram voz no `portfolio` público** — o fallback do formato antigo a ser usado a
+  sério. Commit `f4f9884`, deploy de produção confirmado. **Lição: uma migração que
+  fecha um bucket e o frontend que escreve nele têm de ir juntos; separá-los não
+  adia a proteção, mantém a fuga aberta com ar de resolvida.**
+- **Verificado em produção** por HTTP com JWT normal (nunca `service_role`): o
+  anónimo não abre a voz privada, o bucket não serve por URL pública, outro cliente
+  não a assina, o dono assina e ouve. E, por contraste, uma voz antiga do
+  `portfolio` **abre sem sessão nenhuma** — a fuga que o script vai fechar.
+- **`scripts/mover-para-privado.mjs` escrito** (não existia; o parágrafo acima
+  afirmava que sim). Simula por omissão; `--executar` move. Move as **8 referências
+  de voz** e as **4 imagens órfãs** de comprovativo. Preserva o caminho `<uid>/...`
+  tal e qual — as policies comparam a 1.ª pasta com `auth.uid()`, e um caminho novo
+  tirava o ficheiro ao dono. A base de dados é reescrita ANTES de o original ser
+  apagado, e os órfãos são revalidados no momento de mover. **Por correr: precisa da
+  chave de serviço, que só o dono tem.**
+- **Órfãos: movidos, nunca apagados** (§56). São de clientes reais. Ficam no bucket
+  privado sem referência, ao alcance do próprio cliente e do admin.
+- **`commission_payments` não tem nada por mover** — o único comprovativo já estava
+  no formato novo. O script trata o caso na mesma, para quando houver.
+- **Resíduo de teste limpo.** A corrida `rlstest-1789659458199` (2026-09-17) ficou
+  por limpar: 9 contas, 2 pedidos, 2 entregas, 1 pagamento de comissão, 1 frota e 8
+  ficheiros nos buckets privados. **`ledger_entries` = 0** — o teste nunca concluiu
+  um pedido, e o ledger real (19 lançamentos) não foi tocado. Apagado com
+  salvaguardas que abortavam se houvesse ledger, pedido de cliente real ou motorista
+  real pelo meio.
+- **Armadilha registada:** `DELETE FROM storage.objects` por SQL é **recusado**
+  (`storage.protect_delete`), mesmo com a chave de serviço. Os ficheiros saem pela
+  Storage API. E a policy de DELETE só deixa apagar o que **não** está ligado a
+  pedido/pagamento — portanto a ordem é: apagar as linhas primeiro, o que desliga os
+  ficheiros, depois os ficheiros, e só no fim as contas.
 
 ---
 
@@ -1001,4 +1036,5 @@ checklist.
   limpeza do Bornaal
 - Refactor de AdminDashboard.tsx (1464 linhas) e BusinessDetail.tsx (1143)
 - Kriol a 63% (748/1182 chaves)
-- 18 erros de `tsc --noEmit` pré-existentes (o build não os apanha)
+- ~~18 erros de `tsc --noEmit` pré-existentes~~ — resolvidos na Fase 9.1 e no
+  que se lhe seguiu. A 2026-09-20 `tsc --noEmit` dá 0 erros
