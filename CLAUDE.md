@@ -939,9 +939,32 @@ Há um teste que exercita a instância real do i18next, porque se o
 `returnObjects` falhasse `t` devolvia a string `"businessHours.days"` e cada dia
 saía `undefined`, sem erro.
 
-**Fica por fazer nesta sub-fase:** as ~330 chaves de Kriol da linha de base, e os
-ficheiros de Fases 3–5 que continuam com texto fixo (`FleetDriverDetail`,
-`DeliveryPayload`, `OrderTotals` — de 2026-09-10, fora da janela deste achado).
+**9.5 — Kriol — CONCLUÍDA na parte que é DeliveryApp (2026-09-21).** 138 chaves
+traduzidas; cobertura 895 → 1130 (**79%**). O que ficou de fora ficou por
+critério, não por cansaço:
+
+- **O critério é QUE ECRÃ usa a chave, não o nome do namespace.** Metade do
+  namespace `businessDetail` só é usada pelo `BeautyDetail.tsx` — inclusive o
+  formulário de avaliação que a 9.4 removeu do restaurante e que continua vivo na
+  beleza. Traduzir por namespace metia 11 chaves de um ecrã excluído e deixava de
+  fora `providerCardExtra.verifiedLabel`, que o `RestaurantCard` usa mesmo.
+- **144 chaves de ecrãs Bornaal/beleza** (`providerDashboard`, `providerDetail`,
+  `beautyEdit`, `BeautyDetail`, …) — bloco de limpeza do Bornaal, separado.
+- **34 de Termos e Privacidade** — texto com valor legal, espera revisão nativa.
+- **As que dizem "Bornaal" não se traduzem** (`aboutPage.title`,
+  `installPrompt.androidTitle`, …). Traduzir o nome para Kriol cimentava numa
+  língua a mais aquilo que o §45 manda remover. As irmãs sem marca
+  (`installPrompt.install`, `later`, `iosShare`, …) foram traduzidas.
+- **12 chaves não existem em idioma nenhum** (`chaves-sem-ficheiro.json`): não há
+  o que traduzir enquanto a chave não for criada.
+
+**O Kriol continua POR REVER por falante nativo** — a decisão da Fase 9 mantém-se
+inteira. O que mudou é a quantidade, não o estatuto.
+
+**Fica por fazer:** os ficheiros de Fases 3–5 que continuam com texto fixo
+(`FleetDriverDetail`, `DeliveryPayload`, `OrderTotals` — de 2026-09-10, fora da
+janela deste achado), as 190 chaves de Kriol dos blocos excluídos, e as 12 sem
+ficheiro.
 
 **Não relacionado, achado ao verificar os buckets:** o
 `scripts/mover-para-privado.mjs` **já correu** (8 vozes e 4 comprovativos órfãos
