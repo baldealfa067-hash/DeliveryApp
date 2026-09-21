@@ -1343,7 +1343,11 @@
     "codeError": "Wrong code. Try again.",
     "codeLocked": "Code locked after 5 attempts. Confirm the delivery with a photo.",
     "useProofInstead": "Take a photo",
-    "proofRequired": "To finish you need the customer's code or a photo."
+    "proofRequired": "To finish you need the customer's code or a photo.",
+    "onTheWayToRestaurant": "On the way to the restaurant",
+    "onTheWayToCustomer": "On the way to the customer",
+    "goToRestaurant": "Go to restaurant",
+    "goToCustomer": "Go to customer"
   },
   "notifications": {
     "title": "Notifications",

@@ -920,15 +920,18 @@ chave ou encurtar o array dos dias faz o teste falhar mesmo.
 - **Kriol: linha de base que só encolhe** (`kri-por-traduzir.json`, 330 chaves).
   Não se exige paridade — os ecrãs do Bornaal e os textos legais ficam de fora
   até haver revisão de falante nativo — mas **uma chave nova sem Kriol falha**.
-- **`chaves-sem-ficheiro.json` (14 chaves): dívida registada, não resolvida.**
+- **`chaves-sem-ficheiro.json` (12 chaves): dívida registada, não resolvida.**
   São chaves que não existem em idioma NENHUM e vivem do valor por omissão em
   português passado no código — ou seja, aparecem em português a quem tem a app
-  em inglês. **Não se resolvem só acrescentando a chave:**
-  `driverDashboard.goingToCustomer` e `goingToRestaurant` são usadas em dois
-  sítios com defaults diferentes ("A caminho do cliente" / "Ir ao cliente").
-  Criar a chave mudava o texto de um dos dois em silêncio — é decisão de
-  conteúdo do dono, não de tradução. Ficam à espera dessa decisão.
-- `profile.myOrders` foi a única do género corrigida (não tinha ambiguidade).
+  em inglês. Acrescentar a chave resolve-as, uma a uma.
+- `profile.myOrders` foi corrigida (não tinha ambiguidade).
+- **A ambiguidade do `driverDashboard` foi resolvida por decisão do dono
+  (2026-09-21): duas chaves, não uma.** `goingToRestaurant`/`goingToCustomer`
+  estavam a servir dois sítios com textos diferentes. Passaram a
+  `onTheWayToRestaurant`/`onTheWayToCustomer` ("A caminho de…", o banner que
+  descreve o ESTADO da entrega activa) e `goToRestaurant`/`goToCustomer`
+  ("Ir a…", a etiqueta curta na lista de entregas). Os nomes antigos não existem
+  mais em lado nenhum.
 
 **Os dias da semana saíram do código para o i18n** e são indexados por
 `weekday` (0 = domingo), que é o que o backend guarda — não pela ordem no ecrã.
@@ -943,9 +946,33 @@ ficheiros de Fases 3–5 que continuam com texto fixo (`FleetDriverDetail`,
 **Não relacionado, achado ao verificar os buckets:** o
 `scripts/mover-para-privado.mjs` **já correu** (8 vozes e 4 comprovativos órfãos
 movidos a 2026-09-20 10:43–10:44; zero referências no formato antigo em
-`orders`). Mas sobram **11 `.webm` no bucket `portfolio` público**, mais
-antigos, de 4 clientes, **sem pedido nenhum a referenciá-los** — estavam fora do
-âmbito do script e continuam a abrir sem sessão. Decisão do dono por §56.
+`orders`). Sobravam **11 `.webm` no `portfolio` público** que estavam fora do
+âmbito do script. Tratados a 2026-09-21 — ver a secção seguinte.
+
+## Órfãos de voz e a voz de chat (2026-09-21, aprovado pelo dono)
+
+`moverOrfaos` no `scripts/mover-para-privado.mjs` só conhecia comprovativos
+(`<uid>/orders/payment/`). Passou a ser uma lista de tipos e trata também
+`<uid>/orders/voice/` → `notas-voz`. **10 vozes órfãs movidas**, nunca apagadas
+(§56): ficam no bucket privado sem referência, ao alcance do próprio e do admin.
+`notas-voz` 9 → 19; `portfolio` 11 → 1 `.webm`.
+
+Verificado por HTTP **sem chave nenhuma**: a URL pública antiga dá 400, o bucket
+privado não serve por URL pública (400).
+
+**O 11.º ficheiro NÃO foi movido, de propósito, e o script recusa-o em voz alta.**
+`<uid>/chat/voice/…` não é órfão nem é nota de pedido: é uma mensagem de voz
+viva, referenciada em `messages.content`, entre dois utilizadores reais. O bucket
+`notas-voz` dá acesso pelo **PEDIDO** (`pode_ouvir_nota_voz`: cliente, dono do
+restaurante, motorista atribuído, admin) — **não pela conversa**. Movê-la para lá
+tirava-a a quem a recebeu, calada. Continua a abrir sem sessão (confirmado: 200),
+e fechá-la precisa de bucket e policy próprios, com a conversa como critério.
+**É decisão do dono, e é a última fuga conhecida no `portfolio`.**
+
+**Armadilha para quem estender o script:** o filtro dos órfãos é o CAMINHO, não a
+tabela — por definição não há linha que lhes aponte. Um padrão largo de mais
+apanha ficheiros vivos de outra funcionalidade, e o dano só aparece quando
+alguém tenta abrir o que já lá não está.
 
 ## Checkout e contacto — decisões tomadas (2026-09-17)
 

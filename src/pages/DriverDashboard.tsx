@@ -456,8 +456,8 @@ const DriverDashboard = () => {
             <CardContent className="p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-primary mb-2">
                 {activeDelivery.status === "aceite"
-                  ? "🛵 " + t("driverDashboard.goingToRestaurant", "A caminho do restaurante")
-                  : "📦 " + t("driverDashboard.goingToCustomer", "A caminho do cliente")}
+                  ? "🛵 " + t("driverDashboard.onTheWayToRestaurant")
+                  : "📦 " + t("driverDashboard.onTheWayToCustomer")}
               </p>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
@@ -606,7 +606,9 @@ const DriverDashboard = () => {
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-bold">#{d.order_number}</span>
                             <Badge className="text-[10px] bg-primary/10 text-primary border-0">
-                              {d.status === "aceite" ? t("driverDashboard.goingToRestaurant", "Ir ao restaurante") : t("driverDashboard.goingToCustomer", "Ir ao cliente")}
+                              {d.status === "aceite"
+                                ? t("driverDashboard.goToRestaurant")
+                                : t("driverDashboard.goToCustomer")}
                             </Badge>
                           </div>
                           <p className="text-sm font-medium">{d.customer_name}</p>

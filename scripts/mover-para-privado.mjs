@@ -11,9 +11,16 @@
  *   comprovativo de pedido  portfolio -> comprovativos          (reescreve `orders`)
  *   comprovativo comissao   portfolio -> comprovativos-comissao (reescreve `commission_payments`)
  *
- * ORFAOS: comprovativos de pedido sem nenhum pedido ligado sao MOVIDOS na mesma,
- * nao apagados -- sao ficheiros de clientes reais (§56). Ficam no bucket privado,
- * sem referencia, ao alcance do proprio cliente e do admin.
+ * ORFAOS: comprovativos de pedido E notas de voz sem nenhum pedido ligado sao
+ * MOVIDOS na mesma, nao apagados -- sao ficheiros de clientes reais (§56). Ficam
+ * no bucket privado, sem referencia, ao alcance do proprio cliente e do admin.
+ *
+ * O QUE NAO SE MOVE, de proposito: `<uid>/chat/voice/...`. Sao mensagens de voz
+ * de conversas, referenciadas em `messages.content`, e NAO sao notas de pedido.
+ * O bucket `notas-voz` da acesso pelo PEDIDO (`pode_ouvir_nota_voz`: cliente,
+ * dono do restaurante, motorista atribuido, admin) -- nao pela conversa. Mover
+ * uma voz de chat para la tirava-a a quem a recebeu. Precisa de bucket e policy
+ * proprios, que sao decisao do dono do projecto.
  *
  * O CAMINHO E PRESERVADO tal e qual (`<uid>/...`). Nao e cosmetico: as policies
  * comparam a primeira pasta com `auth.uid()`, e um caminho novo tirava o ficheiro
@@ -235,15 +242,36 @@ async function moverComprovativosDePedido() {
 }
 
 /**
- * Comprovativos SEM pedido ligado. Sao de clientes reais e nao se apagam (§56):
- * mudam de bucket e ficam sem referencia, ao alcance do proprio e do admin.
+ * Ficheiros SEM linha nenhuma a apontar-lhes. Sao de clientes reais e nao se
+ * apagam (§56): mudam de bucket e ficam sem referencia, ao alcance do proprio e
+ * do admin.
  *
  * A lista sai do proprio Storage, nao da base de dados -- por definicao nao ha
- * linha que lhes aponte. Por isso o filtro e o caminho `<uid>/orders/payment/`,
- * que foi o que o checkout antigo escreveu, e o dono e a 1.ª pasta.
+ * linha que lhes aponte. Por isso o filtro e o CAMINHO que o frontend antigo
+ * escrevia, e o dono e a 1.ª pasta.
+ *
+ *   <uid>/orders/payment/  -> comprovativos   (coluna `payment_proof_url`)
+ *   <uid>/orders/voice/    -> notas-voz       (colunas `voice_note_url`, `pickup_…`)
+ *
+ * `<uid>/chat/voice/` fica FORA a proposito -- ver o cabecalho do ficheiro.
  */
+const ORFAOS = [
+  {
+    nome: "Comprovativos de pedido",
+    padrao: /^[0-9a-f-]{36}\/orders\/payment\//,
+    destino: () => DESTINO.comprovativo,
+    colunas: ["payment_proof_url"],
+  },
+  {
+    nome: "Notas de voz",
+    padrao: /^[0-9a-f-]{36}\/orders\/voice\//,
+    destino: () => DESTINO.voz,
+    colunas: ["voice_note_url", "pickup_voice_note_url"],
+  },
+];
+
 async function moverOrfaos() {
-  console.log("\nComprovativos de pedido ORFAOS  portfolio -> comprovativos  (movidos, nunca apagados)");
+  console.log("\nORFAOS (sem linha a apontar-lhes)  portfolio -> bucket privado  (movidos, nunca apagados)");
 
   const lista = await fetch(`${URL_BASE}/storage/v1/object/list/${ORIGEM}`, {
     method: "POST", headers: { ...cab, "Content-Type": "application/json" },
@@ -268,29 +296,45 @@ async function moverOrfaos() {
   };
   await descer("", 0);
 
-  const candidatos = ficheiros.filter((n) => /^[0-9a-f-]{36}\/orders\/payment\//.test(n));
-  if (!candidatos.length) { console.log(dim("  nada por mover")); return; }
-
-  for (const nome of candidatos) {
-    const etiqueta = `orfao ${nome.split("/").pop()}`;
-    try {
-      // Revalidar AGORA: entre a auditoria e este momento um pedido pode te-lo
-      // ligado, e ai ja nao e orfao -- pertence ao ramo de cima, que reescreve a
-      // referencia. Mover aqui deixava o pedido a apontar para o vazio.
-      const ligados = await tabela(
-        `orders?select=id&or=(payment_proof_url.eq.${encodeURIComponent(nome)},payment_proof_url.like.*${encodeURIComponent(nome)})`);
-      if (ligados.length) {
-        saltar(etiqueta, `ja NAO e orfao: ligado ao pedido ${ligados[0].id.slice(0, 8)}. Corre o script outra vez para o tratar como ligado.`);
-        continue;
-      }
-
-      const estado = await copiarParaPrivado(nome, DESTINO.comprovativo, nome.split("/")[0]);
-      if (EXECUTAR && !MANTER) await apagar(ORIGEM, nome);
-      movidos++;
-      console.log(`  ${v("✓")} ${etiqueta}${estado === "ja-la-estava" ? dim(" (ja estava no destino)") : ""}`);
-      console.log(`      ${dim(nome)}`);
-    } catch (e) { falhar(etiqueta, e.message); }
+  // Vozes de conversa nao entram aqui, e diz-se porque -- calar era pior.
+  const doChat = ficheiros.filter((n) => /^[0-9a-f-]{36}\/chat\/voice\//.test(n));
+  for (const nome of doChat) {
+    saltar(`voz de chat ${nome.split("/").pop()}`,
+      "e mensagem de conversa (messages.content), nao nota de pedido. O bucket " +
+      "notas-voz da acesso pelo PEDIDO, nao pela conversa: mover tirava-a a quem " +
+      "a recebeu. Precisa de bucket e policy proprios — decisao do dono.");
   }
+
+  let algum = false;
+  for (const tipo of ORFAOS) {
+    const candidatos = ficheiros.filter((n) => tipo.padrao.test(n));
+    if (!candidatos.length) continue;
+    algum = true;
+    console.log(dim(`  ${tipo.nome} -> ${tipo.destino()}`));
+
+    for (const nome of candidatos) {
+      const etiqueta = `orfao ${nome.split("/").pop()}`;
+      try {
+        // Revalidar AGORA: entre a auditoria e este momento um pedido pode te-lo
+        // ligado, e ai ja nao e orfao -- pertence aos ramos de cima, que reescrevem
+        // a referencia. Mover aqui deixava o pedido a apontar para o vazio.
+        const alvo = encodeURIComponent(nome);
+        const condicoes = tipo.colunas.flatMap((c) => [`${c}.eq.${alvo}`, `${c}.like.*${alvo}`]);
+        const ligados = await tabela(`orders?select=id&or=(${condicoes.join(",")})`);
+        if (ligados.length) {
+          saltar(etiqueta, `ja NAO e orfao: ligado ao pedido ${ligados[0].id.slice(0, 8)}. Corre o script outra vez para o tratar como ligado.`);
+          continue;
+        }
+
+        const estado = await copiarParaPrivado(nome, tipo.destino(), nome.split("/")[0]);
+        if (EXECUTAR && !MANTER) await apagar(ORIGEM, nome);
+        movidos++;
+        console.log(`  ${v("✓")} ${etiqueta}${estado === "ja-la-estava" ? dim(" (ja estava no destino)") : ""}`);
+        console.log(`      ${dim(nome)}`);
+      } catch (e) { falhar(etiqueta, e.message); }
+    }
+  }
+  if (!algum) console.log(dim("  nada por mover"));
 }
 
 // -------------------------------------------------------------------- main ---

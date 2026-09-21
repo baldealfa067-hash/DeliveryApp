@@ -1343,7 +1343,11 @@
     "codeError": "Código incorreto. Tenta novamente.",
     "codeLocked": "Código bloqueado após 5 tentativas. Confirma a entrega com uma fotografia.",
     "useProofInstead": "Tirar fotografia",
-    "proofRequired": "Para concluir precisas do código do cliente ou de uma fotografia."
+    "proofRequired": "Para concluir precisas do código do cliente ou de uma fotografia.",
+    "onTheWayToRestaurant": "A caminho do restaurante",
+    "onTheWayToCustomer": "A caminho do cliente",
+    "goToRestaurant": "Ir ao restaurante",
+    "goToCustomer": "Ir ao cliente"
   },
   "notifications": {
     "title": "Notificações",
