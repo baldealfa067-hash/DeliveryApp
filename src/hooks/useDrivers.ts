@@ -43,6 +43,10 @@ export interface Delivery {
   voice_note_url: string | null;
   /** Fase 7.3 — indicação de voz da RECOLHA (§21). Só existe em envios. */
   pickup_voice_note_url?: string | null;
+  /** Indicação de voz do RESTAURANTE, do perfil dele — a mesma em todos os
+   *  pedidos daquela loja. O servidor só a devolve enquanto a entrega está por
+   *  concluir, para bater certo com o que a policy do bucket deixa abrir. */
+  restaurant_voice_note_url?: string | null;
 }
 
 export interface AvailableDelivery {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Mic, Pause, Play, Square, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export const VoiceRecorderField = ({
   aoMudar: (url: string | null) => void;
   pasta: string;
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const recorder = useVoiceRecorder();
   const [aEnviar, setAEnviar] = useState(false);
@@ -112,7 +114,7 @@ export const VoiceRecorderField = ({
       {recorder.state === "idle" && !valor && (
         <Button type="button" variant="outline" className="w-full h-12"
           onClick={() => void recorder.startRecording()}>
-          <Mic className="h-4 w-4 mr-2" />Gravar indicação
+          <Mic className="h-4 w-4 mr-2" />{t("voiceRecorder.record")}
         </Button>
       )}
 
@@ -124,7 +126,7 @@ export const VoiceRecorderField = ({
           </span>
           <Button type="button" variant="destructive" className="h-11"
             onClick={() => recorder.stopRecording()}>
-            <Square className="h-4 w-4 mr-2" />Parar
+            <Square className="h-4 w-4 mr-2" />{t("voiceRecorder.stop")}
           </Button>
         </div>
       )}
@@ -136,7 +138,7 @@ export const VoiceRecorderField = ({
             {aTocar ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
           <span className="flex-1 text-sm text-muted-foreground">
-            {aEnviar ? "A guardar…" : valor ? "Gravada" : "Gravada (por guardar)"}
+            {aEnviar ? t("voiceRecorder.saving") : valor ? t("voiceRecorder.saved") : t("voiceRecorder.unsaved")}
           </span>
           {aEnviar && <Loader2 className="h-4 w-4 animate-spin" />}
           <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={limpar}>

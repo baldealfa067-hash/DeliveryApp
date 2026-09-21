@@ -48,6 +48,7 @@ import {
   useValidateDeliveryCode,
   useUpdateDeliveryTracking,
   useUpdateDriverLocation,
+  type Delivery,
 } from "@/hooks/useDrivers";
 
 import { useDriverDeliveryStats, useDriverDailyStats } from "@/hooks/useDriverDeliveryStats";
@@ -61,6 +62,21 @@ import { DeliveryPayload } from "@/components/DeliveryPayload";
 import { formatCFA } from "@/lib/format";
 // DriverMap disabled by product decision — voice directions replace map in Bissau context
 // import DriverMap from "@/components/DriverMap";
+
+/**
+ * Qual das duas gravações responde a "onde vou buscar isto?".
+ *
+ * Um ENVIO traz a voz no próprio pedido, gravada pelo cliente no momento
+ * (Fase 7.3). Um pedido de RESTAURANTE traz a do perfil da loja, a mesma em
+ * todos os pedidos dela. Nunca há as duas: um envio não tem restaurante, e num
+ * pedido de restaurante `pickup_voice_note_url` é sempre nulo.
+ *
+ * A do pedido vem primeiro de propósito. Se um dia um envio passar a ter loja,
+ * a indicação que o cliente gravou para AQUELE envio vale mais que a morada
+ * genérica do negócio.
+ */
+const vozDaRecolha = (d: Delivery): string | null =>
+  d.pickup_voice_note_url ?? d.restaurant_voice_note_url ?? null;
 
 const DriverDashboard = () => {
   const { t } = useTranslation();
@@ -491,12 +507,19 @@ const DriverDashboard = () => {
                   depois de recolher: o motorista tem duas gravações e precisa
                   delas em momentos diferentes. Enquanto não recolheu, o sítio
                   que lhe interessa é a origem (§51 — nada desnecessário a
-                  competir com a acção actual). */}
-              {activeDelivery.pickup_voice_note_url && activeDelivery.status !== "recolhido" && (
+                  competir com a acção actual).
+
+                  As duas fontes partilham este slot porque respondem à mesma
+                  pergunta — "onde vou buscar isto?" — e nunca coexistem: um
+                  envio tem `pickup_voice_note_url` e não tem restaurante; um
+                  pedido de restaurante é o contrário. Dois blocos separados
+                  davam ao motorista duas caixas para a mesma coisa, uma delas
+                  sempre vazia. */}
+              {vozDaRecolha(activeDelivery) && activeDelivery.status !== "recolhido" && (
                 <div className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 border border-primary/30 px-2.5 py-2">
                   <Volume2 className="h-4 w-4 text-primary shrink-0" />
-                  <span className="text-xs font-medium text-primary shrink-0">Onde recolher</span>
-                  <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={activeDelivery.pickup_voice_note_url} className="h-8 flex-1 min-w-0" />
+                  <span className="text-xs font-medium text-primary shrink-0">{t("driverDashboard.whereToPickUp")}</span>
+                  <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={vozDaRecolha(activeDelivery) as string} className="h-8 flex-1 min-w-0" />
                 </div>
               )}
               {/* Voice note from customer */}
@@ -632,11 +655,11 @@ const DriverDashboard = () => {
                             paymentMethod={d.payment_method}
                             paymentStatus={d.payment_status}
                           />
-                          {d.pickup_voice_note_url && (
+                          {vozDaRecolha(d) && (
                             <div className="mt-1.5 flex items-center gap-1.5 rounded bg-primary/10 border border-primary/30 px-2 py-1.5">
                               <Volume2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                              <span className="text-[10px] font-medium text-primary shrink-0">Onde recolher</span>
-                              <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={d.pickup_voice_note_url} className="h-7 flex-1 min-w-0" />
+                              <span className="text-[10px] font-medium text-primary shrink-0">{t("driverDashboard.whereToPickUp")}</span>
+                              <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={vozDaRecolha(d) as string} className="h-7 flex-1 min-w-0" />
                             </div>
                           )}
                           {d.voice_note_url && (

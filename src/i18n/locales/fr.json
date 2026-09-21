@@ -1347,7 +1347,8 @@
     "onTheWayToRestaurant": "En route vers le restaurant",
     "onTheWayToCustomer": "En route vers le client",
     "goToRestaurant": "Aller au restaurant",
-    "goToCustomer": "Aller au client"
+    "goToCustomer": "Aller au client",
+    "whereToPickUp": "Où récupérer"
   },
   "notifications": {
     "title": "Notifications",
@@ -1569,5 +1570,20 @@
     "add": "Ajouter une photo",
     "added": "Photo ajoutée.",
     "removed": "Photo supprimée."
+  },
+  "voiceRecorder": {
+    "record": "Enregistrer les indications",
+    "stop": "Arrêter",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré",
+    "unsaved": "Enregistré (pas encore sauvegardé)"
+  },
+  "locationVoice": {
+    "title": "Indications vocales vers votre établissement",
+    "intro": "Enregistrez une seule fois où se trouve votre établissement. Le livreur entend ces indications sur chaque commande, sans rien à enregistrer à chaque fois.",
+    "fieldTitle": "Où se trouve l'établissement",
+    "fieldHelp": "Expliquez comment y arriver. Les repères valent mieux que l'adresse.",
+    "saved": "Indications enregistrées. Elles s'appliquent désormais à chaque commande.",
+    "removed": "Indications supprimées."
   }
 }

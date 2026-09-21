@@ -1347,7 +1347,8 @@
     "onTheWayToRestaurant": "A caminho do restaurante",
     "onTheWayToCustomer": "A caminho do cliente",
     "goToRestaurant": "Ir ao restaurante",
-    "goToCustomer": "Ir ao cliente"
+    "goToCustomer": "Ir ao cliente",
+    "whereToPickUp": "Onde recolher"
   },
   "notifications": {
     "title": "Notificações",
@@ -1569,5 +1570,20 @@
     "add": "Acrescentar foto",
     "added": "Foto acrescentada.",
     "removed": "Foto removida."
+  },
+  "voiceRecorder": {
+    "record": "Gravar indicação",
+    "stop": "Parar",
+    "saving": "A guardar…",
+    "saved": "Gravada",
+    "unsaved": "Gravada (por guardar)"
+  },
+  "locationVoice": {
+    "title": "Indicação de voz do negócio",
+    "intro": "Grave uma vez onde fica o seu estabelecimento. O motorista ouve esta indicação em todos os pedidos, sem precisar de gravar nada de cada vez.",
+    "fieldTitle": "Onde fica o negócio",
+    "fieldHelp": "Explique como chegar. Referências valem mais que a morada.",
+    "saved": "Indicação gravada. Passa a valer em todos os pedidos.",
+    "removed": "Indicação removida."
   }
 }

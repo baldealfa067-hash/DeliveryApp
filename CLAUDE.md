@@ -997,6 +997,79 @@ tabela — por definição não há linha que lhes aponte. Um padrão largo de m
 apanha ficheiros vivos de outra funcionalidade, e o dano só aparece quando
 alguém tenta abrir o que já lá não está.
 
+## Voz de localização do restaurante (2026-09-21, aprovado pelo dono)
+
+O restaurante grava **uma vez**, no perfil, uma indicação falada de onde fica.
+Essa gravação passa a valer em **todos** os pedidos dele, sem nada a gravar de
+cada vez. No painel do motorista há então duas vozes num pedido de restaurante:
+a do restaurante (onde recolher) e a do cliente (onde entregar), que já existia.
+
+`profiles.location_voice_url`, ao lado do resto da configuração
+(`accepting_orders`, `prep_time_minutes`, `orange_money_method`). Guarda o NOME
+do objecto no bucket privado `notas-voz`, nunca uma URL — mesmo desenho das
+outras vozes. Reutiliza o `VoiceRecorderField` da Fase 7.3 tal e qual.
+
+**Decisões do dono:**
+
+- **Sem gravação, o motorista não ouve nada dessa parte** — sem erro, sem
+  bloquear o pedido. Mesmo default seguro do horário ("sem horário = sempre
+  aberto"): há restaurantes reais em produção que nunca vão abrir este ecrã.
+- **O motorista ouve enquanto a entrega estiver POR CONCLUIR**, e não para
+  sempre. Mesma janela já usada para o telefone do motorista: o acesso dura
+  enquanto durar o trabalho. Quem entregou há seis meses deixa de ouvir.
+- **Partilha o slot "Onde recolher"** que a Fase 7.3 criou, em vez de um bloco
+  novo. As duas fontes respondem à mesma pergunta e **nunca coexistem**: um
+  envio tem `pickup_voice_note_url` e não tem restaurante; um pedido de
+  restaurante é o contrário. Dois blocos davam ao motorista duas caixas para a
+  mesma coisa, uma delas sempre vazia (§51).
+
+**O que a auditoria revelou, e é o cerne desta funcionalidade:**
+
+- **`pode_ouvir_nota_voz` não cobria isto.** Dava acesso por pasta própria,
+  admin, ou **ligação a um pedido** — e uma voz de PERFIL não está ligada a
+  pedido nenhum. O restaurante ouvia-a (pasta dele) e o motorista não. Foi
+  preciso uma quarta via na policy, e só ela.
+- **O caminho de escrita tinha de ser fechado no mesmo passo.** Com `UPDATE`
+  directo em `profiles`, um restaurante punha na coluna o nome da nota de voz
+  **de outro cliente** e, pela policy nova, os motoristas dele passavam a ouvir
+  a morada falada de um estranho. É o mesmo buraco que o `create_order` fechou a
+  2026-09-17. Por isso escreve-se só por `set_business_location_voice`, que
+  chama `assert_nota_voz_do_proprio`.
+- **A coluna é PRIVADA**: fora de `PUBLIC_PROFILE_COLUMNS` e sem GRANT. O dono
+  lê-a por `get_my_profile_private`, o motorista por `get_my_deliveries`. A
+  leitura directa da tabela dá 403 — testado, porque os dois caminhos falham de
+  maneiras diferentes.
+- **`get_my_deliveries` só devolve a voz enquanto a entrega está por concluir**,
+  para bater certo com o que a policy deixa abrir. Devolver o nome depois de
+  entregue dava ao painel uma referência que o Storage já recusa assinar: um
+  leitor partido no ecrã em vez de nada, que é pior.
+
+**Armadilha registada:** acrescentar uma coluna ao `RETURNS TABLE` de uma função
+obriga a `DROP FUNCTION` — o `CREATE OR REPLACE` recusa — e **o `DROP` leva os
+GRANTs consigo**. `get_my_profile_private` e `get_my_deliveries` ficariam
+inacessíveis ao frontend sem o `GRANT` a seguir, com um 404 que parece bug de
+frontend. Os GRANTs foram repostos e confirmados (`authenticated` +
+`service_role`, nunca `anon`).
+
+**Testado por HTTP real com JWT normal** (`scripts/voz-restaurante-test.mjs`, 18
+assertivas, nunca `service_role`): o dono grava a sua e não a de outro negócio;
+não aponta a coluna para a voz de outra pessoa; o anónimo não grava nem assina;
+o motorista da entrega assina a voz do restaurante certo e **não a de outro**;
+o cliente do pedido não a assina; regravar substitui e o ficheiro velho sai do
+bucket; depois de concluída o motorista perde a voz e perde a assinatura.
+
+**Uma assertiva é um CONTROLO, e não enfeite:** a recusa de assinar a voz de
+outro restaurante devolve 400, que é também o que um ficheiro inexistente
+devolveria. Sem provar que essa voz existe e é assinável pelo dono dela, aquela
+assertiva passava com um caminho errado — verde pela razão errada.
+
+**As farmácias da Fase 8 herdam isto de graça:** é uma coluna em `profiles`, e
+uma farmácia é um `profile` como o restaurante.
+
+**Achado lateral, corrigido aqui:** o `VoiceRecorderField` tinha texto fixo em
+português ("Gravar indicação", "A guardar…", "Gravada"). Escapou à Fase 9.5
+porque não estava na lista dos sete ficheiros. Entrou no i18n nos 4 idiomas.
+
 ## Checkout e contacto — decisões tomadas (2026-09-17)
 
 Polimento pedido pelo dono ao rever os ecrãs reais: checkout em 4 pontos (1 →

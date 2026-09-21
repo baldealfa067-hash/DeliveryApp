@@ -797,7 +797,8 @@
     "onTheWayToRestaurant": "Na kaminyu di restawranti",
     "onTheWayToCustomer": "Na kaminyu di kliente",
     "goToRestaurant": "Bai na restawranti",
-    "goToCustomer": "Bai na kliente"
+    "goToCustomer": "Bai na kliente",
+    "whereToPickUp": "Undja pa rekudji"
   },
   "businessEdit": {
     "prepTime": "Tempu medju di prepara kumida (minutus)",
@@ -1243,5 +1244,20 @@
   },
   "providerCardExtra": {
     "verifiedLabel": "Stabelesimentu verifikadu"
+  },
+  "voiceRecorder": {
+    "record": "Grava indikason",
+    "stop": "Para",
+    "saving": "Ta grava…",
+    "saved": "Gravadu",
+    "unsaved": "Gravadu (inda pa guarda)"
+  },
+  "locationVoice": {
+    "title": "Indikason di vos di negosiu",
+    "intro": "Grava un bes undja ku bu stabelesimentu fika. Motorista ta obi es indikason na tudu pedidus, sin pirsisa di grava nada kada bes.",
+    "fieldTitle": "Undja ku negosiu fika",
+    "fieldHelp": "Splika kuma pa tchiga. Referensias ta bali mas di ki morada.",
+    "saved": "Indikason gravadu. Gosi i ta bali na tudu pedidus.",
+    "removed": "Indikason tiradu."
   }
 }
