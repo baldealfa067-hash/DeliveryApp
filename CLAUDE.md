@@ -898,6 +898,55 @@ nada:**
 `ledger_entries_sem_delete`) é impressa pelo próprio script no fim. A corrida de
 2026-09-20 pôs 17 linhas no ledger e foi limpa: 19 lançamentos reais intactos.
 
+**9.5 — Traduções — texto fixo dos ecrãs 2.3–7.3 fechado (2026-09-21).** Fecha o
+achado da auditoria da Fase 9 ("~57 frases em 6 ficheiros"). Eram **sete**
+ficheiros, não seis: a contagem deixou de fora os dois da Fase 2.5
+(`BusinessHoursEditor`, `BusinessGallery`, criados no mesmo commit `5f455ce`).
+
+**A armadilha central, e a razão de este parágrafo existir.** Três dos ficheiros
+(`FleetCashClosing`, `BusinessCashSettlements`, `ManualOrderDialog`) tinham sido
+convertidos para `t("fleetCash.…")` **sem que os namespaces chegassem a ser
+criados em ficheiro nenhum** — 59 chaves. O i18next, quando não encontra a
+chave, **devolve o nome da chave**: o ecrã mostrava `fleetCash.statePending`
+escrito a sério, ao utilizador. `tsc`, `eslint`, os 140 testes e o `vite build`
+estavam **todos verdes** por cima disso, e o contador de cobertura dizia 100%
+porque conta as chaves que existem — e o problema era não existirem.
+
+**Guarda posta: `src/i18n/locales.test.ts`** (7 testes). Varre o `src` à procura
+de `t("x.y")` e exige que cada chave exista. Verificado por mutação: apagar uma
+chave ou encurtar o array dos dias faz o teste falhar mesmo.
+
+- **pt/en/fr: estritos**, e com o mesmo conjunto de chaves.
+- **Kriol: linha de base que só encolhe** (`kri-por-traduzir.json`, 330 chaves).
+  Não se exige paridade — os ecrãs do Bornaal e os textos legais ficam de fora
+  até haver revisão de falante nativo — mas **uma chave nova sem Kriol falha**.
+- **`chaves-sem-ficheiro.json` (14 chaves): dívida registada, não resolvida.**
+  São chaves que não existem em idioma NENHUM e vivem do valor por omissão em
+  português passado no código — ou seja, aparecem em português a quem tem a app
+  em inglês. **Não se resolvem só acrescentando a chave:**
+  `driverDashboard.goingToCustomer` e `goingToRestaurant` são usadas em dois
+  sítios com defaults diferentes ("A caminho do cliente" / "Ir ao cliente").
+  Criar a chave mudava o texto de um dos dois em silêncio — é decisão de
+  conteúdo do dono, não de tradução. Ficam à espera dessa decisão.
+- `profile.myOrders` foi a única do género corrigida (não tinha ambiguidade).
+
+**Os dias da semana saíram do código para o i18n** e são indexados por
+`weekday` (0 = domingo), que é o que o backend guarda — não pela ordem no ecrã.
+Há um teste que exercita a instância real do i18next, porque se o
+`returnObjects` falhasse `t` devolvia a string `"businessHours.days"` e cada dia
+saía `undefined`, sem erro.
+
+**Fica por fazer nesta sub-fase:** as ~330 chaves de Kriol da linha de base, e os
+ficheiros de Fases 3–5 que continuam com texto fixo (`FleetDriverDetail`,
+`DeliveryPayload`, `OrderTotals` — de 2026-09-10, fora da janela deste achado).
+
+**Não relacionado, achado ao verificar os buckets:** o
+`scripts/mover-para-privado.mjs` **já correu** (8 vozes e 4 comprovativos órfãos
+movidos a 2026-09-20 10:43–10:44; zero referências no formato antigo em
+`orders`). Mas sobram **11 `.webm` no bucket `portfolio` público**, mais
+antigos, de 4 clientes, **sem pedido nenhum a referenciá-los** — estavam fora do
+âmbito do script e continuam a abrir sem sessão. Decisão do dono por §56.
+
 ## Checkout e contacto — decisões tomadas (2026-09-17)
 
 Polimento pedido pelo dono ao rever os ecrãs reais: checkout em 4 pontos (1 →

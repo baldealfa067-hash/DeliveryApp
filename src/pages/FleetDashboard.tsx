@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Bike, Plus, Power, Trash2, MapPin, KeyRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,11 +42,11 @@ import {
  * Os tipos do ledger em português corrente. O motorista e o dono da frota não
  * têm de saber o que é um `entry_type`.
  */
-const ROTULO_MOVIMENTO: Record<string, string> = {
-  comissao_frota: "Comissão da entrega",
-  divida_comida: "Comida recebida em dinheiro",
-  pagamento_comissao: "Pagamento de comissão",
-  reversao: "Correcção",
+const CHAVE_MOVIMENTO: Record<string, string> = {
+  comissao_frota: "fleetDashboard.entry.comissao_frota",
+  divida_comida: "fleetDashboard.entry.divida_comida",
+  pagamento_comissao: "fleetDashboard.entry.pagamento_comissao",
+  reversao: "fleetDashboard.entry.reversao",
 };
 
 const Metric = ({ label, value }: { label: string; value: string | number }) => (
@@ -58,6 +59,7 @@ const Metric = ({ label, value }: { label: string; value: string | number }) => 
 );
 
 const FleetDashboard = () => {
+  const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
   const { data: financas } = useFleetFinancials();
   const { data: metrics, isLoading } = useFleetMetrics();
@@ -83,7 +85,7 @@ const FleetDashboard = () => {
   const [fleetPhone, setFleetPhone] = useState("");
 
   const fail = (e: unknown) =>
-    toast.error(e instanceof Error ? e.message : "Não foi possível concluir a operação");
+    toast.error(e instanceof Error ? e.message : t("fleetDashboard.genericError"));
 
   const onAddDriver = () => {
     if (!phone.trim() || !name.trim()) return;
@@ -94,11 +96,11 @@ const FleetDashboard = () => {
         onSuccess: (r) => {
           if (r.pin) {
             setPinNovo({ nome, telefone: r.telefone, pin: r.pin });
-            toast.success("Motorista criado");
+            toast.success(t("fleetDashboard.driverCreated"));
           } else {
             // Já tinha conta: não há PIN novo, entra com o dele.
             setPinNovo(null);
-            toast.success("Este número já tinha conta — motorista associado à frota");
+            toast.success(t("fleetDashboard.driverLinked"));
           }
           setPhone("");
           setName("");
@@ -127,20 +129,20 @@ const FleetDashboard = () => {
     if (!fleetName.trim() || !fleetPhone.trim()) return;
     createFleet.mutate(
       { name: fleetName.trim(), phone: fleetPhone.trim() },
-      { onSuccess: () => toast.success("Frota criada"), onError: fail },
+      { onSuccess: () => toast.success(t("fleetDashboard.fleetCreated")), onError: fail },
     );
   };
 
   if (authLoading || isLoading) {
-    return <div className="p-6 text-sm text-muted-foreground">A carregar…</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("common.loading")}</div>;
   }
 
   if (!user) {
     return (
       <div className="p-6 space-y-3 max-w-md mx-auto text-center">
-        <p className="font-semibold">Precisa de entrar na conta.</p>
+        <p className="font-semibold">{t("fleetDashboard.loginNeeded")}</p>
         <Link to="/login" className="text-primary hover:underline text-sm">
-          Ir para a entrada
+          {t("fleetDashboard.goToLogin")}
         </Link>
       </div>
     );
@@ -157,25 +159,24 @@ const FleetDashboard = () => {
           <Link to="/perfil" className="p-1 -ml-1 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-xl font-bold">Registar frota</h1>
+          <h1 className="text-xl font-bold">{t("fleetDashboard.registerTitle")}</h1>
         </div>
         <Card>
           <CardContent className="p-4 space-y-3">
             <p className="text-sm text-muted-foreground">
-              A frota gere os seus próprios motoristas e define os preços de
-              entrega por bairro. Os preços definem-se a seguir, no painel.
+              {t("fleetDashboard.registerIntro")}
             </p>
             <div className="space-y-2">
-              <Label htmlFor="fnome">Nome da frota</Label>
+              <Label htmlFor="fnome">{t("fleetDashboard.fleetName")}</Label>
               <Input
                 id="fnome"
                 value={fleetName}
                 onChange={(e) => setFleetName(e.target.value)}
-                placeholder="Ex.: Transportes Bandim"
+                placeholder={t("fleetDashboard.fleetNamePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ftel">Telefone de contacto</Label>
+              <Label htmlFor="ftel">{t("fleetDashboard.contactPhone")}</Label>
               <Input
                 id="ftel"
                 inputMode="tel"
@@ -189,7 +190,7 @@ const FleetDashboard = () => {
               disabled={createFleet.isPending}
               className="w-full h-12"
             >
-              Criar frota
+              {t("fleetDashboard.createFleet")}
             </Button>
           </CardContent>
         </Card>
@@ -205,45 +206,44 @@ const FleetDashboard = () => {
         </Link>
         <div className="min-w-0">
           <h1 className="text-xl font-bold truncate">{metrics.fleet_name}</h1>
-          <p className="text-xs text-muted-foreground">Painel da frota</p>
+          <p className="text-xs text-muted-foreground">{t("fleetDashboard.title")}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Metric label="Entregas" value={metrics.entregas} />
-        <Metric label="Concluídas" value={metrics.concluidas} />
-        <Metric label="Motoristas activos" value={`${metrics.motoristas_activos}/${metrics.motoristas}`} />
-        <Metric label="Valor das entregas" value={formatCFA(metrics.valor_entregas)} />
+        <Metric label={t("fleetDashboard.deliveries")} value={metrics.entregas} />
+        <Metric label={t("fleetDashboard.completed")} value={metrics.concluidas} />
+        <Metric label={t("fleetDashboard.activeDrivers")} value={`${metrics.motoristas_activos}/${metrics.motoristas}`} />
+        <Metric label={t("fleetDashboard.deliveriesValue")} value={formatCFA(metrics.valor_entregas)} />
       </div>
 
       <Tabs defaultValue="motoristas">
         <TabsList className="w-full">
-          <TabsTrigger value="motoristas" className="flex-1">Motoristas</TabsTrigger>
-          <TabsTrigger value="precos" className="flex-1">Preços</TabsTrigger>
-          <TabsTrigger value="caixa" className="flex-1">Caixa</TabsTrigger>
-          <TabsTrigger value="financeiro" className="flex-1">Financeiro</TabsTrigger>
+          <TabsTrigger value="motoristas" className="flex-1">{t("fleetDashboard.tabDrivers")}</TabsTrigger>
+          <TabsTrigger value="precos" className="flex-1">{t("fleetDashboard.tabPrices")}</TabsTrigger>
+          <TabsTrigger value="caixa" className="flex-1">{t("fleetDashboard.tabCash")}</TabsTrigger>
+          <TabsTrigger value="financeiro" className="flex-1">{t("fleetDashboard.tabFinance")}</TabsTrigger>
         </TabsList>
 
         {/* ── Motoristas (§12) ─────────────────────────────────────────── */}
         <TabsContent value="motoristas" className="space-y-3 mt-3">
           <Card>
             <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-semibold">Adicionar motorista</p>
+              <p className="text-sm font-semibold">{t("fleetDashboard.addDriver")}</p>
               <p className="text-xs text-muted-foreground">
-                A conta é criada aqui. O motorista não precisa de se registar
-                antes — recebe um PIN e entra com o telefone dele.
+                {t("fleetDashboard.addDriverHint")}
               </p>
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
+                <Label htmlFor="nome">{t("fleetDashboard.name")}</Label>
                 <Input
                   id="nome"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Nome do motorista"
+                  placeholder={t("fleetDashboard.driverNamePlaceholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tel">Telefone</Label>
+                <Label htmlFor="tel">{t("fleetDashboard.phone")}</Label>
                 <Input
                   id="tel"
                   inputMode="tel"
@@ -258,7 +258,7 @@ const FleetDashboard = () => {
                 className="w-full h-12"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {addDriver.isPending ? "A criar…" : "Criar motorista"}
+                {addDriver.isPending ? t("fleetDashboard.creating") : t("fleetDashboard.createDriver")}
               </Button>
             </CardContent>
           </Card>
@@ -266,17 +266,15 @@ const FleetDashboard = () => {
           {pinNovo && (
             <Card className="border-primary/40 bg-primary/5">
               <CardContent className="p-4 space-y-2">
-                <p className="text-sm font-semibold">{pinNovo.nome} — PIN de entrada</p>
+                <p className="text-sm font-semibold">{t("fleetDashboard.pinFor", { name: pinNovo.nome })}</p>
                 <p className="text-4xl font-bold tracking-widest text-primary tabular-nums">
                   {pinNovo.pin}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Passa este PIN ao motorista. Ele entra com o telefone{" "}
-                  <span className="font-medium">{pinNovo.telefone}</span> e este código.
-                  Só aparece aqui uma vez — anota-o antes de fechar.
+                  {t("fleetDashboard.pinHint", { phone: pinNovo.telefone })}
                 </p>
                 <Button variant="outline" size="sm" onClick={() => setPinNovo(null)}>
-                  Já anotei
+                  {t("fleetDashboard.pinNoted")}
                 </Button>
               </CardContent>
             </Card>
@@ -284,7 +282,7 @@ const FleetDashboard = () => {
 
           {drivers.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">
-              Ainda não há motoristas nesta frota.
+              {t("fleetDashboard.noDrivers")}
             </p>
           )}
 
@@ -302,9 +300,13 @@ const FleetDashboard = () => {
                   <p className="font-semibold truncate underline-offset-2 hover:underline">{d.name}</p>
                   <p className="text-xs text-muted-foreground">{d.phone}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {d.concluidas}/{d.entregas} entregas · {formatCFA(d.valor_entregas)}
+                    {t("fleetDashboard.driverLine", {
+                      done: d.concluidas,
+                      total: d.entregas,
+                      amount: formatCFA(d.valor_entregas),
+                    })}
                   </p>
-                  <p className="text-[11px] text-primary mt-1">Ver detalhes</p>
+                  <p className="text-[11px] text-primary mt-1">{t("fleetDashboard.seeDetails")}</p>
                 </button>
                 <div className="flex flex-col gap-2 shrink-0">
                   <Button
@@ -318,7 +320,7 @@ const FleetDashboard = () => {
                     }
                   >
                     <Power className="h-4 w-4 mr-1" />
-                    {d.is_available ? "Activo" : "Inactivo"}
+                    {d.is_available ? t("fleetDashboard.active") : t("fleetDashboard.inactive")}
                   </Button>
                   <Button
                     size="sm"
@@ -328,20 +330,20 @@ const FleetDashboard = () => {
                       resetPin.mutate(d.id, {
                         onSuccess: (r) => {
                           setPinNovo({ nome: r.nome ?? d.name, telefone: r.telefone, pin: r.pin });
-                          toast.success("PIN novo gerado");
+                          toast.success(t("fleetDashboard.newPinDone"));
                         },
                         onError: fail,
                       })
                     }
                   >
-                    <KeyRound className="h-4 w-4 mr-1" /> Novo PIN
+                    <KeyRound className="h-4 w-4 mr-1" /> {t("fleetDashboard.newPin")}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => removeDriver.mutate(d.id, { onError: fail })}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" /> Remover
+                    <Trash2 className="h-4 w-4 mr-1" /> {t("fleetDashboard.remove")}
                   </Button>
                 </div>
               </CardContent>
@@ -353,13 +355,12 @@ const FleetDashboard = () => {
         <TabsContent value="precos" className="space-y-3 mt-3">
           <Card>
             <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-semibold">Definir preço de um bairro</p>
+              <p className="text-sm font-semibold">{t("fleetDashboard.setZonePrice")}</p>
               <p className="text-xs text-muted-foreground">
-                O preço é por bairro, não por distância. O cliente vê-o antes de
-                confirmar o pedido.
+                {t("fleetDashboard.zonePriceHint")}
               </p>
               <div className="space-y-2">
-                <Label htmlFor="bairro">Bairro</Label>
+                <Label htmlFor="bairro">{t("fleetDashboard.bairro")}</Label>
                 <select
                   id="bairro"
                   className="w-full h-12 rounded-md border bg-background px-3 text-sm"
@@ -372,7 +373,7 @@ const FleetDashboard = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="preco">Preço (FCFA)</Label>
+                <Label htmlFor="preco">{t("fleetDashboard.priceFcfa")}</Label>
                 <Input
                   id="preco"
                   inputMode="numeric"
@@ -382,15 +383,14 @@ const FleetDashboard = () => {
                 />
               </div>
               <Button onClick={onSavePrice} disabled={upsertPrice.isPending} className="w-full h-12">
-                Guardar preço
+                {t("fleetDashboard.savePrice")}
               </Button>
             </CardContent>
           </Card>
 
           {prices.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-6">
-              Sem preços definidos. Sem preço num bairro, a frota não recebe
-              entregas para lá.
+              {t("fleetDashboard.noPrices")}
             </p>
           )}
 
@@ -418,16 +418,16 @@ const FleetDashboard = () => {
           {!financas ? (
             <Card>
               <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">A carregar…</p>
+                <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
               </CardContent>
             </Card>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3">
-                <Metric label="Entregas faturadas" value={financas.entregas_faturadas} />
-                <Metric label="Valor das entregas" value={formatCFA(financas.valor_entregas)} />
-                <Metric label="Comissão gerada" value={formatCFA(financas.comissao_gerada)} />
-                <Metric label="Comissão paga" value={formatCFA(financas.comissao_paga)} />
+                <Metric label={t("fleetDashboard.billedDeliveries")} value={financas.entregas_faturadas} />
+                <Metric label={t("fleetDashboard.deliveriesValue")} value={formatCFA(financas.valor_entregas)} />
+                <Metric label={t("fleetDashboard.commissionGenerated")} value={formatCFA(financas.comissao_gerada)} />
+                <Metric label={t("fleetDashboard.commissionPaid")} value={formatCFA(financas.comissao_paga)} />
               </div>
 
               {/* As duas dívidas são de naturezas diferentes e não se somam:
@@ -437,17 +437,17 @@ const FleetDashboard = () => {
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase">Dívida à plataforma</p>
-                      <p className="text-xs text-muted-foreground">Comissão de {financas.taxa_actual}% sobre as entregas</p>
+                      <p className="text-xs text-muted-foreground uppercase">{t("fleetDashboard.platformDebt")}</p>
+                      <p className="text-xs text-muted-foreground">{t("fleetDashboard.commissionRate", { rate: financas.taxa_actual })}</p>
                     </div>
                     <p className="text-xl font-bold whitespace-nowrap">{formatCFA(financas.divida_plataforma)}</p>
                   </div>
                   <Button
                     className="w-full h-12"
                     disabled={financas.divida_plataforma <= 0}
-                    onClick={() => toast.info("Pagamento por Orange Money: use o código da plataforma e envie o comprovativo ao admin.")}
+                    onClick={() => toast.info(t("fleetDashboard.payCommissionInfo"))}
                   >
-                    Pagar comissão
+                    {t("fleetDashboard.payCommission")}
                   </Button>
                 </CardContent>
               </Card>
@@ -456,11 +456,11 @@ const FleetDashboard = () => {
                 <CardContent className="p-4">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground uppercase">A entregar aos restaurantes</p>
+                      <p className="text-xs text-muted-foreground uppercase">{t("fleetDashboard.owedToRestaurants")}</p>
                       {/* §28: o cliente paga ao motorista, que fica com a taxa
                           e deve a comida ao restaurante. Este número é dinheiro
                           de outra pessoa, não receita da frota. */}
-                      <p className="text-xs text-muted-foreground">Comida paga em dinheiro ao motorista</p>
+                      <p className="text-xs text-muted-foreground">{t("fleetDashboard.owedToRestaurantsHint")}</p>
                     </div>
                     <p className="text-xl font-bold whitespace-nowrap">{formatCFA(financas.divida_restaurantes)}</p>
                   </div>
@@ -477,8 +477,8 @@ const FleetDashboard = () => {
                   <CardContent className="p-4">
                     <div className="flex items-baseline justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground uppercase">A receber dos restaurantes</p>
-                        <p className="text-xs text-muted-foreground">Taxas de entrega de pedidos pagos online</p>
+                        <p className="text-xs text-muted-foreground uppercase">{t("fleetDashboard.dueFromRestaurants")}</p>
+                        <p className="text-xs text-muted-foreground">{t("fleetDashboard.dueFromRestaurantsHint")}</p>
                       </div>
                       <p className="text-xl font-bold whitespace-nowrap text-primary">
                         {formatCFA(financas.a_receber_restaurantes)}
@@ -491,11 +491,10 @@ const FleetDashboard = () => {
               {/* §84: nunca mostrar "deves X" sem conseguir explicar porquê. */}
               <Card>
                 <CardContent className="p-4 space-y-2">
-                  <p className="text-sm font-semibold">Movimentos</p>
+                  <p className="text-sm font-semibold">{t("fleetDashboard.entries")}</p>
                   {financas.movimentos.length === 0 ? (
                     <p className="text-xs text-muted-foreground">
-                      Ainda sem movimentos. Aparecem aqui assim que a primeira
-                      entrega for concluída.
+                      {t("fleetDashboard.noEntries")}
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -506,9 +505,9 @@ const FleetDashboard = () => {
                         >
                           <div className="min-w-0">
                             <p className="text-sm truncate">
-                              {ROTULO_MOVIMENTO[m.tipo] ?? m.tipo}
+                              {CHAVE_MOVIMENTO[m.tipo] ? t(CHAVE_MOVIMENTO[m.tipo]) : m.tipo}
                               {m.pedido != null && <span className="text-muted-foreground"> · #{m.pedido}</span>}
-                              {m.revertida && <span className="text-muted-foreground"> · anulado</span>}
+                              {m.revertida && <span className="text-muted-foreground"> · {t("fleetDashboard.reversed")}</span>}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
                               {new Date(m.quando).toLocaleString()}

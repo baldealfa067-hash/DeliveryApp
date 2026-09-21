@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, FileText, Loader2, MapPin, Package, PackageOpen } from "lucide-react";
@@ -34,13 +35,14 @@ import { formatCFA } from "@/lib/format";
  * O GPS é capturado em silêncio quando o cliente deixa (§21), e a sua ausência
  * não bloqueia nada: desde 2026-09-16 a entrega existe com ou sem coordenadas.
  */
-const TIPOS: { valor: TipoEnvio; rotulo: string; icone: typeof FileText }[] = [
-  { valor: "documento", rotulo: "Documento", icone: FileText },
-  { valor: "objeto", rotulo: "Objeto", icone: Package },
-  { valor: "outro", rotulo: "Outro", icone: PackageOpen },
+const TIPOS: { valor: TipoEnvio; chave: string; icone: typeof FileText }[] = [
+  { valor: "documento", chave: "sendPage.typeDocument", icone: FileText },
+  { valor: "objeto", chave: "sendPage.typeObject", icone: Package },
+  { valor: "outro", chave: "sendPage.typeOther", icone: PackageOpen },
 ];
 
 const SendPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { data: bairros = [] } = useBairros();
@@ -88,7 +90,7 @@ const SendPage = () => {
 
   const submeter = () => {
     if (!preco) {
-      toast.error("Escolha um bairro de destino que tenha entrega.");
+      toast.error(t("sendPage.pickBairroFirst"));
       return;
     }
     criar.mutate(
@@ -103,12 +105,12 @@ const SendPage = () => {
         destinoBairro,
         destinoVoz,
         destinoLat: null, destinoLng: null,
-        nome: nome.trim() || "Cliente",
+        nome: nome.trim() || t("sendPage.defaultName"),
         telefone: telefone.trim(),
       },
       {
         onSuccess: (r) => {
-          toast.success(r.repetido ? "Este envio já tinha sido criado." : `Envio #${r.order_number} criado.`);
+          toast.success(r.repetido ? t("sendPage.alreadyCreated") : t("sendPage.created", { number: r.order_number }));
           navigate(`/pedido/${r.order_id}`);
         },
         onError: (e) => toast.error(e.message),
@@ -125,73 +127,73 @@ const SendPage = () => {
   return (
     <div className="max-w-lg mx-auto px-4 pt-6 pb-8 space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Voltar">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t("common.back")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-bold">Enviar</h1>
-          <p className="text-xs text-muted-foreground">Documentos e objetos, de um ponto a outro.</p>
+          <h1 className="text-xl font-bold">{t("sendPage.title")}</h1>
+          <p className="text-xs text-muted-foreground">{t("sendPage.subtitle")}</p>
         </div>
       </div>
 
       {/* 1. O quê */}
       <Card><CardContent className="p-4 space-y-3">
-        <Label>O que vai enviar?</Label>
+        <Label>{t("sendPage.whatToSend")}</Label>
         <div className="grid grid-cols-3 gap-2">
-          {TIPOS.map(({ valor, rotulo, icone: Icone }) => (
+          {TIPOS.map(({ valor, chave, icone: Icone }) => (
             <Button key={valor} type="button" variant={tipo === valor ? "default" : "outline"}
               className="h-16 flex-col gap-1" onClick={() => setTipo(valor)}>
               <Icone className="h-5 w-5" />
-              <span className="text-xs">{rotulo}</span>
+              <span className="text-xs">{t(chave)}</span>
             </Button>
           ))}
         </div>
-        <Textarea placeholder="Descreva em poucas palavras (opcional)"
+        <Textarea placeholder={t("sendPage.describePlaceholder")}
           value={descricao} onChange={(e) => setDescricao(e.target.value)} className="min-h-16" />
       </CardContent></Card>
 
       {/* 2. De onde */}
       <Card><CardContent className="p-4 space-y-3">
-        <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />Onde recolher</Label>
-        <Input className="h-12" placeholder="Ex: Mercado de Bandim, banca do Sr. Mané"
+        <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />{t("sendPage.pickupWhere")}</Label>
+        <Input className="h-12" placeholder={t("sendPage.pickupPlaceholder")}
           value={recolhaMorada} onChange={(e) => setRecolhaMorada(e.target.value)} />
         <Select value={recolhaBairro} onValueChange={setRecolhaBairro}>
-          <SelectTrigger className="h-12"><SelectValue placeholder="Bairro de recolha (opcional)" /></SelectTrigger>
+          <SelectTrigger className="h-12"><SelectValue placeholder={t("sendPage.pickupBairro")} /></SelectTrigger>
           <SelectContent>
             {bairros.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
           </SelectContent>
         </Select>
         <VoiceRecorderField
-          titulo="Indicação de voz da recolha"
-          ajuda="Explique onde é. Referências valem mais que a morada."
+          titulo={t("sendPage.pickupVoiceTitle")}
+          ajuda={t("sendPage.pickupVoiceHelp")}
           valor={recolhaVoz} aoMudar={setRecolhaVoz} pasta="envios/recolha"
         />
       </CardContent></Card>
 
       {/* 3. Para onde — é este bairro que decide o preço */}
       <Card><CardContent className="p-4 space-y-3">
-        <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />Onde entregar</Label>
-        <Input className="h-12" placeholder="Ex: Safim, casa azul depois da bomba"
+        <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />{t("sendPage.dropWhere")}</Label>
+        <Input className="h-12" placeholder={t("sendPage.dropPlaceholder")}
           value={destinoMorada} onChange={(e) => setDestinoMorada(e.target.value)} />
         <Select value={destinoBairro} onValueChange={setDestinoBairro}>
-          <SelectTrigger className="h-12"><SelectValue placeholder="Bairro de destino" /></SelectTrigger>
+          <SelectTrigger className="h-12"><SelectValue placeholder={t("sendPage.dropBairro")} /></SelectTrigger>
           <SelectContent>
             {bairros.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
           </SelectContent>
         </Select>
         <VoiceRecorderField
-          titulo="Indicação de voz da entrega"
-          ajuda="Como chegar, e por quem perguntar."
+          titulo={t("sendPage.dropVoiceTitle")}
+          ajuda={t("sendPage.dropVoiceHelp")}
           valor={destinoVoz} aoMudar={setDestinoVoz} pasta="envios/entrega"
         />
       </CardContent></Card>
 
       {/* 4. Contacto */}
       <Card><CardContent className="p-4 space-y-2">
-        <Label>Contacto</Label>
-        <Input className="h-12" placeholder="O seu nome" value={nome}
+        <Label>{t("sendPage.contact")}</Label>
+        <Input className="h-12" placeholder={t("sendPage.yourName")} value={nome}
           onChange={(e) => setNome(e.target.value)} />
-        <Input className="h-12" inputMode="tel" placeholder="Telefone (o motorista vai ligar)"
+        <Input className="h-12" inputMode="tel" placeholder={t("sendPage.phonePlaceholder")}
           value={telefone} onChange={(e) => setTelefone(e.target.value)} />
       </CardContent></Card>
 
@@ -199,22 +201,22 @@ const SendPage = () => {
       <Card className={preco ? "border-primary/30 bg-primary/5" : undefined}>
         <CardContent className="p-4">
           {!destinoBairro ? (
-            <p className="text-sm text-muted-foreground">Escolha o bairro de destino para ver o preço.</p>
+            <p className="text-sm text-muted-foreground">{t("sendPage.pickBairroToSeePrice")}</p>
           ) : aCarregarPreco ? (
-            <p className="text-sm text-muted-foreground">A consultar o preço…</p>
+            <p className="text-sm text-muted-foreground">{t("sendPage.loadingPrice")}</p>
           ) : preco ? (
             <>
               <div className="flex items-baseline justify-between gap-2">
-                <span className="text-sm text-muted-foreground">Preço da entrega</span>
+                <span className="text-sm text-muted-foreground">{t("sendPage.deliveryPrice")}</span>
                 <span className="text-2xl font-bold">{formatCFA(preco.preco)}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Por {preco.fleet_name}. Paga ao motorista na entrega.
+                {t("sendPage.byFleet", { fleet: preco.fleet_name })}
               </p>
             </>
           ) : (
             <p className="text-sm text-destructive">
-              Ainda não há nenhuma frota a entregar em {destinoBairro}.
+              {t("sendPage.noFleet", { bairro: destinoBairro })}
             </p>
           )}
         </CardContent>
@@ -223,7 +225,7 @@ const SendPage = () => {
       <Button className="w-full h-14 text-base" disabled={!podeEnviar || criar.isPending}
         onClick={submeter}>
         {criar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-        {preco ? `Confirmar envio — ${formatCFA(preco.preco)}` : "Confirmar envio"}
+        {preco ? t("sendPage.confirmWithPrice", { price: formatCFA(preco.preco) }) : t("sendPage.confirm")}
       </Button>
     </div>
   );

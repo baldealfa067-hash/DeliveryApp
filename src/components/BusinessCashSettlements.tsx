@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, Loader2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import {
  * (§84: o que se afirma tem de se poder explicar).
  */
 export const BusinessCashSettlements = ({ businessId }: { businessId: string }) => {
+  const { t } = useTranslation();
   const { data, isLoading } = useBusinessCashSettlements(businessId);
   const confirmar = useConfirmCashSettlement();
   const contestar = useContestCashSettlement();
@@ -34,7 +36,7 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
   if (isLoading) {
     return (
       <Card><CardContent className="p-4">
-        <p className="text-sm text-muted-foreground">A carregar…</p>
+        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       </CardContent></Card>
     );
   }
@@ -46,14 +48,14 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
   const submeterContestacao = () => {
     if (!aContestar) return;
     if (motivo.trim().length === 0) {
-      toast.error("Diga o que está errado — a frota precisa de saber o que corrigir.");
+      toast.error(t("cashSettlements.reasonRequired"));
       return;
     }
     contestar.mutate(
       { id: aContestar.id, motivo: motivo.trim() },
       {
         onSuccess: () => {
-          toast.success("Contestado. A dívida mantém-se.");
+          toast.success(t("cashSettlements.contested"));
           setAContestar(null);
           setMotivo("");
         },
@@ -66,17 +68,17 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
     <div className="space-y-3">
       <Card>
         <CardContent className="p-4">
-          <p className="text-xs text-muted-foreground uppercase">A receber das frotas</p>
+          <p className="text-xs text-muted-foreground uppercase">{t("cashSettlements.dueFromFleets")}</p>
           <p className="text-2xl font-bold">{formatCFA(data?.a_receber_total ?? 0)}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Dinheiro das suas vendas que os motoristas cobraram aos clientes (§28).
+            {t("cashSettlements.dueHint")}
           </p>
         </CardContent>
       </Card>
 
       {porConfirmar.length === 0 ? (
         <Card><CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">Nada por confirmar.</p>
+          <p className="text-sm text-muted-foreground">{t("cashSettlements.nothingPending")}</p>
         </CardContent></Card>
       ) : (
         porConfirmar.map((a) => (
@@ -85,12 +87,12 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
               <div className="flex items-baseline justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold truncate">{a.frota}</p>
-                  <p className="text-xs text-muted-foreground">Caixa de {a.dia}</p>
+                  <p className="text-xs text-muted-foreground">{t("cashSettlements.cashOf", { day: a.dia })}</p>
                 </div>
                 <p className="text-xl font-bold whitespace-nowrap">{formatCFA(a.valor)}</p>
               </div>
               {a.nota && <p className="text-xs text-muted-foreground">{a.nota}</p>}
-              <p className="text-sm">Recebeu este dinheiro?</p>
+              <p className="text-sm">{t("cashSettlements.didYouReceive")}</p>
               <div className="flex gap-2">
                 <Button
                   className="flex-1 h-12"
@@ -99,7 +101,7 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
                     confirmar.mutate(a.id, {
                       onSuccess: (r) =>
                         toast.success(
-                          `Confirmado. Ficam ${formatCFA(r.divida_restante)} por receber.`,
+                          t("cashSettlements.confirmed", { rest: formatCFA(r.divida_restante) }),
                         ),
                       onError: (e) => toast.error(e.message),
                     })
@@ -108,14 +110,14 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
                   {confirmar.isPending
                     ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     : <Check className="h-4 w-4 mr-2" />}
-                  Recebi
+                  {t("cashSettlements.received")}
                 </Button>
                 <Button
                   variant="outline" className="flex-1 h-12"
                   onClick={() => { setAContestar(a); setMotivo(""); }}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Não recebi
+                  {t("cashSettlements.notReceived")}
                 </Button>
               </div>
             </CardContent>
@@ -126,7 +128,7 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
       {resolvidos.length > 0 && (
         <Card>
           <CardContent className="p-4 space-y-2">
-            <p className="text-xs text-muted-foreground uppercase">Histórico</p>
+            <p className="text-xs text-muted-foreground uppercase">{t("cashSettlements.history")}</p>
             {resolvidos.map((a) => (
               <div key={a.id} className="flex items-start justify-between gap-2 text-sm">
                 <div className="min-w-0">
@@ -135,9 +137,9 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
                     a.estado === "confirmado" ? "text-primary"
                     : a.estado === "contestado" ? "text-destructive"
                     : "text-muted-foreground"}`}>
-                    {a.estado === "confirmado" ? "Confirmado"
-                      : a.estado === "contestado" ? `Contestado — ${a.motivo_contestacao}`
-                      : "Retirado pela frota"}
+                    {a.estado === "confirmado" ? t("cashSettlements.stateConfirmed")
+                      : a.estado === "contestado" ? t("cashSettlements.stateContested", { reason: a.motivo_contestacao })
+                      : t("cashSettlements.stateWithdrawn")}
                   </p>
                 </div>
                 <p className="font-semibold whitespace-nowrap shrink-0">{formatCFA(a.valor)}</p>
@@ -150,15 +152,15 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
       <Dialog open={!!aContestar} onOpenChange={(o) => !o && setAContestar(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Contestar {formatCFA(aContestar?.valor ?? 0)}</DialogTitle>
+            <DialogTitle>{t("cashSettlements.contestTitle", { amount: formatCFA(aContestar?.valor ?? 0) })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              A dívida mantém-se e a frota é avisada. Diga o que aconteceu.
+              {t("cashSettlements.contestHint")}
             </p>
             <Textarea
               value={motivo} onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Ex: só recebi 3.000 FCFA"
+              placeholder={t("cashSettlements.reasonPlaceholder")}
               className="min-h-24"
             />
           </div>
@@ -168,7 +170,7 @@ export const BusinessCashSettlements = ({ businessId }: { businessId: string }) 
               onClick={submeterContestacao} disabled={contestar.isPending}
             >
               {contestar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Contestar
+              {t("cashSettlements.contest")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Minus, Plus, ShoppingBag } from "lucide-react";
@@ -36,6 +37,7 @@ const rpc = supabase.rpc.bind(supabase) as unknown as (
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
 export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [aberto, setAberto] = useState(false);
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
@@ -76,7 +78,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
       const itens = Object.entries(quantidades)
         .filter(([, q]) => q > 0)
         .map(([menu_item_id, qty]) => ({ menu_item_id, qty }));
-      if (itens.length === 0) throw new Error("Escolha pelo menos um artigo.");
+      if (itens.length === 0) throw new Error(t("manualOrder.pickAtLeastOne"));
       const { data, error } = await rpc("create_manual_order", {
         p_business_id: businessId,
         p_items: itens,
@@ -93,7 +95,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["business"] });
-      toast.success("Pedido lançado.");
+      toast.success(t("manualOrder.created"));
       limpar();
       setAberto(false);
     },
@@ -113,20 +115,20 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
       <DialogTrigger asChild>
         <Button className="w-full h-12" variant="outline">
           <ShoppingBag className="h-4 w-4 mr-2" />
-          Lançar pedido manual
+          {t("manualOrder.open")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Pedido por telefone ou balcão</DialogTitle>
+          <DialogTitle>{t("manualOrder.title")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Artigos</Label>
+            <Label>{t("manualOrder.items")}</Label>
             {disponiveis.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Nenhum artigo disponível. Verifique o menu e o stock.
+                {t("manualOrder.noItems")}
               </p>
             ) : (
               disponiveis.map((m) => (
@@ -154,39 +156,38 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
 
           <div className="grid grid-cols-3 gap-2">
             {([
-              ["comer_no_local", "No local"],
-              ["para_levar", "Levar"],
-              ["entrega", "Entrega"],
-            ] as const).map(([v, t]) => (
+              ["comer_no_local", "manualOrder.modeDineIn"],
+              ["para_levar", "manualOrder.modeTakeaway"],
+              ["entrega", "manualOrder.modeDelivery"],
+            ] as const).map(([v, chave]) => (
               <Button key={v} type="button" variant={modo === v ? "default" : "outline"}
                 className="h-11" onClick={() => setModo(v)}>
-                {t}
+                {t(chave)}
               </Button>
             ))}
           </div>
 
           <div className="space-y-2">
-            <Input placeholder="Nome do cliente (opcional)" className="h-11"
+            <Input placeholder={t("manualOrder.customerName")} className="h-11"
               value={nome} onChange={(e) => setNome(e.target.value)} />
-            <Input placeholder="Telefone (opcional)" className="h-11" inputMode="tel"
+            <Input placeholder={t("manualOrder.customerPhone")} className="h-11" inputMode="tel"
               value={telefone} onChange={(e) => setTelefone(e.target.value)} />
             {modo === "entrega" && (
               <>
-                <Input placeholder="Bairro (define o preço da entrega)" className="h-11"
+                <Input placeholder={t("manualOrder.bairro")} className="h-11"
                   value={bairro} onChange={(e) => setBairro(e.target.value)} />
-                <Input placeholder="Onde entregar — referências valem mais que a morada" className="h-11"
+                <Input placeholder={t("manualOrder.address")} className="h-11"
                   value={morada} onChange={(e) => setMorada(e.target.value)} />
               </>
             )}
           </div>
 
           <div className="flex items-baseline justify-between border-t pt-3">
-            <span className="text-sm text-muted-foreground">{nArtigos} artigo(s)</span>
+            <span className="text-sm text-muted-foreground">{t("manualOrder.itemCount", { count: nArtigos })}</span>
             <span className="text-xl font-bold">{formatCFA(totalPrevisto)}</span>
           </div>
           <p className="text-xs text-muted-foreground -mt-2">
-            O total é confirmado pelo servidor a partir do menu. A taxa de
-            entrega, quando houver, é somada depois pelo preço do bairro.
+            {t("manualOrder.totalHint")}
           </p>
 
           <div className="space-y-2">
@@ -194,19 +195,18 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
               <Button className="w-full h-12" disabled={criar.isPending || nArtigos === 0}
                 onClick={() => criar.mutate(true)}>
                 {criar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Lançar e concluir
+                {t("manualOrder.createAndFinish")}
               </Button>
             )}
             <Button variant={modo === "entrega" ? "default" : "outline"}
               className="w-full h-12" disabled={criar.isPending || nArtigos === 0}
               onClick={() => criar.mutate(false)}>
               {criar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {modo === "entrega" ? "Lançar e procurar motorista" : "Lançar como em preparação"}
+              {modo === "entrega" ? t("manualOrder.createAndDispatch") : t("manualOrder.createAsPreparing")}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Pedidos manuais não geram comissão da plataforma. O stock é
-            descontado já, no momento em que lança.
+            {t("manualOrder.commissionHint")}
           </p>
         </div>
       </DialogContent>

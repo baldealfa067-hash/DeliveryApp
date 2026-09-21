@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Banknote, Loader2, Undo2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,14 +27,15 @@ import {
  * browser só criava duas verdades que podem divergir (§46, §71). O ecrã sugere
  * o valor em dívida e deixa o servidor recusar o que não puder aceitar.
  */
-const ESTADOS: Record<string, { texto: string; classe: string }> = {
-  declarado: { texto: "Por confirmar", classe: "text-amber-600" },
-  confirmado: { texto: "Confirmado", classe: "text-primary" },
-  contestado: { texto: "Contestado", classe: "text-destructive" },
-  cancelado: { texto: "Retirado", classe: "text-muted-foreground" },
+const ESTADOS: Record<string, { chave: string; classe: string }> = {
+  declarado: { chave: "fleetCash.statePending", classe: "text-amber-600" },
+  confirmado: { chave: "fleetCash.stateConfirmed", classe: "text-primary" },
+  contestado: { chave: "fleetCash.stateContested", classe: "text-destructive" },
+  cancelado: { chave: "fleetCash.stateWithdrawn", classe: "text-muted-foreground" },
 };
 
 export const FleetCashClosing = () => {
+  const { t } = useTranslation();
   const { data: fecho, isLoading } = useFleetCashClosing();
   const declarar = useDeclareCashSettlement();
   const cancelar = useCancelCashSettlement();
@@ -51,14 +53,14 @@ export const FleetCashClosing = () => {
     if (!alvo) return;
     const n = Number(valor);
     if (!Number.isFinite(n) || n <= 0) {
-      toast.error("Indique um valor.");
+      toast.error(t("fleetCash.amountRequired"));
       return;
     }
     declarar.mutate(
       { businessId: alvo.business_id, valor: n },
       {
         onSuccess: () => {
-          toast.success("Declarado. O restaurante vai confirmar.");
+          toast.success(t("fleetCash.declared"));
           setAlvo(null);
         },
         onError: (e) => toast.error(e.message),
@@ -69,7 +71,7 @@ export const FleetCashClosing = () => {
   if (isLoading) {
     return (
       <Card><CardContent className="p-4">
-        <p className="text-sm text-muted-foreground">A carregar…</p>
+        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       </CardContent></Card>
     );
   }
@@ -83,11 +85,10 @@ export const FleetCashClosing = () => {
     <div className="space-y-3">
       <Card>
         <CardContent className="p-4">
-          <p className="text-xs text-muted-foreground uppercase">Dinheiro por entregar</p>
+          <p className="text-xs text-muted-foreground uppercase">{t("fleetCash.cashToHandOver")}</p>
           <p className="text-2xl font-bold">{formatCFA(totalEmDivida)}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Valor da comida cobrado aos clientes e devido aos restaurantes (§28).
-            A taxa de entrega é sua e não entra aqui.
+            {t("fleetCash.cashHint")}
           </p>
         </CardContent>
       </Card>
@@ -95,7 +96,7 @@ export const FleetCashClosing = () => {
       {restaurantes.length === 0 ? (
         <Card><CardContent className="p-4">
           <p className="text-sm text-muted-foreground">
-            Sem dinheiro por acertar. Aparece aqui quando houver entregas pagas em dinheiro.
+            {t("fleetCash.nothingToSettle")}
           </p>
         </CardContent></Card>
       ) : (
@@ -109,14 +110,14 @@ export const FleetCashClosing = () => {
                   <p className="text-lg font-bold whitespace-nowrap">{formatCFA(r.divida_aberta)}</p>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span>Recolhido hoje: {formatCFA(r.recolhido_no_dia)}</span>
+                  <span>{t("fleetCash.collectedToday", { amount: formatCFA(r.recolhido_no_dia) })}</span>
                   {r.declarado_por_confirmar > 0 && (
                     <span className="text-amber-600">
-                      Por confirmar: {formatCFA(r.declarado_por_confirmar)}
+                      {t("fleetCash.pendingConfirm", { amount: formatCFA(r.declarado_por_confirmar) })}
                     </span>
                   )}
                   {r.confirmado_no_dia > 0 && (
-                    <span>Entregue hoje: {formatCFA(r.confirmado_no_dia)}</span>
+                    <span>{t("fleetCash.handedToday", { amount: formatCFA(r.confirmado_no_dia) })}</span>
                   )}
                 </div>
                 <Button
@@ -125,7 +126,7 @@ export const FleetCashClosing = () => {
                   onClick={() => abrir(r)}
                 >
                   <Banknote className="h-4 w-4 mr-2" />
-                  {porEntregar > 0 ? "Declarar entrega de dinheiro" : "Tudo declarado"}
+                  {porEntregar > 0 ? t("fleetCash.declareHandover") : t("fleetCash.allDeclared")}
                 </Button>
               </CardContent>
             </Card>
@@ -136,7 +137,7 @@ export const FleetCashClosing = () => {
       {motoristas.length > 0 && (
         <Card>
           <CardContent className="p-4 space-y-2">
-            <p className="text-xs text-muted-foreground uppercase">Quem recolheu hoje</p>
+            <p className="text-xs text-muted-foreground uppercase">{t("fleetCash.whoCollected")}</p>
             {motoristas.map((m) => (
               <div key={m.driver_id} className="flex justify-between text-sm">
                 <span className="min-w-0 truncate">{m.nome}</span>
@@ -152,14 +153,14 @@ export const FleetCashClosing = () => {
       {acertos.length > 0 && (
         <Card>
           <CardContent className="p-4 space-y-2">
-            <p className="text-xs text-muted-foreground uppercase">Declarações</p>
+            <p className="text-xs text-muted-foreground uppercase">{t("fleetCash.declarations")}</p>
             {acertos.map((a) => {
               const e = ESTADOS[a.estado] ?? ESTADOS.declarado;
               return (
                 <div key={a.id} className="flex items-start justify-between gap-2 text-sm">
                   <div className="min-w-0">
                     <p className="truncate">{a.nome}</p>
-                    <p className={`text-xs ${e.classe}`}>{e.texto}</p>
+                    <p className={`text-xs ${e.classe}`}>{t(e.chave)}</p>
                     {a.motivo_contestacao && (
                       <p className="text-xs text-destructive mt-0.5">{a.motivo_contestacao}</p>
                     )}
@@ -171,12 +172,12 @@ export const FleetCashClosing = () => {
                         variant="ghost" size="sm" className="h-7 px-2 text-xs"
                         onClick={() =>
                           cancelar.mutate(a.id, {
-                            onSuccess: () => toast.success("Declaração retirada."),
+                            onSuccess: () => toast.success(t("fleetCash.withdrawn")),
                             onError: (err) => toast.error(err.message),
                           })
                         }
                       >
-                        <Undo2 className="h-3 w-3 mr-1" />Retirar
+                        <Undo2 className="h-3 w-3 mr-1" />{t("fleetCash.withdraw")}
                       </Button>
                     )}
                   </div>
@@ -190,28 +191,28 @@ export const FleetCashClosing = () => {
       <Dialog open={!!alvo} onOpenChange={(o) => !o && setAlvo(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Entregar dinheiro a {alvo?.nome}</DialogTitle>
+            <DialogTitle>{t("fleetCash.handOverTo", { name: alvo?.nome })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Em dívida: <strong>{formatCFA(alvo?.divida_aberta ?? 0)}</strong>
+              {t("fleetCash.owed")} <strong>{formatCFA(alvo?.divida_aberta ?? 0)}</strong>
               {(alvo?.declarado_por_confirmar ?? 0) > 0 && (
-                <> · já declarado: {formatCFA(alvo?.declarado_por_confirmar ?? 0)}</>
+                <> · {t("fleetCash.alreadyDeclared", { amount: formatCFA(alvo?.declarado_por_confirmar ?? 0) })}</>
               )}
             </p>
             <Input
               type="number" inputMode="numeric" min={1} className="h-12 text-lg"
               value={valor} onChange={(e) => setValor(e.target.value)}
-              placeholder="Valor em FCFA"
+              placeholder={t("fleetCash.amountPlaceholder")}
             />
             <p className="text-xs text-muted-foreground">
-              A dívida só desce depois de o restaurante confirmar que recebeu.
+              {t("fleetCash.declareHint")}
             </p>
           </div>
           <DialogFooter>
             <Button className="w-full h-12" onClick={submeter} disabled={declarar.isPending}>
               {declarar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Declarar
+              {t("fleetCash.declare")}
             </Button>
           </DialogFooter>
         </DialogContent>

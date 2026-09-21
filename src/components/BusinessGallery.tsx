@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
@@ -25,6 +26,7 @@ const MAX_FOTOS = 12;
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export const BusinessGallery = ({ businessId }: { businessId: string }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -47,12 +49,12 @@ export const BusinessGallery = ({ businessId }: { businessId: string }) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (file.size > MAX_BYTES) {
-      toast.error("Imagem demasiado grande (máximo 5 MB).");
+      toast.error(t("businessGallery.tooLarge"));
       if (fileRef.current) fileRef.current.value = "";
       return;
     }
     if (fotos.length >= MAX_FOTOS) {
-      toast.error(`Máximo de ${MAX_FOTOS} fotos.`);
+      toast.error(t("businessGallery.maxReached", { max: MAX_FOTOS }));
       return;
     }
     setAEnviar(true);
@@ -67,7 +69,7 @@ export const BusinessGallery = ({ businessId }: { businessId: string }) => {
       });
       if (ins.error) throw new Error(ins.error.message);
       qc.invalidateQueries({ queryKey: ["galeria", businessId] });
-      toast.success("Foto acrescentada.");
+      toast.success(t("businessGallery.added"));
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -83,7 +85,7 @@ export const BusinessGallery = ({ businessId }: { businessId: string }) => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["galeria", businessId] });
-      toast.success("Foto removida.");
+      toast.success(t("businessGallery.removed"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -92,18 +94,18 @@ export const BusinessGallery = ({ businessId }: { businessId: string }) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <ImagePlus className="h-4 w-4" /> Galeria
+          <ImagePlus className="h-4 w-4" /> {t("businessGallery.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-xs text-muted-foreground">
-          Fotos do espaço e dos pratos. Aparecem na página pública da loja.
+          {t("businessGallery.hint")}
         </p>
 
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">A carregar…</p>
+          <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         ) : fotos.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Ainda sem fotos.</p>
+          <p className="text-sm text-muted-foreground">{t("businessGallery.empty")}</p>
         ) : (
           <div className="grid grid-cols-3 gap-2">
             {fotos.map((f) => (
@@ -125,7 +127,9 @@ export const BusinessGallery = ({ businessId }: { businessId: string }) => {
           onClick={() => fileRef.current?.click()}
           disabled={aEnviar || fotos.length >= MAX_FOTOS}>
           {aEnviar ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ImagePlus className="h-4 w-4 mr-2" />}
-          {fotos.length >= MAX_FOTOS ? `Máximo de ${MAX_FOTOS} fotos` : "Acrescentar foto"}
+          {fotos.length >= MAX_FOTOS
+            ? t("businessGallery.maxLabel", { max: MAX_FOTOS })
+            : t("businessGallery.add")}
         </Button>
       </CardContent>
     </Card>

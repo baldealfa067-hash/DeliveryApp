@@ -1,0 +1,16 @@
+[
+  "beautyDashboard.configure",
+  "beautyDashboard.createProfile",
+  "beautyDashboard.noProfile",
+  "bottomNav.orders",
+  "businessDashboard.statsDesc",
+  "businessDashboard.statsTitle",
+  "common.error",
+  "driverDashboard.callCustomer",
+  "driverDashboard.codeDesc",
+  "driverDashboard.codeTitle",
+  "driverDashboard.completedDeliveries",
+  "driverDashboard.goingToCustomer",
+  "driverDashboard.goingToRestaurant",
+  "profile.email"
+]

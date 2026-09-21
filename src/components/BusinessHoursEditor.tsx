@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Clock, Copy, Loader2, Plus, X } from "lucide-react";
@@ -23,14 +24,16 @@ import { Switch } from "@/components/ui/switch";
  */
 interface Periodo { weekday: number; opens_at: string; closes_at: string }
 
-const DIAS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-
 const rpc = supabase.rpc.bind(supabase) as unknown as (
   fn: string, args?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
 export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
+  const { t } = useTranslation();
   const qc = useQueryClient();
+  // Os nomes dos dias vivem no i18n e sao indexados por `weekday` (0 = domingo),
+  // que e o que o backend guarda — nao pela ordem em que aparecem no ecra.
+  const DIAS = t("businessHours.days", { returnObjects: true }) as string[];
   const [periodos, setPeriodos] = useState<Periodo[]>([]);
   const [aceita, setAceita] = useState(true);
 
@@ -53,7 +56,7 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
     mutationFn: async () => {
       for (const p of periodos) {
         if (p.opens_at === p.closes_at) {
-          throw new Error(`${DIAS[p.weekday]}: abre e fecha à mesma hora.`);
+          throw new Error(t("businessHours.sameHour", { day: DIAS[p.weekday] }));
         }
       }
       const { error } = await rpc("set_business_hours", {
@@ -63,7 +66,7 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["horarios", businessId] });
-      toast.success("Horário gravado.");
+      toast.success(t("businessHours.saved"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -79,7 +82,7 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
     onSuccess: (v) => {
       setAceita(v);
       qc.invalidateQueries({ queryKey: ["horarios", businessId] });
-      toast.success(v ? "A aceitar pedidos." : "Fechado. Não vai receber pedidos.");
+      toast.success(t(v ? "businessHours.acceptingOn" : "businessHours.acceptingOff"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -104,18 +107,18 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
     });
   const copiarParaTodos = (d: number) => {
     const base = doDia(d);
-    if (base.length === 0) return toast.error("Este dia não tem horário para copiar.");
+    if (base.length === 0) return toast.error(t("businessHours.nothingToCopy"));
     setPeriodos(
       Array.from({ length: 7 }, (_, dia) =>
         base.map((p) => ({ ...p, weekday: dia })),
       ).flat(),
     );
-    toast.success("Copiado para a semana. Falta gravar.");
+    toast.success(t("businessHours.copiedToWeek"));
   };
 
   if (isLoading) {
     return <Card><CardContent className="p-4">
-      <p className="text-sm text-muted-foreground">A carregar…</p>
+      <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
     </CardContent></Card>;
   }
 
@@ -123,15 +126,15 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Clock className="h-4 w-4" /> Horário de funcionamento
+          <Clock className="h-4 w-4" /> {t("businessHours.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
           <div className="min-w-0">
-            <p className="text-sm font-medium">A aceitar pedidos</p>
+            <p className="text-sm font-medium">{t("businessHours.acceptingOrders")}</p>
             <p className="text-xs text-muted-foreground">
-              Desligue para fechar já, sem mexer no horário.
+              {t("businessHours.acceptingHint")}
             </p>
           </div>
           <Switch checked={aceita} onCheckedChange={(v) => alternarAceitar.mutate(v)} />
@@ -139,11 +142,11 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
 
         {data && (
           <p className="text-xs text-muted-foreground">
-            Agora:{" "}
+            {t("businessHours.now")}{" "}
             <strong className={data.aberto_agora ? "text-primary" : "text-destructive"}>
-              {data.aberto_agora ? "Aberto" : "Fechado"}
+              {t(data.aberto_agora ? "businessHours.open" : "businessHours.closed")}
             </strong>
-            {periodos.length === 0 && " · sem horário definido, está sempre aberto"}
+            {periodos.length === 0 && t("businessHours.alwaysOpenHint")}
           </p>
         )}
 
@@ -158,17 +161,17 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
                     {ps.length > 0 && (
                       <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs"
                         onClick={() => copiarParaTodos(d)}>
-                        <Copy className="h-3 w-3 mr-1" />Copiar
+                        <Copy className="h-3 w-3 mr-1" />{t("businessHours.copy")}
                       </Button>
                     )}
                     <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs"
                       onClick={() => juntar(d)}>
-                      <Plus className="h-3 w-3 mr-1" />Período
+                      <Plus className="h-3 w-3 mr-1" />{t("businessHours.period")}
                     </Button>
                   </div>
                 </div>
                 {ps.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Fechado</p>
+                  <p className="text-xs text-muted-foreground">{t("businessHours.closed")}</p>
                 ) : (
                   ps.map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -190,12 +193,12 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Fechar depois da meia-noite escreve-se como está: 19:00 → 02:00.
+          {t("businessHours.overnightHint")}
         </p>
 
         <Button className="w-full h-12" onClick={() => gravar.mutate()} disabled={gravar.isPending}>
           {gravar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-          Gravar horário
+          {t("businessHours.save")}
         </Button>
       </CardContent>
     </Card>
