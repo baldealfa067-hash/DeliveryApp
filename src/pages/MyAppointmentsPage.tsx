@@ -18,9 +18,9 @@ import { formatCFA } from "@/lib/format";
 
 const APPT_STATUS_LABELS: Record<string, { key: string; color: string }> = {
   solicitado: { key: "appointmentStatus.requested", color: "bg-blue-100 text-blue-800" },
-  confirmado: { key: "appointmentStatus.confirmed", color: "bg-green-100 text-green-800" },
+  confirmado: { key: "appointmentStatus.confirmed", color: "bg-success-soft text-success-foreground" },
   em_atendimento: { key: "appointmentStatus.inProgress", color: "bg-yellow-100 text-yellow-800" },
-  concluido: { key: "appointmentStatus.completed", color: "bg-green-100 text-green-800" },
+  concluido: { key: "appointmentStatus.completed", color: "bg-success-soft text-success-foreground" },
   avaliado: { key: "appointmentStatus.reviewed", color: "bg-purple-100 text-purple-800" },
   cancelado: { key: "appointmentStatus.cancelled", color: "bg-red-100 text-red-800" },
 };

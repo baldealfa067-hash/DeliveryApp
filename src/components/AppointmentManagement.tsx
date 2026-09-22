@@ -27,9 +27,9 @@ import { formatCFA } from "@/lib/format";
 
 const APPT_STATUS_TABS = [
   { value: "solicitado", label: "appointmentStatus.requested", icon: Calendar, color: "text-blue-600" },
-  { value: "confirmado", label: "appointmentStatus.confirmed", icon: CheckCircle2, color: "text-green-600" },
+  { value: "confirmado", label: "appointmentStatus.confirmed", icon: CheckCircle2, color: "text-success" },
   { value: "em_atendimento", label: "appointmentStatus.inProgress", icon: Scissors, color: "text-yellow-600" },
-  { value: "concluido", label: "appointmentStatus.completed", icon: CheckCircle2, color: "text-green-600" },
+  { value: "concluido", label: "appointmentStatus.completed", icon: CheckCircle2, color: "text-success" },
   { value: "cancelado", label: "appointmentStatus.cancelled", icon: XCircle, color: "text-red-600" },
 ];
 

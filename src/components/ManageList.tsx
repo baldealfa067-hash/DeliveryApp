@@ -58,7 +58,7 @@ const ManageList = ({ placeholder, items, onAdd, onRename, onDelete, emptyText }
                   autoFocus
                 />
                 <Button size="icon" variant="ghost" className="h-10 w-10 shrink-0" onClick={submitRename}>
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-4 w-4 text-success" />
                 </Button>
                 <Button size="icon" variant="ghost" className="h-10 w-10 shrink-0" onClick={() => setEditing(null)}>
                   <X className="h-4 w-4 text-muted-foreground" />

@@ -22,17 +22,17 @@ import { OrderTotals } from "@/components/OrderTotals";
 
 const STATUS_LABELS: Record<string, { key: string; color: string }> = {
   novo: { key: "orderStatus.novo", color: "bg-blue-100 text-blue-800" },
-  confirmado: { key: "orderStatus.confirmado", color: "bg-green-100 text-green-800" },
+  confirmado: { key: "orderStatus.confirmado", color: "bg-success-soft text-success-foreground" },
   em_preparacao: { key: "orderStatus.em_preparacao", color: "bg-yellow-100 text-yellow-800" },
   na_cozinha: { key: "orderStatus.na_cozinha", color: "bg-orange-100 text-orange-800" },
-  pronto: { key: "orderStatus.pronto", color: "bg-green-100 text-green-800" },
+  pronto: { key: "orderStatus.pronto", color: "bg-success-soft text-success-foreground" },
   saiu_para_entrega: { key: "orderStatus.saiu_para_entrega", color: "bg-blue-100 text-blue-800" },
   aguardando_motorista: { key: "orderStatus.aguardando_motorista", color: "bg-purple-100 text-purple-800" },
   motorista_encontrado: { key: "orderStatus.motorista_encontrado", color: "bg-indigo-100 text-indigo-800" },
   pedido_recolhido: { key: "orderStatus.pedido_recolhido", color: "bg-blue-100 text-blue-800" },
   a_caminho: { key: "orderStatus.a_caminho", color: "bg-blue-100 text-blue-800" },
-  entregue: { key: "orderStatus.entregue", color: "bg-green-100 text-green-800" },
-  concluido: { key: "orderStatus.concluido", color: "bg-green-100 text-green-800" },
+  entregue: { key: "orderStatus.entregue", color: "bg-success-soft text-success-foreground" },
+  concluido: { key: "orderStatus.concluido", color: "bg-success-soft text-success-foreground" },
   cancelado: { key: "orderStatus.cancelado", color: "bg-red-100 text-red-800" },
 };
 

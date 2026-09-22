@@ -163,26 +163,26 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
           </CardContent>
         </Card>
 
-        <Card className="border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950">
+        <Card className="border-pending/30 bg-pending-soft">
           <CardContent className="p-3 flex flex-col items-center gap-1">
-            <span className="text-[10px] text-orange-700 dark:text-orange-300 uppercase font-semibold">{t("currentAccount.commissionGenerated")}</span>
-            <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{formatCFA(filteredCommission?.commission_due || 0)}</span>
+            <span className="text-[10px] text-pending-foreground uppercase font-semibold">{t("currentAccount.commissionGenerated")}</span>
+            <span className="text-lg font-bold text-pending-foreground">{formatCFA(filteredCommission?.commission_due || 0)}</span>
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
+        <Card className="border-success/30 bg-success-soft">
           <CardContent className="p-3 flex flex-col items-center gap-1">
-            <span className="text-[10px] text-green-700 dark:text-green-300 uppercase font-semibold">{t("currentAccount.commissionPaid")}</span>
-            <span className="text-lg font-bold text-green-600 dark:text-green-400">{formatCFA(filteredCommission?.commission_paid || 0)}</span>
+            <span className="text-[10px] text-success-foreground uppercase font-semibold">{t("currentAccount.commissionPaid")}</span>
+            <span className="text-lg font-bold text-success">{formatCFA(filteredCommission?.commission_paid || 0)}</span>
           </CardContent>
         </Card>
 
-        <Card className={`border-2 ${(filteredCommission?.commission_balance || 0) > 0 ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950" : "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950"}`}>
+        <Card className={`border-2 ${(filteredCommission?.commission_balance || 0) > 0 ? "border-problem/30 bg-problem-soft" : "border-success/30 bg-success-soft"}`}>
           <CardContent className="p-3 flex flex-col items-center gap-1">
-            <span className={`text-[10px] uppercase font-semibold ${(filteredCommission?.commission_balance || 0) > 0 ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300"}`}>
+            <span className={`text-[10px] uppercase font-semibold ${(filteredCommission?.commission_balance || 0) > 0 ? "text-problem-foreground" : "text-success-foreground"}`}>
               {t("currentAccount.balance")}
             </span>
-            <span className={`text-lg font-bold ${(filteredCommission?.commission_balance || 0) > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}>
+            <span className={`text-lg font-bold ${(filteredCommission?.commission_balance || 0) > 0 ? "text-problem" : "text-success"}`}>
               {formatCFA(filteredCommission?.commission_balance || 0)}
             </span>
           </CardContent>
@@ -233,16 +233,16 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
                     </div>
                     <div className="flex items-center gap-2 ml-2">
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${mov.amount > 0 ? "text-green-600" : "text-orange-600"}`}>
+                        <p className={`text-sm font-bold ${mov.amount > 0 ? "text-success" : "text-pending"}`}>
                           {mov.amount > 0 ? "+" : ""}{formatCFA(Math.abs(mov.amount))}
                         </p>
                         {mov.status && (
                           <Badge
                             variant="secondary"
                             className={`text-[10px] mt-1 ${
-                              mov.status === "validado" ? "bg-green-100 text-green-700" :
-                              mov.status === "rejeitado" ? "bg-red-100 text-red-700" :
-                              "bg-yellow-100 text-yellow-700"
+                              mov.status === "validado" ? "bg-success-soft text-success-foreground" :
+                              mov.status === "rejeitado" ? "bg-problem-soft text-problem-foreground" :
+                              "bg-pending-soft text-pending-foreground"
                             }`}
                           >
                             {t(`commission.status_${mov.status}`, mov.status)}
@@ -257,9 +257,9 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
                   {expandedMovement === mov.id && (
                     <div className="mt-2 pt-2 border-t space-y-2">
                       {mov.status === "rejeitado" && mov.note && (
-                        <div className="bg-red-50 dark:bg-red-950 p-2 rounded-md">
-                          <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">{t("currentAccount.rejectionReason")}</p>
-                          <p className="text-xs text-red-600 dark:text-red-400">{mov.note}</p>
+                        <div className="bg-problem-soft p-2 rounded-md">
+                          <p className="text-xs font-semibold text-problem-foreground mb-1">{t("currentAccount.rejectionReason")}</p>
+                          <p className="text-xs text-problem-foreground">{mov.note}</p>
                         </div>
                       )}
                       {mov.proofUrl && (

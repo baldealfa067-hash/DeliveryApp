@@ -967,8 +967,8 @@ const BusinessDetail = () => {
                               {paymentProofPreview && (
                                 <img src={paymentProofPreview} alt="" className="h-12 w-12 rounded-md border object-cover" />
                               )}
-                              <Check className="h-4 w-4 text-green-600" />
-                              <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
+                              <Check className="h-4 w-4 text-success" />
+                              <span className="text-sm text-success-foreground font-medium">{t("businessDetail.proofAttached")}</span>
                               <Button type="button" variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => {
                                 // Ainda não está ligado a pedido nenhum, portanto o servidor deixa
                                 // apagar: não fica lixo privado de um comprovativo que se trocou.
@@ -1152,7 +1152,7 @@ const BusinessDetail = () => {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 text-success" />
                   {t("businessDetail.reportSent")}
                 </DialogTitle>
                 <DialogDescription>

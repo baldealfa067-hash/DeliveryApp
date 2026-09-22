@@ -5,34 +5,37 @@
 @layer base {
   :root {
     --background: 45 20% 97%;
-    --foreground: 150 30% 8%;
+    --foreground: 350 20% 10%;
 
     --card: 45 20% 100%;
-    --card-foreground: 150 30% 8%;
+    --card-foreground: 350 20% 10%;
 
     --popover: 45 20% 100%;
-    --popover-foreground: 150 30% 8%;
+    --popover-foreground: 350 20% 10%;
 
-    --primary: 145 63% 32%;
+    --primary: 350 62% 27%;
     --primary-foreground: 0 0% 100%;
     /* Fundo de destaque suave: cartão selecionado, chip ativo */
-    --primary-light: 145 45% 94%;
+    --primary-light: 350 45% 95%;
+    /* Marca sobre fundo escuro (hero, gradientes sobre foto): o bordô de 27%
+       nao se le contra preto. Este e o mesmo matiz, subido em luminosidade. */
+    --primary-on-dark: 350 75% 65%;
 
     --secondary: 45 90% 50%;
-    --secondary-foreground: 150 30% 8%;
+    --secondary-foreground: 350 20% 10%;
 
     --muted: 45 15% 92%;
-    --muted-foreground: 150 10% 45%;
+    --muted-foreground: 350 8% 42%;
 
-    --accent: 0 72% 45%;
+    --accent: 350 62% 34%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 8 78% 48%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 45 15% 88%;
     --input: 45 15% 88%;
-    --ring: 145 63% 32%;
+    --ring: 350 62% 27%;
 
     --radius: 0.75rem;
 
@@ -59,9 +62,9 @@
     --success-foreground: 145 63% 22%;
 
     /* Problema — cancelado, comprovativo rejeitado */
-    --problem: 0 72% 45%;
-    --problem-soft: 0 72% 95%;
-    --problem-foreground: 0 72% 33%;
+    --problem: 8 78% 48%;
+    --problem-soft: 8 78% 95%;
+    --problem-foreground: 8 75% 32%;
 
     /* Sombras — suaves, nunca pesadas */
     --shadow-card: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
@@ -78,34 +81,35 @@
   }
 
   .dark {
-    --background: 150 20% 6%;
+    --background: 350 18% 7%;
     --foreground: 45 20% 95%;
 
-    --card: 150 20% 9%;
+    --card: 350 18% 10%;
     --card-foreground: 45 20% 95%;
 
-    --popover: 150 20% 9%;
+    --popover: 350 18% 10%;
     --popover-foreground: 45 20% 95%;
 
-    --primary: 145 63% 40%;
+    --primary: 350 58% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 145 40% 16%;
+    --primary-light: 350 40% 18%;
+    --primary-on-dark: 350 75% 68%;
 
     --secondary: 45 90% 45%;
-    --secondary-foreground: 150 30% 8%;
+    --secondary-foreground: 350 20% 10%;
 
-    --muted: 150 15% 15%;
+    --muted: 350 12% 16%;
     --muted-foreground: 45 10% 55%;
 
-    --accent: 0 72% 50%;
+    --accent: 350 58% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 8 60% 38%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 15% 18%;
-    --input: 150 15% 18%;
-    --ring: 145 63% 40%;
+    --border: 350 12% 18%;
+    --input: 350 12% 18%;
+    --ring: 350 58% 45%;
 
     /* Estados — fundo escurece, texto clareia */
     --pending: 38 92% 58%;
@@ -120,9 +124,9 @@
     --success-soft: 145 40% 15%;
     --success-foreground: 145 60% 66%;
 
-    --problem: 0 72% 58%;
-    --problem-soft: 0 45% 17%;
-    --problem-foreground: 0 80% 74%;
+    --problem: 8 78% 58%;
+    --problem-soft: 8 45% 18%;
+    --problem-foreground: 8 85% 72%;
 
     --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.2);
     --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.4);

@@ -179,7 +179,7 @@ const BusinessDashboard = () => {
       case "aprovado":
         return (
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1">
-            <ShieldCheck className="h-3 w-3 text-green-600" /> {t("businessDashboard.verified")}
+            <ShieldCheck className="h-3 w-3 text-success" /> {t("businessDashboard.verified")}
           </Badge>
         );
       case "pendente":
@@ -203,7 +203,7 @@ const BusinessDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logo} alt="Bornaal" className="h-8 w-auto" />
+          <img src={logo} alt="VEXA" className="h-8 w-auto" />
           <div className="flex items-center gap-2">
             {/* Saída para a app pública. Vai a /inicio e não a "/": a raiz
                 devolve contas de trabalho ao seu painel, portanto usá-la aqui
@@ -342,11 +342,11 @@ const BusinessDashboard = () => {
                       </div>
                       <div>
                         <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.paid")}</span>
-                        <span className="text-lg font-bold text-green-600">{formatCFA(commission.commission_paid)}</span>
+                        <span className="text-lg font-bold text-success">{formatCFA(commission.commission_paid)}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.balance")}</span>
-                        <span className={"text-lg font-bold " + (commission.commission_balance > 0 ? "text-orange-600" : "text-green-600")}>
+                        <span className={"text-lg font-bold " + (commission.commission_balance > 0 ? "text-pending" : "text-success")}>
                           {formatCFA(commission.commission_balance)}
                         </span>
                       </div>
@@ -382,7 +382,7 @@ const BusinessDashboard = () => {
                                   setTimeout(() => setCommCopied(false), 2000);
                                 }}
                               >
-                                {commCopied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+                                {commCopied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}
                                 {t("businessDetail.copyCode")}
                               </Button>
                             </div>
@@ -422,8 +422,8 @@ const BusinessDashboard = () => {
                         {commProofUrl ? (
                           <div className="flex items-center gap-2">
                             {commProofPreview && <img src={commProofPreview} alt="" className="h-12 w-12 rounded-md border object-cover" />}
-                            <Check className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-700 dark:text-green-300 font-medium">{t("businessDetail.proofAttached")}</span>
+                            <Check className="h-4 w-4 text-success" />
+                            <span className="text-sm text-success-foreground font-medium">{t("businessDetail.proofAttached")}</span>
                             <Button variant="ghost" size="sm" className="text-xs ml-auto" onClick={() => {
                               // Ainda solto: o servidor deixa apagar, e não fica lixo privado.
                               if (commProofUrl) void supabase.storage.from(BUCKET_PRIVADO.comprovativosComissao).remove([commProofUrl]);
@@ -463,7 +463,7 @@ const BusinessDashboard = () => {
                             <Badge
                               variant="secondary"
                               className={
-                                cp.status === "validado" ? "bg-green-100 text-green-700" :
+                                cp.status === "validado" ? "bg-success-soft text-success-foreground" :
                                 cp.status === "rejeitado" ? "bg-red-100 text-red-700" :
                                 "bg-yellow-100 text-yellow-700"
                               }

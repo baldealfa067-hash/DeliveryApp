@@ -166,7 +166,7 @@ const DriverDashboard = () => {
       <div className="min-h-screen bg-background">
         <header className="border-b">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-            <img src={logo} alt="Bornaal" className="h-8 w-auto" />
+            <img src={logo} alt="VEXA" className="h-8 w-auto" />
             <LanguageSelector />
           </div>
         </header>
@@ -285,7 +285,7 @@ const DriverDashboard = () => {
       <div className="min-h-screen bg-background">
         <header className="border-b">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-            <img src={logo} alt="Bornaal" className="h-8 w-auto" />
+            <img src={logo} alt="VEXA" className="h-8 w-auto" />
             <LanguageSelector />
           </div>
         </header>
@@ -339,7 +339,7 @@ const DriverDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logo} alt="Bornaal" className="h-8 w-auto" />
+          <img src={logo} alt="VEXA" className="h-8 w-auto" />
           <div className="flex items-center gap-2">
             {/* Saída para a app pública. Já não há "sítio sem saída útil": um
                 motorista navega e encomenda como qualquer pessoa. Vai a
@@ -399,7 +399,7 @@ const DriverDashboard = () => {
           </Card>
           <Card>
             <CardContent className="p-3 flex flex-col items-center gap-1">
-              <Navigation className="h-5 w-5 text-green-600" />
+              <Navigation className="h-5 w-5 text-success" />
               <span className="text-2xl font-bold">{availableDeliveries.length}</span>
               <span className="text-[10px] text-muted-foreground text-center">{t("driverDashboard.available")}</span>
             </CardContent>
@@ -497,7 +497,7 @@ const DriverDashboard = () => {
                   )}
                   {activeDelivery.status === "recolhido" && activeDelivery.customer_phone && (
                     <a href={`tel:${activeDelivery.customer_phone.replace(/\s/g, "")}`}
-                      className="flex items-center gap-1 text-xs text-green-700 font-medium bg-green-100 px-2 py-1 rounded-md">
+                      className="flex items-center gap-1 text-xs text-success-foreground font-medium bg-success-soft px-2 py-1 rounded-md">
                       <Phone className="h-3.5 w-3.5" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
                     </a>
                   )}
@@ -643,7 +643,7 @@ const DriverDashboard = () => {
                               </a>
                             )}
                             {d.status === "recolhido" && d.customer_phone && (
-                              <a href={`tel:${d.customer_phone.replace(/\s/g, "")}`} className="text-xs text-green-700 flex items-center gap-1 font-medium">
+                              <a href={`tel:${d.customer_phone.replace(/\s/g, "")}`} className="text-xs text-success-foreground flex items-center gap-1 font-medium">
                                 <Phone className="h-3 w-3" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
                               </a>
                             )}
@@ -714,7 +714,7 @@ const DriverDashboard = () => {
                       <Card key={d.id} className="opacity-60">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                             <span className="text-sm font-bold">#{d.order_number}</span>
                             <span className="text-sm text-muted-foreground truncate">{d.customer_name}</span>
                             <span className="text-xs text-muted-foreground ml-auto shrink-0">

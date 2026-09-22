@@ -307,7 +307,7 @@ const Login = () => {
           </div>
 
           <div className="text-center space-y-2">
-            <img src={logo} alt="Bornaal" className="h-12 mx-auto" />
+            <img src={logo} alt="VEXA" className="h-12 mx-auto" />
             <h1 className="text-2xl font-bold">{t("auth.welcomeTitle")}</h1>
             <p className="text-sm text-muted-foreground">{t("auth.welcomeSubtitle")}</p>
           </div>
@@ -445,7 +445,7 @@ const Login = () => {
           </div>
 
           <div className="space-y-1 text-center">
-            <img src={logo} alt="Bornaal" className="mx-auto h-10" />
+            <img src={logo} alt="VEXA" className="mx-auto h-10" />
             <h1 className="text-title">{t("auth.clientLoginTitle")}</h1>
             <p className="text-caption text-muted-foreground">{t("auth.clientLoginPinDesc")}</p>
           </div>
@@ -533,7 +533,7 @@ const Login = () => {
         </div>
 
         <div className="text-center space-y-1">
-          <img src={logo} alt="Bornaal" className="h-10 mx-auto" />
+          <img src={logo} alt="VEXA" className="h-10 mx-auto" />
           <h1 className="text-xl font-bold">
             {isFleetFlow ? "Conta de Frota" : isDriverFlow ? "Conta de Motorista" : isClientFlow ? t("auth.clientLoginTitle") : t("auth.professionalLoginTitle")}
           </h1>

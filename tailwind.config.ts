@@ -24,6 +24,7 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
           light: "hsl(var(--primary-light))",
+          "on-dark": "hsl(var(--primary-on-dark))",
         },
         // Estados do pedido/pagamento. Usar `-soft` como fundo de badge
         // e `-foreground` como texto sobre esse fundo.

@@ -776,7 +776,7 @@ const BusinessDashboard = () => {
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                {verificationStatus === "aprovado" && <ShieldCheck className="h-5 w-5 text-green-600" />}
+                {verificationStatus === "aprovado" && <ShieldCheck className="h-5 w-5 text-success" />}
                 {verificationStatus === "pendente" && <ShieldAlert className="h-5 w-5 text-yellow-600" />}
                 {verificationStatus === "rejeitado" && <ShieldX className="h-5 w-5 text-destructive" />}
                 {verificationStatus === "none" && <ShieldCheck className="h-5 w-5 text-muted-foreground" />}
@@ -790,7 +790,7 @@ const BusinessDashboard = () => {
             </CardHeader>
             <CardContent>
               {verificationStatus === "aprovado" && (
-                <div className="flex items-center gap-2 text-green-700">
+                <div className="flex items-center gap-2 text-success-foreground">
                   <ShieldCheck className="h-5 w-5" />
                   <span className="text-sm font-medium">{verificationDescription(verificationStatus)}</span>
                 </div>

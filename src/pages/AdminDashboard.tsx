@@ -95,7 +95,7 @@ type ProviderFilter = "todos" | "avaliacao" | "ativos" | "rejeitados";
 type ReviewFilter = "pendentes" | "aprovadas";
 
 const STATUS_BADGE_KEYS: Record<string, { key: string; className: string }> = {
-  aprovado: { key: "admin.active", className: "bg-green-100 text-green-700" },
+  aprovado: { key: "admin.active", className: "bg-success-soft text-success-foreground" },
   pendente: { key: "admin.inReview", className: "bg-yellow-100 text-yellow-700" },
   rejeitado: { key: "admin.rejected", className: "bg-red-100 text-red-700" },
   none: { key: "admin.noVerification", className: "bg-muted text-muted-foreground" },
@@ -126,7 +126,7 @@ const buildActivityMap = (rows: { provider_id: string; activity_type: string; cr
   return map;
 };
 
-const MiniBars = ({ data, color = "bg-green-600" }: { data: number[]; color?: string }) => {
+const MiniBars = ({ data, color = "bg-primary" }: { data: number[]; color?: string }) => {
   const max = Math.max(...data, 1);
   return (
     <div className="flex items-end gap-1 h-9">
@@ -544,7 +544,7 @@ const AdminDashboard = () => {
   const qualityLabel = (p: Provider) => {
     const q = quality[p.id];
     if (!q) return { label: "—", className: "text-muted-foreground" };
-    const map: Record<string, string> = { alta: "text-green-700", media: "text-yellow-600", baixa: "text-red-600" };
+    const map: Record<string, string> = { alta: "text-success", media: "text-pending", baixa: "text-problem" };
     return { label: q.level, className: map[q.level] ?? "text-muted-foreground" };
   };
 
@@ -589,14 +589,14 @@ const AdminDashboard = () => {
                     <span className="text-xs text-muted-foreground inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {t("admin.views")}</span>
                     <span className="font-semibold">{p.stats?.profile_views ?? 0}</span>
                   </div>
-                  <MiniBars data={series.vista} color="bg-green-600" />
+                  <MiniBars data={series.vista} color="bg-primary" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-xs text-muted-foreground inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" /> {t("admin.whatsapp")}</span>
                     <span className="font-semibold">{p.stats?.whatsapp_clicks ?? 0}</span>
                   </div>
-                  <MiniBars data={series.whatsapp} color="bg-emerald-500" />
+                  <MiniBars data={series.whatsapp} color="bg-success" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between text-sm">
@@ -641,7 +641,7 @@ const AdminDashboard = () => {
                     <BadgeCheck className="h-3.5 w-3.5" /> {t("admin.removeBadge")}
                   </Button>
                 ) : (
-                  <Button size="sm" onClick={() => approveVerification(p)} className="gap-1 bg-green-600 hover:bg-green-700 text-white">
+                  <Button size="sm" onClick={() => approveVerification(p)} className="gap-1 bg-success hover:bg-success/90 text-white">
                     <Check className="h-3.5 w-3.5" /> {t("admin.approveProfile")}
                   </Button>
                 )}
@@ -710,7 +710,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
       <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:sticky md:top-0 md:h-screen md:border-r bg-card">
         <div className="px-5 py-4 border-b flex items-center gap-2">
-          <img src={logo} alt="Bornaal" className="h-8 w-auto" />
+          <img src={logo} alt="VEXA" className="h-8 w-auto" />
         </div>
         <div className="flex-1 p-3 overflow-y-auto">{navList()}</div>
         <div className="p-3 border-t flex items-center justify-between gap-2">
@@ -728,7 +728,7 @@ const AdminDashboard = () => {
                 painel, e um admin que tambem seja motorista era atirado de
                 volta para /painel-motorista sem forma de sair. */}
             <Link to="/inicio" className="flex items-center gap-2">
-              <img src={logo} alt="Bornaal" className="h-7 w-auto" />
+              <img src={logo} alt="VEXA" className="h-7 w-auto" />
             </Link>
             <div className="flex items-center gap-2">
               <Link to="/inicio">
@@ -846,7 +846,7 @@ const AdminDashboard = () => {
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 shrink-0">
-                        <Button size="sm" onClick={() => approveVerification(p)} className="gap-1 bg-green-600 hover:bg-green-700 text-white">
+                        <Button size="sm" onClick={() => approveVerification(p)} className="gap-1 bg-success hover:bg-success/90 text-white">
                           <Check className="h-3.5 w-3.5" /> {t("admin.approve")}
                         </Button>
                         <Button size="sm" variant="destructive" onClick={() => setRejectTarget(p)} className="gap-1">
@@ -892,7 +892,7 @@ const AdminDashboard = () => {
                         {c.description && <p className="text-sm mt-2 bg-muted rounded-lg p-2">{c.description}</p>}
                       </div>
                       <div className="flex flex-col gap-1 shrink-0">
-                        <Button size="sm" onClick={() => setComplaintStatus(c, "validada")} className="gap-1 bg-green-600 hover:bg-green-700 text-white">
+                        <Button size="sm" onClick={() => setComplaintStatus(c, "validada")} className="gap-1 bg-success hover:bg-success/90 text-white">
                           <Check className="h-3.5 w-3.5" /> {t("admin.validate")}
                         </Button>
                         <Button size="sm" variant="destructive" onClick={() => setComplaintStatus(c, "rejeitada")} className="gap-1">
@@ -908,7 +908,7 @@ const AdminDashboard = () => {
                   <div className="mt-2">
                     <h3 className="text-sm font-semibold mb-2 text-muted-foreground">{t("admin.reviewedCount", { count: reviewedComplaints.length })}</h3>
                     {reviewedComplaints.map((c) => (
-                      <Card key={c.id} className={c.status === "validada" ? "border-green-500/40" : "border-muted"}>
+                      <Card key={c.id} className={c.status === "validada" ? "border-success/40" : "border-muted"}>
                         <CardContent className="p-3">
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge variant={c.status === "validada" ? "default" : "secondary"}>
@@ -966,7 +966,7 @@ const AdminDashboard = () => {
                             {r.comment && <p className="text-sm text-muted-foreground mt-1">{r.comment}</p>}
                           </div>
                           <div className="flex flex-col gap-1 shrink-0">
-                            <Button size="sm" onClick={() => approveReview(r.id)} className="gap-1 bg-green-600 hover:bg-green-700 text-white">
+                            <Button size="sm" onClick={() => approveReview(r.id)} className="gap-1 bg-success hover:bg-success/90 text-white">
                               <Check className="h-3.5 w-3.5" /> {t("admin.approve")}
                             </Button>
                             <Button size="sm" variant="destructive" onClick={() => setDeleteTarget({ table: "reviews", id: r.id, entity: t("admin.reviews") })} className="gap-1">
@@ -1277,8 +1277,8 @@ const AdminDashboard = () => {
                               </td>
                               <td className="py-2 px-1 text-right">{formatCFA(c.total_base)}</td>
                               <td className="py-2 px-1 text-right">{formatCFA(c.commission_due)}</td>
-                              <td className="py-2 px-1 text-right text-green-600">{formatCFA(c.commission_paid)}</td>
-                              <td className={"py-2 px-1 text-right font-bold " + (c.commission_balance > 0 ? "text-orange-600" : "text-green-600")}>
+                              <td className="py-2 px-1 text-right text-success">{formatCFA(c.commission_paid)}</td>
+                              <td className={"py-2 px-1 text-right font-bold " + (c.commission_balance > 0 ? "text-pending" : "text-success")}>
                                 {formatCFA(c.commission_balance)}
                               </td>
                             </tr>
@@ -1319,7 +1319,7 @@ const AdminDashboard = () => {
                           <div className="flex gap-2">
                             <Button
                               size="sm"
-                              className="flex-1 gap-1 bg-green-600 hover:bg-green-700 text-white"
+                              className="flex-1 gap-1 bg-success hover:bg-success/90 text-white"
                               onClick={() => validateCommission.mutate({ id: cp.id, status: "validado" })}
                               disabled={validateCommission.isPending}
                             >
@@ -1391,7 +1391,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("admin.platform")}</span>
-                    <span className="font-medium">{t("admin.bornaal")}</span>
+                    <span className="font-medium">{t("admin.vexa")}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("admin.categories")}</span>

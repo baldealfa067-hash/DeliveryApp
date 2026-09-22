@@ -17,7 +17,7 @@ L.Icon.Default.mergeOptions({
 
 const destinationIcon = L.divIcon({
   className: "",
-  html: '<div style="width:20px;height:20px;border-radius:50%;background:#16a34a;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>',
+  html: '<div style="width:20px;height:20px;border-radius:50%;background:#701A28;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>',
   iconSize: [20, 20],
   iconAnchor: [10, 10],
 });

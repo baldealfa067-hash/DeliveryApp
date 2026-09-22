@@ -1,13 +1,13 @@
 {
-  "name": "Bornaal — Serviços e Restaurantes na Guiné-Bissau",
-  "short_name": "Bornaal",
-  "description": "Encontre prestadores de serviços, restaurantes e lojas na Guiné-Bissau. Contrate, peça e contacte diretamente pelo WhatsApp.",
+  "name": "VEXA — Tudo o que precisas. Mais perto.",
+  "short_name": "VEXA",
+  "description": "Restaurantes, farmácias e entregas na Guiné-Bissau. Peça, envie e receba em Bissau.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#16a34a",
+  "theme_color": "#701A28",
   "lang": "pt",
   "categories": ["business", "food", "shopping"],
   "icons": [
