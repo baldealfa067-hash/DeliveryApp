@@ -1212,6 +1212,188 @@ Mesmo desenho dos comprovativos de pedido.
   pedido/pagamento — portanto a ordem é: apagar as linhas primeiro, o que desliga os
   ficheiros, depois os ficheiros, e só no fim as contas.
 
+## Rebranding VEXA — R1, R3 e R4 CONCLUÍDAS (2026-09-22)
+
+O projeto passa a chamar-se **VEXA**. Tagline: *"Tudo o que precisas. Mais
+perto."* Substitui "Bornaal" e "DeliveryApp" em tudo o que o utilizador lê.
+O trabalho foi dividido em 6 sub-fases; **R1, R3 e R4 estão publicadas**
+(commit `5330ae3`), **R2 está bloqueada** e **R5/R6 por fazer**.
+
+### Decisões do dono (2026-09-22)
+
+- **Cor principal: bordô `350 62% 27%` (#701A28).** Vermelho profundo, não
+  vivo.
+- **Termos e Privacidade: troca-se o nome da entidade para VEXA, mantém-se
+  `bornaal.com@gmail.com`** como contacto até haver email novo. Fica como
+  dívida registada.
+- **`bornaal_id`: congelar.** Guardar os 22 existentes, parar de emitir, tirar
+  a coluna vazia de `drivers`. (R6, por fazer.)
+
+### R1 — Paleta. A colisão que isto quase criou
+
+O vermelho **já estava ocupado**: `--accent` e `--problem` eram os dois
+`0 72% 45%`, e `--problem` é *cancelado, comprovativo rejeitado*. Pôr a marca
+a vermelho sem mexer nisso punha o botão "Confirmar pedido" e o badge
+"Cancelado" na mesma família — e o motorista na rua lê a cor antes de ler o
+texto.
+
+- **`--success` FICA VERDE** (`145 63% 32%`). Entregue e pago não mudam de cor.
+  O verde não sai da app: sai da marca.
+- **`--problem` deslocou-se para `8 78% 48%`** (vermelho-laranja). 18° de matiz
+  e 0.131 de luminância de distância do bordô — é a luminância que faz o
+  trabalho, porque o bordô é escuro e este é claro.
+- **`--accent` entrou na família do bordô** (`350 62% 34%`). Não era óbvio:
+  `--accent` **pinta o realce de TODOS os menus, dropdowns, selects e
+  calendários** (`focus:bg-accent` nos primitivos shadcn). Era um vermelho
+  saturado que passaria a competir com a marca *e* com o novo vermelho de
+  problema.
+- **`--destructive` alinhado com `--problem`** — havia três vermelhos
+  diferentes no sistema, sem razão.
+
+**Token novo `--primary-on-dark` (`350 75% 65%`).** O bordô de 27% de
+luminosidade **não se lê sobre a foto escura do hero** — o verde antigo lia-se
+por ser mais claro. Só apareceu na captura de ecrã; nenhum teste o apanhava.
+Mesmo matiz, subido em luminosidade. Usar sempre que a marca assentar em fundo
+escuro.
+
+**Contraste medido (WCAG), tudo AA ou melhor:** branco sobre `primary`
+11.27:1 · branco sobre `accent` 8.80:1 · branco sobre `problem` 4.68:1 ·
+`success-fg` sobre `success-soft` 7.07:1 · texto sobre fundo 16.89:1.
+
+### R3 — Nome. Três armadilhas, todas invisíveis a uma procura pela palavra
+
+1. **A substituição apanhou NOMES DE CHAVE do i18n.** `"bornaal"` e
+   `whyBornaal` são chaves, não texto — passaram a `"VEXA"` e `whyVEXA` e o
+   código continuava a pedir as antigas. Renomeadas em condições (`vexa`,
+   `whyVexa`) **e o código actualizado no mesmo passo**;
+   `src/i18n/locales.test.ts` confirma. **É a guarda da 9.5 a pagar-se.**
+2. **"BORNAAL" em maiúsculas escapou** à primeira passagem, em 4 ficheiros
+   (`driverDashboard.registerDesc`).
+3. **O hero do `/landing` tinha o nome PARTIDO em dois spans** —
+   `Born<span className="text-primary">aal</span>`. Nenhuma procura pela string
+   "Bornaal" o encontrava. **Só apareceu numa captura de ecrã do browser.**
+   Lição: num rebranding, ver os ecrãs não é polimento, é deteção.
+
+**Também trocado:** metadados do `index.html` (título, og, twitter,
+theme-color), `manifest.json`, e o **fallback das notificações push no
+`public/sw.js`** — quando o payload vem sem título, a notificação dizia
+literalmente "Bornaal" e "Tem uma novidade na Bornaal" a quem a recebia.
+
+**NÃO tocado, de propósito:**
+
+- **As 84 referências nas migrações** — histórico já aplicado. Reescrever uma
+  migração passada é reescrever o passado (§56).
+- **`src/integrations/supabase/types.ts`** — ficheiro gerado; só muda quando a
+  base mudar (R6).
+- **As 11 chaves `bornaal:*` de `localStorage`/`sessionStorage`**
+  (`InstallPrompt`, `push.ts`, `chunkError.ts`, `Login.tsx`, e uma cópia inline
+  no `index.html`). Renomeá-las **volta a perguntar a toda a gente** sobre
+  instalação e notificações push, e **perde o estado do login com Google a meio
+  do redirecionamento**. São invisíveis; o custo de mexer recai no utilizador.
+  Se um dia se mexer, faz-se com migração de chave (lê a antiga, escreve a
+  nova, apaga).
+- **Três comentários que citam o Bornaal como facto histórico**
+  (`orderTransitions.test.ts`, `locales.test.ts`, `BusinessDetail.tsx:187`).
+  São verdadeiros e explicam porquê.
+
+### R4 — Os 82 verdes escritos à mão
+
+Triados **um a um, nunca por `sed`**. A maioria não era marca: era
+`success` semântico.
+
+- "aprovado / pago / pronto / concluído / verificado" → tokens `success`
+  (**continuam verdes**, e ganham modo escuro automático, porque o token
+  redefine-se em `.dark`).
+- Gráficos e barras → `primary`.
+- **Em `BusinessCurrentAccount` converti também os vermelhos e laranjas
+  irmãos** do mesmo grupo de cartões. Não era âmbito, mas ficavam crus ao lado
+  dos convertidos, e **vermelho cru agora confunde-se com a marca**.
+
+Ficam por converter os **5 ficheiros órfãos** (`Beauty*`, `Provider*`) — a R5
+apaga-os.
+
+### Estado das sub-fases
+
+- **R1 paleta — CONCLUÍDA.**
+- **R2 identidade visual — BLOQUEADA.** Falta o ficheiro do logótipo "V"
+  (SVG, ou PNG ≥1024px com fundo transparente, em `src/assets/`). **O "B" verde
+  do Bornaal continua visível em 11 ecrãs.** Daí saem também o favicon, os dois
+  ícones PWA e o og-image. Subir o `?v=2` para `?v=3` nas URLs dos ícones, senão
+  quem já instalou a app fica com o ícone antigo em cache.
+- **R3 nome — CONCLUÍDA.**
+- **R4 verdes — CONCLUÍDA.**
+- **R5 código órfão — POR FAZER.** 3 152 linhas em 6 páginas sem rota
+  (`BeautyDetail`, `BeautyEdit`, `BeautyDashboard`, `ProviderDashboard`,
+  `ProviderDetail`, `ChatDialog`) + `useBornaalId.ts` (zero importadores).
+- **R6 base de dados — POR FAZER.**
+
+### O que a auditoria apurou e tem de sobreviver a esta sessão
+
+**`bornaal_id`: 22 de 22 perfis preenchidos, formato `BAAL-A1A4-0EA8` — mas
+NUNCA mostrado na interface.** Zero ocorrências em `.tsx`. O hook
+`useBornaalId.ts` não tem um único importador. **Nenhum utilizador viu alguma
+vez o seu.** Isso baixa muito o risco de o retirar face ao que o briefing
+assumia. `drivers.bornaal_id`: **0 de 3 preenchidos** — coluna nunca usada.
+No servidor há 6 funções vivas, e `register_as_driver` toca-lhe.
+
+**Duas tabelas "mortas" que estão VIVAS — não apagar:**
+
+- 🔴 **`reviews`.** 0 linhas, mas **lida por código vivo**: `BusinessDetail`
+  (média e lista do restaurante), `BusinessDashboard` (contador),
+  `useProviders` (estrelas nos cartões do Explore), `useProviderStats`.
+  Deixá-la cair dá **ecrã em branco, não erro**. A 9.4 criou `order_ratings` e
+  tirou o formulário, **mas a leitura antiga ficou**. É dívida por resolver
+  numa fase própria, não limpeza de marca.
+- 🔴 **`portfolio_images`.** É a galeria que a Fase 2.5 reutilizou
+  (`BusinessGallery`). Está a 0 linhas só porque nenhum restaurante carregou
+  fotos.
+- 🟡 **`business_hours`: 0 referências em `src`** — mas é lida no **servidor**,
+  e é o horário que trava o pedido. Não tocar.
+
+**Os hooks "de prestador" NÃO são órfãos**, ao contrário das páginas:
+`useProviders` → `RestaurantCard` e `Explore`; `useProviderStats` → `Profile` e
+`BusinessDashboard`; `useChat` → `ChatPage` e `ConversationsPage`;
+`useAppointments` → `MyAppointmentsPage`; `StarRating` → `RateOrder` (9.4).
+**Apagar `useProviders.ts` parte a grelha de restaurantes.**
+
+**Papéis `provider`/`beleza`: 0 utilizadores**, e o `handle_new_user` **já os
+mapeia para `client`** no registo. **Recomendado NÃO mexer:** não existe
+`DROP VALUE` num enum — retirá-los obriga a recriar `app_role` inteiro, e com
+ele a coluna `user_roles.role`, a constraint única, `has_role()` (avaliada
+*dentro* das policies) e todas as policies que dela dependem. É a armadilha
+dos GRANTs perdidos, multiplicada por toda a tabela de autorização, por **ganho
+zero**.
+
+⚠️ **Não confundir com `profiles.profile_type = 'provider'`, que está em 20 dos
+22 perfis.** É outra coluna, outro tipo, com dados vivos — é o valor por
+omissão de qualquer perfil que não seja `business`. **Não tocar.**
+
+### Dívidas abertas por esta fase
+
+- **O domínio `https://www.vexa.gw/` nas etiquetas `og:`/`twitter:` é um
+  palpite meu**, não foi dado pelo dono. Se estiver errado, as pré-visualizações
+  de partilha no WhatsApp ficam partidas. **Confirmar.**
+- **A página `/landing` continua a vender o produto do Bornaal.** É o que um
+  visitante sem sessão vê em `/` (`HomeRoute` devolve `<Landing />`): "A forma
+  mais simples de encontrar prestadores de serviços", "Sou prestador —
+  cadastrar", pesquisa por "electricista, canalizador, cabeleireira". Agora diz
+  VEXA e anuncia Bornaal. **Não foi reescrita: é decisão de conteúdo do dono.**
+- **`og-image.png` e `og-image-v2.png` são byte-a-byte idênticos** (353 KB
+  cada). Um dos dois é peso morto; o `index.html` já aponta ao primeiro.
+- **4 erros de `tsc` PRÉ-EXISTENTES** (confirmado por `git stash` contra HEAD
+  limpo — não foram introduzidos aqui): 3 são a chave de menu `requests` da
+  vertical removida em `AdminDashboard`, 1 é o `BeautyDashboard` órfão. **A R5
+  leva os quatro.** Corrige a nota da Fase 1 que dava `tsc` a zero: a 2026-09-22
+  são 4.
+
+### Verificação desta entrega
+
+147 testes verdes · `eslint` 0 erros · `vite build` OK · ecrãs vistos em
+browser real (Playwright, 390px) — que foi o que apanhou o hero partido e o
+bordô ilegível. **Push feito (`5330ae3`); o deploy de produção ficou POR
+CONFIRMAR** — falta o URL de produção. Não repetir 2026-09-20: push não é
+deploy.
+
 ---
 
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)
@@ -1270,4 +1452,7 @@ checklist.
 - Refactor de AdminDashboard.tsx (1464 linhas) e BusinessDetail.tsx (1143)
 - Kriol a 63% (748/1182 chaves)
 - ~~18 erros de `tsc --noEmit` pré-existentes~~ — resolvidos na Fase 9.1 e no
-  que se lhe seguiu. A 2026-09-20 `tsc --noEmit` dá 0 erros
+  que se lhe seguiu. A 2026-09-20 `tsc --noEmit` dá 0 erros.
+  **Já não é verdade: a 2026-09-22 são 4**, medidos contra HEAD limpo — 3 da
+  chave de menu `requests` em `AdminDashboard` e 1 do `BeautyDashboard` órfão.
+  Entraram entre as duas datas. Ver o Rebranding VEXA; a R5 leva os quatro
