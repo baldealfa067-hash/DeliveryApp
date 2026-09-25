@@ -20,3 +20,5 @@ Cada linha abaixo é uma chave de `kri.json` escrita pelo Claude e por rever.
 - [ ] `orderTracking.proofByPhoto` — Fase 9.3
 - [ ] `orderTracking.deliveryCode` — Fase 9.3
 - [ ] `orderTracking.deliveryCodeHint` — Fase 9.3
+- [ ] `landing.tagline` — ecrã de entrada iTudoo (2026-09-25)
+- [ ] `landing.createAccount` — ecrã de entrada iTudoo (2026-09-25)

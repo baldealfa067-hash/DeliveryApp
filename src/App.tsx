@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import InstallPrompt from "./components/InstallPrompt";
@@ -12,8 +12,8 @@ import PushRepair from "./components/PushRepair";
 import RequireAdmin from "./components/RequireAdmin";
 import RequireRole from "./components/RequireRole";
 import RequireClientArea from "./components/RequireClientArea";
+import HomeRoute from "./components/HomeRoute";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Explore = lazy(() => import("./pages/Explore"));
@@ -48,22 +48,6 @@ const Loading = () => (
   </div>
 );
 
-/**
- * A raiz mostrava sempre a Landing, mesmo a quem já tinha sessão iniciada: um
- * cliente que abrisse o site pelo endereço ou pelo ícone da PWA caía na página
- * de marketing e tinha de a atravessar para chegar ao que já é seu. Com sessão
- * vai directo a /inicio; a Landing continua acessível em /landing e volta a ser
- * a raiz assim que a sessão termina. Contas de trabalho nem chegam aqui — o
- * RequireClientArea que envolve esta rota manda-as antes para o seu painel, por
- * ser o destino mais útil, não por lhes estar vedado navegar.
- */
-const HomeRoute = () => {
-  const { user, loading } = useAuth();
-  if (loading) return <Loading />;
-  if (user) return <Navigate to="/inicio" replace />;
-  return <Landing />;
-};
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -78,12 +62,12 @@ const App = () => (
             <Routes>
               {/* A raiz escolhe o destino por omissão, não bloqueia nada: quem
                   tem conta de trabalho e abre o site pelo endereço ou pelo
-                  ícone da PWA quer quase sempre o seu painel, não a página de
-                  marketing. Se quiser navegar como cliente, /inicio, /explorar
+                  ícone da PWA quer quase sempre o seu painel, não o
+                  ecrã de entrada. Se quiser navegar como cliente, /inicio, /explorar
                   e /loja/:id estão abertos e alcançáveis a partir do painel.
-                  Visitante sem sessão continua a ver a Landing. */}
-              <Route path="/" element={<RequireClientArea><HomeRoute /></RequireClientArea>} />
-              <Route path="/landing" element={<RequireClientArea><Landing /></RequireClientArea>} />
+                  Visitante sem sessão vê o ecrã de entrada (Entrar / Criar conta). */}
+              <Route path="/" element={<RequireClientArea><HomeRoute><Landing /></HomeRoute></RequireClientArea>} />
+              <Route path="/landing" element={<RequireClientArea><HomeRoute><Landing /></HomeRoute></RequireClientArea>} />
               <Route path="/sobre" element={<About />} />
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />

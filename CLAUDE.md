@@ -1437,7 +1437,26 @@ o encontrar numa procura.
 confirmado pelo dono. Fecha a dívida do `www.vexa.gw`.
 
 **Continua em aberto (herdado do VEXA):** R2 (logótipo — o "B" do Bornaal ainda
-se vê), R5, R6, o conteúdo Bornaal da `/landing`, e o `og-image.png`.
+se vê), R5, R6 e o `og-image.png`.
+
+**Ecrã de entrada (2026-09-25, pedido pelo dono).** A `/landing` do Bornaal
+(prestadores, pesquisa de electricistas) foi substituída por um ecrã de entrada:
+nome grande, tagline, "Entrar" e "Criar conta", e mais nada além do selector de
+idioma (é o primeiro ecrã; quem não lê português tem de poder mudar antes).
+
+- **"Entrar" → `/login?mode=cliente`** — o mesmo destino do "Já tem conta?
+  Entrar" que já existia. Um dono de restaurante ou de frota entra pela seta de
+  voltar → escolha do tipo de conta. É um toque a mais para eles, e um a menos
+  para o cliente, que é a maioria.
+- **"Criar conta" → `/login?tab=registar`** — ecrã de escolha Cliente /
+  Restaurante / Frota, já com o separador de registo activo.
+- **O nome é texto, não imagem**: o `logo.png` ainda é o "B" do Bornaal. Quando
+  houver logótipo, entra no sítio marcado em `Landing.tsx`.
+- **`HomeRoute` saiu do `App.tsx` para `src/components/HomeRoute.tsx`, com
+  teste** (verificado por mutação). Passou a envolver também `/landing`: antes,
+  um cliente com sessão que abrisse `/landing` directamente via o ecrã.
+- **O namespace `landing` perdeu as 38 chaves de marketing** nos 4 idiomas e
+  ficou com 3. O `hero-bg.jpg` deixou de ser importado (fica no repositório).
 
 **Oportunidade sinalizada, não aplicada:** 53 mosaicos de ícone `bg-primary/10`
 / `bg-primary/5` (rosa com ícone vermelho) — ecrã de registo, landing, painéis.
