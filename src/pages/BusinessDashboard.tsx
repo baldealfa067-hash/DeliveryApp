@@ -203,7 +203,7 @@ const BusinessDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logo} alt="VEXA" className="h-8 w-auto" />
+          <img src={logo} alt="iTudoo" className="h-8 w-auto" />
           <div className="flex items-center gap-2">
             {/* Saída para a app pública. Vai a /inicio e não a "/": a raiz
                 devolve contas de trabalho ao seu painel, portanto usá-la aqui
@@ -464,7 +464,7 @@ const BusinessDashboard = () => {
                               variant="secondary"
                               className={
                                 cp.status === "validado" ? "bg-success-soft text-success-foreground" :
-                                cp.status === "rejeitado" ? "bg-red-100 text-red-700" :
+                                cp.status === "rejeitado" ? "bg-problem-soft text-problem-foreground" :
                                 "bg-yellow-100 text-yellow-700"
                               }
                             >

@@ -22,7 +22,7 @@ const APPT_STATUS_LABELS: Record<string, { key: string; color: string }> = {
   em_atendimento: { key: "appointmentStatus.inProgress", color: "bg-yellow-100 text-yellow-800" },
   concluido: { key: "appointmentStatus.completed", color: "bg-success-soft text-success-foreground" },
   avaliado: { key: "appointmentStatus.reviewed", color: "bg-purple-100 text-purple-800" },
-  cancelado: { key: "appointmentStatus.cancelled", color: "bg-red-100 text-red-800" },
+  cancelado: { key: "appointmentStatus.cancelled", color: "bg-problem-soft text-problem-foreground" },
 };
 
 const MyAppointmentsPage = () => {

@@ -798,13 +798,13 @@ const BusinessDetail = () => {
                       </Button>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
                           <span className="text-sm font-bold">{formatDuration(recorder.duration)}</span>
                           <span className="text-xs text-muted-foreground">/ 0:30</span>
                         </div>
                         <div className="h-1 bg-muted rounded-full mt-1 overflow-hidden">
                           <div
-                            className="h-full bg-red-500 rounded-full transition-all"
+                            className="h-full bg-primary rounded-full transition-all"
                             style={{ width: `${Math.min(100, (recorder.duration / 30) * 100)}%` }}
                           />
                         </div>
@@ -1300,7 +1300,7 @@ const BusinessDetail = () => {
           >
             <span className="relative flex shrink-0 items-center">
               <ShoppingCart className="h-6 w-6" aria-hidden="true" />
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-accent px-1 text-caption font-bold text-accent-foreground">
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary-foreground px-1 text-caption font-bold text-primary">
                 {cartCount}
               </span>
             </span>

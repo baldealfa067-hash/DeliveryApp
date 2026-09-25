@@ -65,7 +65,7 @@ const ResetPassword = () => {
           <LanguageSelector />
         </div>
         <Link to="/" className="mb-6 inline-block">
-          <img src={logo} alt="VEXA" className="h-14 md:h-16 w-auto" />
+          <img src={logo} alt="iTudoo" className="h-14 md:h-16 w-auto" />
         </Link>
         <Card className="w-full max-w-sm">
           <CardContent className="pt-6">
@@ -82,7 +82,7 @@ const ResetPassword = () => {
         <LanguageSelector />
       </div>
       <Link to="/" className="mb-6 inline-block">
-        <img src={logo} alt="VEXA" className="h-14 md:h-16 w-auto" />
+        <img src={logo} alt="iTudoo" className="h-14 md:h-16 w-auto" />
       </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>

@@ -1,10 +1,10 @@
-/* VEXA Service Worker
+/* iTudoo Service Worker
  * Objetivo atual: registo PWA (instalação em "Adicionar ao ecrã principal").
  * Estrutura preparada para notificações push (eventos push/notificationclick).
  * NOTA: não faz cache de assets de propósito — os ficheiros têm hash e o
  * index.html é no-cache; cache aqui reintroduziria erros de chunk obsoleto.
  */
-const CACHE_VERSION = "vexa-v1";
+const CACHE_VERSION = "itudoo-v1";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -26,15 +26,15 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: "VEXA", body: event.data.text() };
+    data = { title: "iTudoo", body: event.data.text() };
   }
   const options = {
-    body: data.body || "Tem uma novidade na VEXA.",
+    body: data.body || "Tem uma novidade no iTudoo.",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
     data: { url: data.url || "/", whatsapp_url: data.whatsapp_url || "" },
   };
-  event.waitUntil(self.registration.showNotification(data.title || "VEXA", options));
+  event.waitUntil(self.registration.showNotification(data.title || "iTudoo", options));
 });
 
 self.addEventListener("notificationclick", (event) => {

@@ -4,38 +4,42 @@
 
 @layer base {
   :root {
-    --background: 45 20% 97%;
-    --foreground: 350 20% 10%;
+    /* iTudoo: fundo quase branco, neutro. O vermelho da marca e so para
+       botoes principais, icones activos e logotipo -- nunca para blocos. */
+    --background: 0 0% 98%;
+    --foreground: 220 15% 10%;
 
-    --card: 45 20% 100%;
-    --card-foreground: 350 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 10%;
 
-    --popover: 45 20% 100%;
-    --popover-foreground: 350 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 10%;
 
-    --primary: 350 62% 27%;
+    --primary: 358 78% 48%;
     --primary-foreground: 0 0% 100%;
     /* Fundo de destaque suave: cartão selecionado, chip ativo */
-    --primary-light: 350 45% 95%;
-    /* Marca sobre fundo escuro (hero, gradientes sobre foto): o bordô de 27%
-       nao se le contra preto. Este e o mesmo matiz, subido em luminosidade. */
-    --primary-on-dark: 350 75% 65%;
+    --primary-light: 358 80% 97.5%;
+    /* Marca sobre fundo escuro (hero, gradientes sobre foto): o vermelho de
+       48% perde-se contra preto. Mesmo matiz, subido em luminosidade. */
+    --primary-on-dark: 0 90% 68%;
 
     --secondary: 45 90% 50%;
-    --secondary-foreground: 350 20% 10%;
+    --secondary-foreground: 220 15% 10%;
 
-    --muted: 45 15% 92%;
-    --muted-foreground: 350 8% 42%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 9% 40%;
 
-    --accent: 350 62% 34%;
-    --accent-foreground: 0 0% 100%;
+    /* Realce de menus, selects e calendarios (focus:bg-accent nos primitivos).
+       Neutro de proposito: se fosse vermelho, cada hover competia com a marca. */
+    --accent: 220 14% 95%;
+    --accent-foreground: 220 15% 10%;
 
-    --destructive: 8 78% 48%;
+    --destructive: 345 70% 34%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 15% 88%;
-    --input: 45 15% 88%;
-    --ring: 350 62% 27%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 358 78% 48%;
 
     --radius: 0.75rem;
 
@@ -62,9 +66,11 @@
     --success-foreground: 145 63% 22%;
 
     /* Problema — cancelado, comprovativo rejeitado */
-    --problem: 8 78% 48%;
-    --problem-soft: 8 78% 95%;
-    --problem-foreground: 8 75% 32%;
+    /* A marca e vermelho VIVO e claro; o problema e vinho ESCURO. E a
+       luminancia que os separa (0.158 vs 0.061), nao so o matiz. */
+    --problem: 345 70% 34%;
+    --problem-soft: 345 60% 95%;
+    --problem-foreground: 345 70% 28%;
 
     /* Sombras — suaves, nunca pesadas */
     --shadow-card: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
@@ -81,35 +87,35 @@
   }
 
   .dark {
-    --background: 350 18% 7%;
-    --foreground: 45 20% 95%;
+    --background: 220 13% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 350 18% 10%;
-    --card-foreground: 45 20% 95%;
+    --card: 220 13% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 350 18% 10%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 220 13% 11%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 350 58% 45%;
+    --primary: 358 72% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 350 40% 18%;
-    --primary-on-dark: 350 75% 68%;
+    --primary-light: 358 45% 18%;
+    --primary-on-dark: 0 90% 70%;
 
     --secondary: 45 90% 45%;
-    --secondary-foreground: 350 20% 10%;
+    --secondary-foreground: 220 15% 10%;
 
-    --muted: 350 12% 16%;
-    --muted-foreground: 45 10% 55%;
+    --muted: 220 10% 17%;
+    --muted-foreground: 220 8% 62%;
 
-    --accent: 350 58% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 220 10% 18%;
+    --accent-foreground: 0 0% 95%;
 
-    --destructive: 8 60% 38%;
+    --destructive: 345 60% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 350 12% 18%;
-    --input: 350 12% 18%;
-    --ring: 350 58% 45%;
+    --border: 220 10% 19%;
+    --input: 220 10% 19%;
+    --ring: 358 72% 50%;
 
     /* Estados — fundo escurece, texto clareia */
     --pending: 38 92% 58%;
@@ -124,9 +130,9 @@
     --success-soft: 145 40% 15%;
     --success-foreground: 145 60% 66%;
 
-    --problem: 8 78% 58%;
-    --problem-soft: 8 45% 18%;
-    --problem-foreground: 8 85% 72%;
+    --problem: 340 55% 60%;
+    --problem-soft: 340 40% 18%;
+    --problem-foreground: 340 80% 80%;
 
     --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.2);
     --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.4);

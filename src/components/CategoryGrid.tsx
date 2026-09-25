@@ -92,7 +92,7 @@ export const CategoryGrid = ({ categories, active, onChange, counts = {} }: Cate
       <span
         className={cn(
           "flex h-14 w-14 items-center justify-center rounded-full transition-colors",
-          isActive ? "bg-primary text-primary-foreground" : "bg-primary-light text-primary"
+          isActive ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
         )}
       >
         <Icon className="h-6 w-6" aria-hidden="true" />

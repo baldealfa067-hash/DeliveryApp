@@ -97,7 +97,7 @@ type ReviewFilter = "pendentes" | "aprovadas";
 const STATUS_BADGE_KEYS: Record<string, { key: string; className: string }> = {
   aprovado: { key: "admin.active", className: "bg-success-soft text-success-foreground" },
   pendente: { key: "admin.inReview", className: "bg-yellow-100 text-yellow-700" },
-  rejeitado: { key: "admin.rejected", className: "bg-red-100 text-red-700" },
+  rejeitado: { key: "admin.rejected", className: "bg-problem-soft text-problem-foreground" },
   none: { key: "admin.noVerification", className: "bg-muted text-muted-foreground" },
 };
 
@@ -628,7 +628,7 @@ const AdminDashboard = () => {
                   <dd className={`font-medium capitalize ${q.className}`}>{q.label}</dd>
                 </div>
                 {p.verification_reason && (
-                  <p className="text-xs text-red-600 bg-red-50 rounded-lg p-2">{t("admin.reason", { reason: p.verification_reason })}</p>
+                  <p className="text-xs text-problem-foreground bg-problem-soft rounded-lg p-2">{t("admin.reason", { reason: p.verification_reason })}</p>
                 )}
               </dl>
             </div>
@@ -710,7 +710,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
       <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:sticky md:top-0 md:h-screen md:border-r bg-card">
         <div className="px-5 py-4 border-b flex items-center gap-2">
-          <img src={logo} alt="VEXA" className="h-8 w-auto" />
+          <img src={logo} alt="iTudoo" className="h-8 w-auto" />
         </div>
         <div className="flex-1 p-3 overflow-y-auto">{navList()}</div>
         <div className="p-3 border-t flex items-center justify-between gap-2">
@@ -728,7 +728,7 @@ const AdminDashboard = () => {
                 painel, e um admin que tambem seja motorista era atirado de
                 volta para /painel-motorista sem forma de sair. */}
             <Link to="/inicio" className="flex items-center gap-2">
-              <img src={logo} alt="VEXA" className="h-7 w-auto" />
+              <img src={logo} alt="iTudoo" className="h-7 w-auto" />
             </Link>
             <div className="flex items-center gap-2">
               <Link to="/inicio">
@@ -866,7 +866,7 @@ const AdminDashboard = () => {
               <h1 className="text-2xl font-bold">{t("admin.complaints")}</h1>
               <div className="flex flex-col gap-3">
                 {pendingComplaints.map((c) => (
-                  <Card key={c.id} className="border-red-500/40">
+                  <Card key={c.id} className="border-problem/40">
                     <CardContent className="p-3 flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -1391,7 +1391,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("admin.platform")}</span>
-                    <span className="font-medium">{t("admin.vexa")}</span>
+                    <span className="font-medium">{t("admin.itudoo")}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("admin.categories")}</span>

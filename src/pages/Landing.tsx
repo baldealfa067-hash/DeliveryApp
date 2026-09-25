@@ -55,8 +55,8 @@ const Landing = () => {
       <header className="absolute top-0 left-0 right-0 z-20">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="VEXA" className="h-8 w-auto" />
-            <span className="text-white font-bold text-sm hidden sm:inline">{t("landing.vexa")}</span>
+            <img src={logo} alt="iTudoo" className="h-8 w-auto" />
+            <span className="text-white font-bold text-sm hidden sm:inline">{t("landing.itudoo")}</span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
             <Link to="/sobre" className="text-xs sm:text-sm text-white/80 hover:text-white transition-colors hidden sm:inline">{t("landing.about")}</Link>
@@ -78,7 +78,7 @@ const Landing = () => {
             <span className="text-white/80 text-xs font-medium tracking-wide uppercase">{t("landing.platform")}</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-5 tracking-tight drop-shadow-lg">
-            VE<span className="text-primary-on-dark">XA</span>
+            iTudoo
           </h1>
           <p className="text-white/70 text-lg md:text-xl mb-8 max-w-md mx-auto leading-relaxed">
             {t("landing.heroTitle")}
@@ -183,7 +183,7 @@ const Landing = () => {
         <div className="max-w-2xl mx-auto px-6 py-20">
           <div className="text-center mb-12">
             <span className="text-xs font-semibold text-primary tracking-widest uppercase">{t("landing.benefits")}</span>
-            <h2 className="text-3xl font-bold text-foreground mt-2">{t("landing.whyVexa")}</h2>
+            <h2 className="text-3xl font-bold text-foreground mt-2">{t("landing.whyItudoo")}</h2>
           </div>
           <div className="grid gap-4">
             {[
@@ -224,7 +224,7 @@ const Landing = () => {
       <footer className="border-t border-border py-8">
         <div className="max-w-2xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-            <img src={logo} alt="VEXA" className="h-8 w-auto" />
+            <img src={logo} alt="iTudoo" className="h-8 w-auto" />
             <div className="flex gap-4 text-xs">
               <Link to="/sobre" className="text-muted-foreground hover:text-foreground transition-colors">{t("landing.about")}</Link>
               <Link to="/termos" className="text-muted-foreground hover:text-foreground transition-colors">{t("landing.terms")}</Link>

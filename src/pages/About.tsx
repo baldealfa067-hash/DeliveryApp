@@ -18,7 +18,7 @@ const About = () => {
       </Link>
 
       <div className="flex justify-center mb-8">
-        <img src={logo} alt="VEXA" className="w-72 md:w-80 h-auto" />
+        <img src={logo} alt="iTudoo" className="w-72 md:w-80 h-auto" />
       </div>
 
       <h1 className="text-2xl font-bold mb-6">{t("aboutPage.title")}</h1>

@@ -1396,6 +1396,56 @@ deploy.
 
 ---
 
+## Rebranding iTudoo — substitui o VEXA (2026-09-25)
+
+**O nome passa de VEXA a iTudoo.** Tagline mantém-se: *"Tudo o que precisas.
+Mais perto."* A secção VEXA acima fica como histórico do processo (as armadilhas
+continuam válidas); **os valores de cor e nome dela já não são os actuais.**
+
+**Paleta — ajustada a um mockup aprovado pelo dono (Gemini), mais claro e
+simples.** O mockup NÃO estava disponível na sessão em que isto foi aplicado:
+partiu-se da referência dada pelo dono (`0 75% 50%`) e dos princípios descritos.
+**Confirmar contra o mockup.**
+
+- **`--primary` `358 78% 48%` (#DA1B21)** — vermelho vivo. Branco em cima 5.05:1.
+- **Fundo `0 0% 98%`, cartões brancos, cinzas neutros** (matiz 220). Sai o creme.
+- **`--accent` voltou a cinza neutro.** Pinta o hover de todos os menus/selects;
+  vermelho ali contrariava "vermelho só em botões principais, ícones activos e
+  logótipo".
+- **`--problem` passou a vinho escuro `345 70% 34%`** (e `--destructive` com
+  ele). O vermelho-laranja antigo (`8 78% 48%`) ficava a 8° da marca nova. A
+  separação é por luminância: marca clara e viva (0.158), problema escuro (0.061).
+- **`theme-color` e `theme_color` passaram a branco** — a barra do Android era
+  um bloco de marca, e o cabeçalho da app é branco.
+- **Grelha de categorias:** inactivas a cinza (`bg-muted`), só a activa a
+  vermelho. Antes todas eram rosa com ícone vermelho.
+- **`red-*` crus dos ficheiros vivos convertidos para `problem`** (rejeitado,
+  cancelado). O R4 só tinha triado os verdes; um `red-700` cru agora confunde-se
+  com a marca. O ponto de gravação de voz passou a `primary` (é estado activo,
+  não problema).
+- **Modo escuro: valores redefinidos mas dormentes** — `darkMode: class` e nenhum
+  código liga a classe. Não se comprometeu o claro por ele (texto `primary` sobre
+  fundo escuro dá 3.78:1; resolver quando o modo escuro existir).
+
+**Nome.** Chaves i18n `vexa`/`whyVexa` → `itudoo`/`whyItudoo`, código no mesmo
+passo. Português: "o iTudoo" (masculino — "no iTudoo", "Adiciona o iTudoo").
+Francês: "d'iTudoo". **O hero do `/landing` tinha o nome partido em dois spans
+outra vez** (`VE<span>XA</span>`) — agora escrito inteiro, para a próxima troca
+o encontrar numa procura.
+
+**Domínio:** `og:url`/`og:image` apontam a `https://deleveryapp-olive.vercel.app/`,
+confirmado pelo dono. Fecha a dívida do `www.vexa.gw`.
+
+**Continua em aberto (herdado do VEXA):** R2 (logótipo — o "B" do Bornaal ainda
+se vê), R5, R6, o conteúdo Bornaal da `/landing`, e o `og-image.png`.
+
+**Oportunidade sinalizada, não aplicada:** 53 mosaicos de ícone `bg-primary/10`
+/ `bg-primary/5` (rosa com ícone vermelho) — ecrã de registo, landing, painéis.
+Neutralizá-los é o que falta para "vermelho com moderação", mas são 53 sítios a
+triar um a um.
+
+---
+
 # Fase 1 — Fundação — CONCLUÍDA (2026-09-09)
 
 Aprovada e executada. Não avançar para a Fase 2 sem aprovação explícita do

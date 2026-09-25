@@ -33,7 +33,7 @@ const STATUS_LABELS: Record<string, { key: string; color: string }> = {
   a_caminho: { key: "orderStatus.a_caminho", color: "bg-blue-100 text-blue-800" },
   entregue: { key: "orderStatus.entregue", color: "bg-success-soft text-success-foreground" },
   concluido: { key: "orderStatus.concluido", color: "bg-success-soft text-success-foreground" },
-  cancelado: { key: "orderStatus.cancelado", color: "bg-red-100 text-red-800" },
+  cancelado: { key: "orderStatus.cancelado", color: "bg-problem-soft text-problem-foreground" },
 };
 
 const MyOrdersPage = () => {

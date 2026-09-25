@@ -1,13 +1,13 @@
 {
-  "name": "VEXA — Tudo o que precisas. Mais perto.",
-  "short_name": "VEXA",
+  "name": "iTudoo — Tudo o que precisas. Mais perto.",
+  "short_name": "iTudoo",
   "description": "Restaurantes, farmácias e entregas na Guiné-Bissau. Peça, envie e receba em Bissau.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#701A28",
+  "theme_color": "#FFFFFF",
   "lang": "pt",
   "categories": ["business", "food", "shopping"],
   "icons": [
