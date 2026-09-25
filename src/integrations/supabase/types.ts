@@ -1101,39 +1101,6 @@ export type Database = {
           },
         ]
       }
-      messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          image_url: string | null
-          message_type: string
-          read: boolean
-          receiver_id: string
-          sender_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          message_type?: string
-          read?: boolean
-          receiver_id: string
-          sender_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          message_type?: string
-          read?: boolean
-          receiver_id?: string
-          sender_id?: string | null
-        }
-        Relationships: []
-      }
       notifications: {
         Row: {
           body: string
@@ -1526,6 +1493,7 @@ export type Database = {
           lat: number | null
           lng: number | null
           location: string
+          location_voice_url: string | null
           merchant_code: string | null
           name: string
           orange_money_method: string | null
@@ -1557,6 +1525,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           location: string
+          location_voice_url?: string | null
           merchant_code?: string | null
           name: string
           orange_money_method?: string | null
@@ -1588,6 +1557,7 @@ export type Database = {
           lat?: number | null
           lng?: number | null
           location?: string
+          location_voice_url?: string | null
           merchant_code?: string | null
           name?: string
           orange_money_method?: string | null
@@ -2317,6 +2287,14 @@ export type Database = {
           total: number
         }[]
       }
+      get_business_reviews: {
+        Args: { p_business_id: string }
+        Returns: {
+          comment: string
+          created_at: string
+          rating: number
+        }[]
+      }
       get_business_sales_stats: {
         Args: { p_business_id: string }
         Returns: {
@@ -2491,6 +2469,7 @@ export type Database = {
           restaurant_lng: number
           restaurant_name: string
           restaurant_phone: string
+          restaurant_voice_note_url: string
           status: string
           voice_note_url: string
         }[]
@@ -2514,6 +2493,7 @@ export type Database = {
       get_my_profile_private: {
         Args: never
         Returns: {
+          location_voice_url: string
           merchant_code: string
           orange_money_method: string
           payment_number: string
@@ -2655,6 +2635,10 @@ export type Database = {
       set_business_hours: {
         Args: { p_business_id: string; p_horario: Json }
         Returns: number
+      }
+      set_business_location_voice: {
+        Args: { p_business_id: string; p_ref: string }
+        Returns: string
       }
       set_driver_active: {
         Args: { p_active: boolean; p_driver_id: string }

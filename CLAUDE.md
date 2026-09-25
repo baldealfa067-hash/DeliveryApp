@@ -983,14 +983,26 @@ movidos a 2026-09-20 10:43–10:44; zero referências no formato antigo em
 Verificado por HTTP **sem chave nenhuma**: a URL pública antiga dá 400, o bucket
 privado não serve por URL pública (400).
 
-**O 11.º ficheiro NÃO foi movido, de propósito, e o script recusa-o em voz alta.**
-`<uid>/chat/voice/…` não é órfão nem é nota de pedido: é uma mensagem de voz
-viva, referenciada em `messages.content`, entre dois utilizadores reais. O bucket
-`notas-voz` dá acesso pelo **PEDIDO** (`pode_ouvir_nota_voz`: cliente, dono do
-restaurante, motorista atribuído, admin) — **não pela conversa**. Movê-la para lá
-tirava-a a quem a recebeu, calada. Continua a abrir sem sessão (confirmado: 200),
-e fechá-la precisa de bucket e policy próprios, com a conversa como critério.
-**É decisão do dono, e é a última fuga conhecida no `portfolio`.**
+**O 11.º ficheiro ficou de fora nesse dia, de propósito** — e foi fechado a
+2026-09-25. `<uid>/chat/voice/…` era uma mensagem de voz viva, referenciada em
+`messages.content`. O bucket `notas-voz` dá acesso pelo **PEDIDO**
+(`pode_ouvir_nota_voz`), não pela conversa: movê-la enquanto o chat existia
+tirava-a a quem a recebeu.
+
+✅ **FECHADA a 2026-09-25.** Com o chat removido e a tabela `messages` apagada,
+já ninguém a recebia pela app. O script passou a tratar `<uid>/chat/voice/` como
+órfão — **mas só depois de `messages` deixar de existir** (enquanto existir,
+recusa) — e moveu-a para `notas-voz`, sem a apagar: fica ao alcance de quem a
+gravou (pasta própria) e do admin. **O `portfolio` ficou com 0 ficheiros de
+áudio.** Verificado sem chave nenhuma: a origem dá 400.
+
+**Armadilha registada: a CDN.** Depois de mover, a URL pública antiga continuou
+a dar **200** — `cf-cache-status: HIT`, `cache-control: public, max-age=3600`.
+A origem já recusava (400 com um parâmetro que fura a cache). Fui eu que aqueci
+a cache ao medir a fuga ANTES de mover. **Um ficheiro que sai de um bucket
+público continua a abrir até 1 hora pela CDN.** Para verificar, fura a cache
+(`?x=<aleatório>`); e não meças a fuga pela URL pública imediatamente antes de a
+fechar, que isso reinicia a hora.
 
 **Armadilha para quem estender o script:** o filtro dos órfãos é o CAMINHO, não a
 tabela — por definição não há linha que lhes aponte. Um padrão largo de mais
@@ -1569,12 +1581,14 @@ na página do restaurante e nas duas páginas órfãs. No lugar: o ecrã
   quem tocar numa chega a um ecrã que funciona. O `reference_type` fica `'chat'`,
   que é o registo do que foram. Há teste (`NotificationsPage.test.tsx`,
   verificado por mutação).
-- 🔴 **A tabela `messages` e as 6 mensagens reais ficam INTACTAS**, por decisão do
-  dono, até haver decisão explícita. A migração tem uma asserção que rebenta se
-  a contagem mudar. **Já não há código nenhum que a leia ou escreva** — está
-  marcada para remoção, à espera do dono. Continua na publicação
-  `supabase_realtime`, o que é inofensivo sem ninguém a ouvir. A voz da conversa
-  continua no `portfolio` público: sai com a decisão sobre a tabela.
+- **A tabela `messages` foi APAGADA** (2026-09-25, decisão explícita do dono,
+  migração `apagar_tabela_messages`). Ficou primeiro intacta; o dono decidiu
+  depois. Confirmado antes: nenhum código, função, trigger, vista ou chave
+  estrangeira a usava. A migração abortava se houvesse mais do que as 6
+  mensagens conhecidas (sinal de que algo ainda escrevia). O `DROP` levou as 3
+  policies e a entrada na publicação `supabase_realtime`. Diferente de `reviews`
+  e `portfolio_images`, que ficam por servirem a beleza. `types.ts` regenerado.
+- A voz da conversa saiu do `portfolio` público — ver "Órfãos de voz".
 
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 

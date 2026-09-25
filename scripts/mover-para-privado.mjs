@@ -15,12 +15,13 @@
  * MOVIDOS na mesma, nao apagados -- sao ficheiros de clientes reais (§56). Ficam
  * no bucket privado, sem referencia, ao alcance do proprio cliente e do admin.
  *
- * O QUE NAO SE MOVE, de proposito: `<uid>/chat/voice/...`. Sao mensagens de voz
- * de conversas, referenciadas em `messages.content`, e NAO sao notas de pedido.
- * O bucket `notas-voz` da acesso pelo PEDIDO (`pode_ouvir_nota_voz`: cliente,
- * dono do restaurante, motorista atribuido, admin) -- nao pela conversa. Mover
- * uma voz de chat para la tirava-a a quem a recebeu. Precisa de bucket e policy
- * proprios, que sao decisao do dono do projecto.
+ * VOZES DE CHAT (`<uid>/chat/voice/...`): ate 2026-09-25 NAO se moviam. Eram
+ * mensagens de conversa, referenciadas em `messages.content`, e o bucket
+ * `notas-voz` da acesso pelo PEDIDO, nao pela conversa -- mover tirava-a a quem
+ * a recebeu. O chat foi removido e a tabela `messages` apagada (decisao do dono,
+ * 2026-09-25): ja ninguem as recebe pela app, e passam a ORFAOS como os outros.
+ * O script SO as move quando a tabela `messages` ja nao existe -- enquanto
+ * existir, continua a recusar.
  *
  * O CAMINHO E PRESERVADO tal e qual (`<uid>/...`). Nao e cosmetico: as policies
  * comparam a primeira pasta com `auth.uid()`, e um caminho novo tirava o ficheiro
@@ -252,21 +253,47 @@ async function moverComprovativosDePedido() {
  *
  *   <uid>/orders/payment/  -> comprovativos   (coluna `payment_proof_url`)
  *   <uid>/orders/voice/    -> notas-voz       (colunas `voice_note_url`, `pickup_…`)
+ *   <uid>/chat/voice/      -> notas-voz       (so depois de `messages` apagada)
  *
- * `<uid>/chat/voice/` fica FORA a proposito -- ver o cabecalho do ficheiro.
+ * `ligadoA(nome)` revalida no MOMENTO de mover e devolve porque NAO e orfao, ou
+ * null se for.
  */
+/** Revalidacao dos orfaos de pedido: um pedido pode te-los ligado entretanto. */
+const ligadoAPedido = (colunas) => async (nome) => {
+  const alvo = encodeURIComponent(nome);
+  const condicoes = colunas.flatMap((c) => [`${c}.eq.${alvo}`, `${c}.like.*${alvo}`]);
+  const ligados = await tabela(`orders?select=id&or=(${condicoes.join(",")})`);
+  return ligados.length
+    ? `ja NAO e orfao: ligado ao pedido ${ligados[0].id.slice(0, 8)}. Corre o script outra vez para o tratar como ligado.`
+    : null;
+};
+
+/** Uma voz de chat so e orfa quando a tabela `messages` ja nao existe. */
+const ligadoAConversa = async () => {
+  const r = await fetch(`${URL_BASE}/rest/v1/messages?select=id&limit=1`, { headers: cab });
+  if (r.ok) return "a tabela messages ainda existe: e mensagem de conversa, nao orfao. Apaga a tabela primeiro.";
+  const corpo = await r.text();
+  if (r.status === 404 && corpo.includes("PGRST205")) return null; // tabela ja nao existe
+  throw new Error(`nao consegui confirmar que messages ja nao existe: HTTP ${r.status} ${corpo.slice(0, 120)}`);
+};
 const ORFAOS = [
   {
     nome: "Comprovativos de pedido",
     padrao: /^[0-9a-f-]{36}\/orders\/payment\//,
     destino: () => DESTINO.comprovativo,
-    colunas: ["payment_proof_url"],
+    ligadoA: ligadoAPedido(["payment_proof_url"]),
   },
   {
     nome: "Notas de voz",
     padrao: /^[0-9a-f-]{36}\/orders\/voice\//,
     destino: () => DESTINO.voz,
-    colunas: ["voice_note_url", "pickup_voice_note_url"],
+    ligadoA: ligadoAPedido(["voice_note_url", "pickup_voice_note_url"]),
+  },
+  {
+    nome: "Vozes de chat (chat removido a 2026-09-25)",
+    padrao: /^[0-9a-f-]{36}\/chat\/voice\//,
+    destino: () => DESTINO.voz,
+    ligadoA: ligadoAConversa,
   },
 ];
 
@@ -296,15 +323,6 @@ async function moverOrfaos() {
   };
   await descer("", 0);
 
-  // Vozes de conversa nao entram aqui, e diz-se porque -- calar era pior.
-  const doChat = ficheiros.filter((n) => /^[0-9a-f-]{36}\/chat\/voice\//.test(n));
-  for (const nome of doChat) {
-    saltar(`voz de chat ${nome.split("/").pop()}`,
-      "e mensagem de conversa (messages.content), nao nota de pedido. O bucket " +
-      "notas-voz da acesso pelo PEDIDO, nao pela conversa: mover tirava-a a quem " +
-      "a recebeu. Precisa de bucket e policy proprios — decisao do dono.");
-  }
-
   let algum = false;
   for (const tipo of ORFAOS) {
     const candidatos = ficheiros.filter((n) => tipo.padrao.test(n));
@@ -315,14 +333,12 @@ async function moverOrfaos() {
     for (const nome of candidatos) {
       const etiqueta = `orfao ${nome.split("/").pop()}`;
       try {
-        // Revalidar AGORA: entre a auditoria e este momento um pedido pode te-lo
-        // ligado, e ai ja nao e orfao -- pertence aos ramos de cima, que reescrevem
-        // a referencia. Mover aqui deixava o pedido a apontar para o vazio.
-        const alvo = encodeURIComponent(nome);
-        const condicoes = tipo.colunas.flatMap((c) => [`${c}.eq.${alvo}`, `${c}.like.*${alvo}`]);
-        const ligados = await tabela(`orders?select=id&or=(${condicoes.join(",")})`);
-        if (ligados.length) {
-          saltar(etiqueta, `ja NAO e orfao: ligado ao pedido ${ligados[0].id.slice(0, 8)}. Corre o script outra vez para o tratar como ligado.`);
+        // Revalidar AGORA: entre a auditoria e este momento algo pode te-lo
+        // ligado, e ai ja nao e orfao. Mover deixava uma referencia a apontar
+        // para o vazio.
+        const porque = await tipo.ligadoA(nome);
+        if (porque) {
+          saltar(etiqueta, porque);
           continue;
         }
 
