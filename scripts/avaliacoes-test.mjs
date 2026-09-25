@@ -15,6 +15,10 @@
  *   - um envio (sem restaurante) nao tem restaurante para avaliar
  *   - a media so conta o que foi avaliado
  *   - `reviews` deixou de aceitar insercao anonima
+ *   - (2026-09-25) a TABELA deixou de ser publica: le-a o autor, o dono do
+ *     restaurante avaliado (so as de restaurante) e o admin. O anonimo, outro
+ *     cliente, outro restaurante, o motorista e a frota leem ZERO linhas. A
+ *     montra publica passa por get_business_reviews, sem nome e sem ids.
  *
  * Limpeza no fim, com salvaguarda que aborta se tocar em dados reais.
  *
@@ -78,6 +82,8 @@ async function main() {
   const dono = await conta("dono");
   const frota = await conta("frota");
   const motorista = await conta("motorista");
+  const outroDono = await conta("outrodono");
+  await rpc(outroDono.token, "register_as_business");
 
   // Restaurante com um prato.
   await rpc(dono.token, "register_as_business");
@@ -270,11 +276,42 @@ async function main() {
                     : ko("FUGA: anonimo inseriu em reviews", `HTTP ${r.status}`);
   }
 
-  console.log("\nLeitura publica das avaliacoes");
+  console.log("\nQuem le as LINHAS da tabela (leitura directa, onde o RLS se aplica)");
+  const linhas = async (tok) => {
+    const r = await tabela(tok, `order_ratings?select=id,target,customer_name,driver_id&order_id=eq.${pedidoId}`);
+    return { status: r.status, n: Array.isArray(r.corpo) ? r.corpo.length : 0, corpo: r.corpo };
+  };
   {
-    const r = await tabela(null, `order_ratings?select=rating,comment&order_id=eq.${pedidoId}`);
-    (r.corpo ?? []).length === 2 ? ok("anonimo LE as avaliacoes (e a montra)")
-                                 : ko("anonimo nao leu as avaliacoes", `HTTP ${r.status} ${(r.corpo ?? []).length} linhas`);
+    // Controlo primeiro: sem o autor a ver as duas, os "zero" abaixo podiam ser
+    // uma consulta errada e nao a policy -- verde pela razao errada.
+    const r = await linhas(cliente.token);
+    r.n === 2 ? ok("CONTROLO: o autor le as suas 2 avaliacoes")
+              : ko("o autor nao le as suas avaliacoes", `HTTP ${r.status} ${r.n} linhas`);
+  }
+  {
+    const r = await linhas(dono.token);
+    r.n === 1 && r.corpo?.[0]?.target === "restaurante"
+      ? ok("o dono do restaurante le so a avaliacao do restaurante", "a do motorista nao")
+      : ko("dono do restaurante leu o que nao devia (ou nada)", `HTTP ${r.status} ${JSON.stringify(r.corpo).slice(0, 120)}`);
+  }
+  for (const [quem, tok] of [["anonimo", null], ["outro cliente", outroCliente.token], ["outro restaurante", outroDono.token],
+                             ["o motorista avaliado", motorista.token], ["a frota do motorista", frota.token]]) {
+    const r = await linhas(tok);
+    r.n === 0 ? ok(`${quem} le ZERO linhas`, `HTTP ${r.status}`)
+              : ko(`FUGA: ${quem} leu ${r.n} linhas`, JSON.stringify(r.corpo).slice(0, 120));
+  }
+
+  console.log("\nMontra publica do restaurante (get_business_reviews)");
+  {
+    const r = await rpc(null, "get_business_reviews", { p_business_id: bizId });
+    const l = Array.isArray(r.corpo) ? r.corpo : [];
+    const chaves = l[0] ? Object.keys(l[0]).sort().join(",") : "";
+    l.length === 1 && l[0].comment === `Bom ${MARCA}` && l[0].rating === 4
+      ? ok("o anonimo ve a avaliacao do restaurante", "4 estrelas e o comentario")
+      : ko("montra publica errada", `HTTP ${r.status} ${JSON.stringify(r.corpo).slice(0, 150)}`);
+    chaves === "comment,created_at,rating"
+      ? ok("a montra devolve SO estrelas, comentario e data", "sem nome, sem ids")
+      : ko("FUGA: a montra devolve mais colunas", chaves);
   }
 
   console.log(`\n${passou} passaram · ${falhou} falharam`);

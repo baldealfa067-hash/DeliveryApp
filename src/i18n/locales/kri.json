@@ -284,7 +284,8 @@
   "landing": {
     "tagline": "Tudu ku bu mistí. Mas pertu.",
     "signIn": "Entra",
-    "createAccount": "Kria konta"
+    "createAccount": "Kria konta",
+    "browse": "Djubi restorantis sin konta"
   },
   "requests": {
     "title": "Pedidus di Servisu",

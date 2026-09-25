@@ -947,7 +947,8 @@
   "landing": {
     "tagline": "Everything you need. Closer.",
     "signIn": "Log in",
-    "createAccount": "Create account"
+    "createAccount": "Create account",
+    "browse": "Browse restaurants without an account"
   },
   "verification": {
     "verified": "Verified",

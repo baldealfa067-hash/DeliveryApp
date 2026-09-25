@@ -947,7 +947,8 @@
   "landing": {
     "tagline": "Tudo o que precisas. Mais perto.",
     "signIn": "Entrar",
-    "createAccount": "Criar conta"
+    "createAccount": "Criar conta",
+    "browse": "Ver restaurantes sem conta"
   },
   "verification": {
     "verified": "Verificado",

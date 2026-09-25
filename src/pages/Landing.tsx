@@ -40,6 +40,16 @@ const Landing = () => {
             <Link to="/login?tab=registar">{t("landing.createAccount")}</Link>
           </Button>
         </div>
+
+        {/* Navegar sem conta é permitido (§9) e tem de ser uma porta à vista.
+            Antes só se chegava a /inicio pelo "Voltar" do ecrã de escolha de
+            conta, e quem o encontrava achava que tinha entrado sem autenticação. */}
+        <Link
+          to="/inicio"
+          className="mt-6 block py-2 text-center text-sm font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          {t("landing.browse")}
+        </Link>
       </main>
     </div>
   );

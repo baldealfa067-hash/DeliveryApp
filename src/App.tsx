@@ -13,6 +13,7 @@ import RequireAdmin from "./components/RequireAdmin";
 import RequireRole from "./components/RequireRole";
 import RequireClientArea from "./components/RequireClientArea";
 import HomeRoute from "./components/HomeRoute";
+import RequireSession from "./components/RequireSession";
 import { Loader2 } from "lucide-react";
 
 const Landing = lazy(() => import("./pages/Landing"));
@@ -105,8 +106,10 @@ const App = () => (
                   papel entra. Nao ha perda de seguranca: todas as RPCs da frota
                   filtram por owner_user_id = auth.uid(), e get_fleet_metrics()
                   devolve vazio a quem nao tem frota, que e' o que faz o ecra'
-                  mostrar o formulario de criacao em vez do painel. */}
-              <Route path="/painel-frota" element={<FleetDashboard />} />
+                  mostrar o formulario de criacao em vez do painel.
+                  Exige SESSAO, isso sim: sem ela o ecra' ficava preso em
+                  "A carregar..." com as RPCs a responder 401. */}
+              <Route path="/painel-frota" element={<RequireSession><FleetDashboard /></RequireSession>} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/mensagem/:userId" element={<ChatPage />} />
               <Route element={<Layout />}>

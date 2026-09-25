@@ -54,7 +54,7 @@ const CONSUMPTION_LABEL_KEYS: Record<string, string> = {
 
 type MenuCategory = { id: string; name: string };
 type MenuItem = { id: string; name: string; price: number; photo_url: string | null; category_id: string | null; track_stock: boolean; stock_qty: number | null; is_orderable: boolean };
-type Review = { id: string; rating: number; comment: string | null; created_at: string; customer_name: string | null };
+type Review = { rating: number; comment: string | null; created_at: string };
 
 const BusinessDetail = () => {
   const { t } = useTranslation();
@@ -185,9 +185,14 @@ const BusinessDetail = () => {
         supabase.from("menu_items").select("id, name, price, photo_url, category_id, track_stock, stock_qty, is_orderable").eq("business_id", id).order("name"),
         // Fase 9.4: as avaliacoes sao as do pedido concluido (`order_ratings`), nao
         // as da tabela `reviews` do Bornaal -- essa e a montra da beleza e nao tem
-        // pedido por tras. Leitura publica: o cliente ve-as antes de ter conta.
-        supabase.from("order_ratings").select("id, rating, comment, created_at, customer_name")
-          .eq("business_id", id).eq("target", "restaurante").order("created_at", { ascending: false }),
+        // pedido por tras. O cliente ve-as antes de ter conta, mas pela RPC, nao
+        // pela tabela: desde 2026-09-25 a tabela ja nao e publica, e a RPC so
+        // devolve estrelas, comentario e data -- sem nome do cliente e sem ids.
+        (
+          supabase.rpc as unknown as (
+            fn: string, args: Record<string, unknown>,
+          ) => Promise<{ data: unknown; error: unknown }>
+        )("get_business_reviews", { p_business_id: id }),
       ]);
       setBusiness(profile as Record<string, unknown> | null);
       setMenuCategories((cats ?? []) as MenuCategory[]);
@@ -1066,12 +1071,9 @@ const BusinessDetail = () => {
 
         {reviews.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {reviews.map((r) => (
-              <div key={r.id} className="p-3 rounded-lg border bg-card">
+            {reviews.map((r, i) => (
+              <div key={`${r.created_at}-${i}`} className="p-3 rounded-lg border bg-card">
                 <StarRating rating={r.rating} />
-                {r.customer_name && (
-                  <p className="text-sm font-medium mt-1">{r.customer_name}</p>
-                )}
                 {r.comment && <p className="text-sm mt-1">{r.comment}</p>}
                 <p className="text-[11px] text-muted-foreground mt-1">
                   {new Date(r.created_at).toLocaleDateString(i18n.language)}
