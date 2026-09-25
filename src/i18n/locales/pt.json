@@ -119,7 +119,8 @@
     "requests": "Pedidos",
     "profile": "Perfil",
     "send": "Enviar",
-    "orders": "Pedidos"
+    "orders": "Pedidos",
+    "contact": "Contacto"
   },
   "notificationBell": {
     "notifications": "Notificações",
@@ -1571,6 +1572,7 @@
   },
   "teamContact": {
     "title": "Contacto",
-    "call": "Ligar"
+    "call": "Ligar",
+    "intro": "Fala com a equipa do iTudoo por telefone ou WhatsApp."
   }
 }

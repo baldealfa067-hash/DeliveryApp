@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, MapPin, Phone, Wallet, BadgeCheck, CheckCircle2, ShieldAlert, MessageSquare } from "lucide-react";
+import { AlertCircle, MapPin, Phone, Wallet, BadgeCheck, CheckCircle2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,6 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { useQueryClient } from "@tanstack/react-query";
 import { sanitizeName, sanitizeComment, sanitizeReason, sanitizeDescription, sanitizeContact } from "@/lib/sanitize";
-import { useUnreadFromUser } from "@/hooks/useChat";
 import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
 
@@ -55,7 +54,6 @@ const ProviderDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const providerUserId = (provider as { user_id?: string | null } | null)?.user_id ?? null;
   const isOwnProfile = user?.id === providerUserId;
-  const { data: unreadCount = 0 } = useUnreadFromUser(user?.id ?? null, providerUserId);
   const { requireAuth, open: signupOpen, setOpen: setSignupOpen, onSignupSuccess } = useRequireClientAuth();
 
   useEffect(() => {
@@ -262,20 +260,6 @@ const ProviderDetail = () => {
 
       {/* Contact buttons */}
       <div className="mb-8 space-y-2">
-        {!isOwnProfile && (
-          <Button
-            className="w-full gap-2 h-12 text-base font-semibold relative"
-            onClick={() => requireAuth(() => providerUserId && navigate(`/mensagem/${providerUserId}`))}
-          >
-            <MessageSquare className="h-5 w-5" />
-            {t("common.message")}
-            {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold h-5 min-w-[20px] rounded-full flex items-center justify-center px-1">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </Button>
-        )}
         <a href={`tel:${provider.phone.replace(/\s/g, "")}`} className="block" onClick={trackCall}>
           <Button variant="secondary" className="w-full gap-2">
             <Phone className="h-5 w-5" />

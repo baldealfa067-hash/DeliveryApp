@@ -33,9 +33,9 @@ const mapNotification = (n: Record<string, unknown>): Notification => {
   // Prefer DB-computed link; fall back to building it
   let computedLink: string | null = dbLink;
   if (!computedLink && refType && refId) {
-    if (refType === "chat") {
-      computedLink = `/mensagem/${refId}`;
-    } else if (refType === "order") {
+    // "chat" deixou de ter destino (chat removido a 2026-09-25); as notificacoes
+    // antigas desse tipo trazem `link` = /contacto, gravado na base.
+    if (refType === "order") {
       computedLink = `/pedido/${refId}`;
     } else if (refType === "appointment") {
       computedLink = `/meus-agendamentos/${refId}`;

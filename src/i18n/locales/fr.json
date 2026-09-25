@@ -119,7 +119,8 @@
     "requests": "Demandes",
     "profile": "Profil",
     "send": "Envoyer",
-    "orders": "Commandes"
+    "orders": "Commandes",
+    "contact": "Contact"
   },
   "notificationBell": {
     "notifications": "Notifications",
@@ -1571,6 +1572,7 @@
   },
   "teamContact": {
     "title": "Contact",
-    "call": "Appeler"
+    "call": "Appeler",
+    "intro": "Parlez à l’équipe iTudoo par téléphone ou WhatsApp."
   }
 }

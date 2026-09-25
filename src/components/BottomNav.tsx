@@ -1,4 +1,4 @@
-import { Home, Package, ShoppingBag, MessageSquare, User } from "lucide-react";
+import { Home, Package, ShoppingBag, Phone, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,8 @@ export const BottomNav = () => {
     // pacotes, §19) é o mesmo ecrã para os dois tipos, por isso é um só lugar.
     { to: "/enviar", icon: Package, label: t("bottomNav.send") },
     { to: "/meus-pedidos", icon: ShoppingBag, label: t("bottomNav.orders") },
-    { to: "/conversas", icon: MessageSquare, label: t("bottomNav.chat") },
+    // "Conversas" saiu com o chat (2026-09-25): no lugar, contacto directo com a equipa.
+    { to: "/contacto", icon: Phone, label: t("bottomNav.contact") },
     { to: "/perfil", icon: User, label: t("bottomNav.profile") },
   ];
   return (

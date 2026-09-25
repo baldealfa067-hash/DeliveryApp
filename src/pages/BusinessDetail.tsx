@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, MessageSquare } from "lucide-react";
+import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +23,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { sanitizeName, sanitizeComment, sanitizeReason, sanitizeDescription, sanitizeContact } from "@/lib/sanitize";
 import { useBusinessCategories } from "@/hooks/useProviders";
 import { translateCategoryName } from "@/lib/categoryI18n";
-import { useUnreadFromUser } from "@/hooks/useChat";
 import { useCreateOrder } from "@/hooks/useOrders";
 import { useBairros } from "@/hooks/useBairros";
 import { useDeliveryPrice } from "@/hooks/useFleet";
@@ -168,7 +167,6 @@ const BusinessDetail = () => {
   const { data: deliveryPrice, isLoading: deliveryPriceLoading } = useDeliveryPrice(bairro || null);
   const bizUserId = business ? String((business as Record<string, unknown>).user_id ?? "") : "";
   const isOwnProfile = user?.id === bizUserId && !!user;
-  const { data: unreadCount = 0 } = useUnreadFromUser(user?.id ?? null, bizUserId || null);
   const { requireAuth, open: signupOpen, setOpen: setSignupOpen, onSignupSuccess } = useRequireClientAuth();
 
   useEffect(() => {
@@ -1023,20 +1021,6 @@ const BusinessDetail = () => {
       )}
 
       <div className="mb-8 space-y-2">
-        {!isOwnProfile && (
-          <Button
-            className="w-full gap-2 h-12 text-base font-semibold relative"
-            onClick={() => requireAuth(() => bizUserId && navigate(`/mensagem/${bizUserId}`))}
-          >
-            <MessageSquare className="h-5 w-5" />
-            {t("common.message")}
-            {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] font-bold h-5 min-w-[20px] rounded-full flex items-center justify-center px-1">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </Button>
-        )}
         {/* Ligar e' accao secundaria de quem ja' escolheu o restaurante, nao a
             accao principal de quem esta' a escolher. outline e nao secondary:
             --secondary e' ambar, cor que o sistema (§3) reserva para
@@ -1049,7 +1033,7 @@ const BusinessDetail = () => {
         </a>
 
         {/* Denunciar e' uma accao rara: link discreto, nao um botao com o mesmo
-            peso visual de Mensagem ou Ligar. */}
+            peso visual de Ligar. */}
         {!isOwnProfile && (
           <button
             type="button"

@@ -31,7 +31,6 @@ const BusinessDetail = lazy(() => import("./pages/BusinessDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Models = lazy(() => import("./pages/Models"));
 const Profile = lazy(() => import("./pages/Profile"));
-const ConversationsPage = lazy(() => import("./pages/ConversationsPage"));
 const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 const SendPage = lazy(() => import("./pages/SendPage"));
 const OrderTrackingPage = lazy(() => import("./pages/OrderTrackingPage"));
@@ -39,7 +38,7 @@ const MyAppointmentsPage = lazy(() => import("./pages/MyAppointmentsPage"));
 const DriverDashboard = lazy(() => import("./pages/DriverDashboard"));
 const FleetDashboard = lazy(() => import("./pages/FleetDashboard"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
-const ChatPage = lazy(() => import("./pages/ChatPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 const queryClient = new QueryClient();
 
@@ -111,7 +110,6 @@ const App = () => (
                   "A carregar..." com as RPCs a responder 401. */}
               <Route path="/painel-frota" element={<RequireSession><FleetDashboard /></RequireSession>} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
-              <Route path="/mensagem/:userId" element={<ChatPage />} />
               <Route element={<Layout />}>
                 {/* Início e Explorar são o mesmo ecrã: só existe uma categoria
                     (restaurantes), portanto não há passo intermédio a dar. As duas
@@ -124,7 +122,9 @@ const App = () => (
                     gestão, e esses são guardados por RequireRole. */}
                 <Route path="/inicio" element={<Explore />} />
                 <Route path="/explorar" element={<Explore />} />
-                <Route path="/conversas" element={<ConversationsPage />} />
+                {/* No lugar do chat cliente <-> restaurante, removido a
+                    2026-09-25: os dois numeros da equipa. */}
+                <Route path="/contacto" element={<ContactPage />} />
                 {/* Pedir e acompanhar tambem e' area publica: quem faz um
                     pedido tem de o poder ver, seja qual for o tipo de conta.
                     Estiveram fechadas, e uma conta de trabalho conseguia

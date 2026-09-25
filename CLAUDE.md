@@ -1526,9 +1526,10 @@ senão, instruções — um botão morto era pior.
 
 **Interface:** botões `rounded-xl`, secundário só com contorno (sem
 preenchimento). Cartão de produto com nome + categoria + preço e "+" laranja
-circular. **Navegação inferior: Início / Enviar / Pedidos / Conversas / Perfil**
+circular. **Navegação inferior: Início / Enviar / Pedidos / Contacto / Perfil**
 (decisão do dono): "Explorar" saiu por ser o mesmo ecrã que Início, e
 "pacotes"/"documentos" juntaram-se num só "Enviar", que é um ecrã só.
+"Conversas" deu lugar a "Contacto" quando o chat saiu (ver abaixo).
 
 **Campo "+245" (`PhoneInput`): prefixo VISUAL, fora do valor, de propósito.** O
 telefone é a identidade da conta (§8, §48). Com "+245" no valor, um número de 7
@@ -1542,8 +1543,8 @@ componente da landing (`ComoFunciona`). Contacto: os dois números da equipa,
 **957107795 e 966804992**, com "Ligar" e "WhatsApp" — em `src/lib/contactos.ts`,
 um só sítio, e o componente `ContactosEquipa` para os reaproveitar.
 
-**Chat interno — auditado, NÃO removido, à espera do dono (2026-09-25).** O
-pedido era remover "o suporte / falar com a equipa". **Não existe suporte no
+**Chat interno — REMOVIDO (2026-09-25, opção A do dono).** O pedido inicial
+era remover "o suporte / falar com a equipa". **Não existia suporte no
 código.** O que existe (`/conversas`, `/mensagem/:userId`, `useChat`, tabela
 `messages`) é conversa directa entre utilizadores, e a única entrada é o botão
 "Mensagem" na página do restaurante: cliente ↔ dono do restaurante. Não é a
@@ -1554,6 +1555,26 @@ Dependências: `create_notification` monta `/mensagem/<id>` para
 está na publicação `supabase_realtime`, e o `ChatDialog` só é usado pelas páginas
 órfãs da beleza (R5). A mensagem de voz dessa conversa é o 11.º ficheiro do
 `portfolio` público (ver "Órfãos de voz").
+
+O que saiu: as rotas `/conversas` e `/mensagem/:userId`, `ChatPage`,
+`ConversationsPage`, `useChat`, o `ChatDialog` (dependia do `useChat`; só as
+páginas órfãs da beleza o usavam, e deixaria de compilar) e o botão "Mensagem"
+na página do restaurante e nas duas páginas órfãs. No lugar: o ecrã
+**`/contacto`** (`ContactPage`), aberto sem sessão, com os dois números.
+
+- **`create_notification` deixou de gerar `/mensagem/`** (migração
+  `remover_chat_links`, mesma assinatura, GRANTs intactos). Um `reference_type
+  'chat'` que ainda chegue cai no `ELSE '/'`, como qualquer tipo desconhecido.
+- **As 6 notificações antigas foram REAPONTADAS para `/contacto`**, não apagadas:
+  quem tocar numa chega a um ecrã que funciona. O `reference_type` fica `'chat'`,
+  que é o registo do que foram. Há teste (`NotificationsPage.test.tsx`,
+  verificado por mutação).
+- 🔴 **A tabela `messages` e as 6 mensagens reais ficam INTACTAS**, por decisão do
+  dono, até haver decisão explícita. A migração tem uma asserção que rebenta se
+  a contagem mudar. **Já não há código nenhum que a leia ou escreva** — está
+  marcada para remoção, à espera do dono. Continua na publicação
+  `supabase_realtime`, o que é inofensivo sem ninguém a ouvir. A voz da conversa
+  continua no `portfolio` público: sai com a decisão sobre a tabela.
 
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 

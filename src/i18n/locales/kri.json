@@ -119,7 +119,8 @@
     "requests": "Pedidus",
     "profile": "Perfil",
     "send": "Manda",
-    "orders": "Pedidus"
+    "orders": "Pedidus",
+    "contact": "Kontatu"
   },
   "notificationBell": {
     "notifications": "Notifikasons",
@@ -1257,6 +1258,7 @@
   },
   "teamContact": {
     "title": "Kontatu",
-    "call": "Tchoma"
+    "call": "Tchoma",
+    "intro": "Papia ku ekipa di iTudoo na telfoni o WhatsApp."
   }
 }
