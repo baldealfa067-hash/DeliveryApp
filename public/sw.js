@@ -4,7 +4,8 @@
  * NOTA: não faz cache de assets de propósito — os ficheiros têm hash e o
  * index.html é no-cache; cache aqui reintroduziria erros de chunk obsoleto.
  */
-const CACHE_VERSION = "itudoo-v1";
+// Subir isto muda o ficheiro, e o browser instala o SW novo (icones v3).
+const CACHE_VERSION = "itudoo-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -30,8 +31,8 @@ self.addEventListener("push", (event) => {
   }
   const options = {
     body: data.body || "Tem uma novidade no iTudoo.",
-    icon: "/icon-192.png",
-    badge: "/icon-192.png",
+    icon: "/icon-192.png?v=3",
+    badge: "/icon-192.png?v=3",
     data: { url: data.url || "/", whatsapp_url: data.whatsapp_url || "" },
   };
   event.waitUntil(self.registration.showNotification(data.title || "iTudoo", options));

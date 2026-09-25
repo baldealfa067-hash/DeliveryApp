@@ -53,8 +53,9 @@ export const RestaurantCard = ({
 
         {/* Máscara em gradiente: o nome tem de se ler sobre qualquer fotografia,
             clara ou escura. Só a metade de baixo escurece, para a foto respirar.
-            Sem foto a máscara é verde e não preta — preto sobre o verde-claro do
-            fallback fica turvo, parece um erro de renderização em vez de desenho. */}
+            Sem foto a máscara é da cor da marca e não preta — preto sobre o
+            fundo claro do fallback fica turvo, parece um erro de renderização.
+            E sobre o laranja o texto é PRETO: branco dava 2.61:1 (falha AA). */}
         <div
           className={cn(
             "absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t",
@@ -65,16 +66,16 @@ export const RestaurantCard = ({
         />
 
         <div className="absolute inset-x-0 bottom-0 p-3">
-          <h3 className="flex min-w-0 items-center gap-1 text-title text-white drop-shadow-sm">
+          <h3 className={cn("flex min-w-0 items-center gap-1 text-title", photo_url ? "text-white drop-shadow-sm" : "text-primary-foreground")}>
             <span className="truncate">{name}</span>
             {is_verified && (
               <BadgeCheck
-                className="h-5 w-5 shrink-0 text-white"
+                className="h-5 w-5 shrink-0"
                 aria-label={t("providerCardExtra.verifiedLabel")}
               />
             )}
           </h3>
-          <p className="truncate text-caption text-white/90 drop-shadow-sm">{displayCategory}</p>
+          <p className={cn("truncate text-caption", photo_url ? "text-white/90 drop-shadow-sm" : "text-primary-foreground")}>{displayCategory}</p>
         </div>
       </div>
 

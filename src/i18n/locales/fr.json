@@ -117,7 +117,9 @@
     "explore": "Explorer",
     "chat": "Messages",
     "requests": "Demandes",
-    "profile": "Profil"
+    "profile": "Profil",
+    "send": "Envoyer",
+    "orders": "Commandes"
   },
   "notificationBell": {
     "notifications": "Notifications",
@@ -948,7 +950,30 @@
     "tagline": "Tout ce dont vous avez besoin. Plus près.",
     "signIn": "Se connecter",
     "createAccount": "Créer un compte",
-    "browse": "Voir les restaurants sans compte"
+    "browse": "Voir les restaurants sans compte",
+    "heroTitle": "Tout ce dont vous avez besoin, au même endroit",
+    "heroSubtitle": "Les plats des restaurants de Bissau et l'envoi de documents et d'objets, livrés par des flottes locales.",
+    "howTitle": "Comment ça marche",
+    "step1Title": "Choisissez",
+    "step1Desc": "Un restaurant et ce qui vous fait envie, ou ce que vous voulez envoyer.",
+    "step2Title": "Dites où",
+    "step2Desc": "Votre position et un message vocal : « près de l’école, après la pharmacie ».",
+    "step3Title": "Recevez",
+    "step3Desc": "Un livreur vous apporte la commande. Payez à la livraison ou par Orange Money.",
+    "whyTitle": "Pourquoi iTudoo",
+    "fastTitle": "Livraison rapide",
+    "fastDesc": "Des flottes de Bissau, avec des livreurs qui connaissent les quartiers.",
+    "safeTitle": "Sûr",
+    "safeDesc": "Vous voyez le prix avant de confirmer, et chaque livraison est prouvée par un code ou une photo.",
+    "everywhereTitle": "Partout",
+    "everywhereDesc": "Pas besoin d’adresse : votre message vocal guide le livreur jusqu’à vous, partout à Bissau.",
+    "qualityTitle": "Qualité",
+    "qualityDesc": "Chaque commande peut être notée, et les avis sont visibles sur la page du restaurant.",
+    "appTitle": "Emportez iTudoo sur votre téléphone",
+    "appDesc": "Installez l'app : elle se place sur l'écran d'accueil comme toute application et vous prévient quand votre commande change.",
+    "appInstall": "Installer l'app",
+    "appIosHint": "Sur iPhone : ouvrez dans Safari, touchez Partager puis « Sur l'écran d'accueil ».",
+    "appOtherHint": "Sur votre téléphone : ouvrez ce site dans Chrome et choisissez « Ajouter à l'écran d'accueil » dans le menu."
   },
   "verification": {
     "verified": "Vérifié",

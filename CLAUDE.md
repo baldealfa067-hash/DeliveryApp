@@ -1446,8 +1446,8 @@ autenticação do Supabase vivem no painel. Sem `https://www.itudoo.com/**` lá,
 login com Google e a recuperação de palavra-passe devolvem o utilizador ao
 domínio antigo.
 
-**Continua em aberto (herdado do VEXA):** R2 (logótipo — o "B" do Bornaal ainda
-se vê), R5, R6 e o `og-image.png`.
+**Continua em aberto (herdado do VEXA):** R5 e R6. A R2 e o `og-image.png`
+fecharam com a identidade laranja, abaixo.
 
 **Ecrã de entrada (2026-09-25, pedido pelo dono).** A `/landing` do Bornaal
 (prestadores, pesquisa de electricistas) foi substituída por um ecrã de entrada:
@@ -1472,6 +1472,72 @@ idioma (é o primeiro ecrã; quem não lê português tem de poder mudar antes).
 / `bg-primary/5` (rosa com ícone vermelho) — ecrã de registo, landing, painéis.
 Neutralizá-los é o que falta para "vermelho com moderação", mas são 53 sítios a
 triar um a um.
+
+## Identidade iTudoo — laranja, logótipo e Poppins (2026-09-25) — fecha o rebranding
+
+**Substitui a paleta vermelha acima.** Os valores de cor da secção iTudoo e do
+VEXA ficam como histórico; as armadilhas continuam válidas.
+
+**Paleta** (`src/index.css`):
+
+- **`--primary` `28.7 100% 50%` = #FF7A00 exacto.** Texto em cima é **PRETO**
+  (`--primary-foreground`, 8.03:1). Branco dava 2.61:1 e falhava AA — decisão do
+  dono entre três opções, a 2026-09-25. **Não "corrigir" para texto branco.**
+- **`text-primary` NÃO é o laranja exacto.** O laranja como cor de texto sobre
+  branco dá 2.5:1. `tailwind.config.ts` troca SÓ a cor de texto para
+  `--primary-text` (`27 100% 36%`, #B85300, 4.73:1); `bg-primary`,
+  `border-primary` e o resto continuam #FF7A00. `--ring` usa o mesmo tom escuro.
+- **`--ink` (preto) é para o hero**, não para tudo. Sobre ele, o laranja exacto
+  (`text-primary-on-dark`, 8.03:1).
+- **`--problem`/`--destructive` passaram a vermelho `0 72% 40%`** (6.95:1 com
+  branco): distingue-se do laranja pelo matiz e pela luminância (0.101 vs 0.352).
+- **`--pending` subiu para amarelo `45 93% 47%`.** A 38° ficava a 9° do laranja,
+  e "pedido novo" parecia um botão.
+- **Texto branco sobre laranja escrito à mão foi caçado**: badge do menu admin,
+  contador do carrinho, e o nome do restaurante SEM foto (sobre degradé laranja
+  passa a preto; com foto continua branco sobre degradé escuro).
+- Tipografia **Poppins** (400–700), no `index.html` e no `font-sans`.
+
+**Logótipo** — `src/assets/itudoo-logo-preto.png` (fundos claros) e
+`itudoo-logo-branco.png` (fundos escuros), recortados da pasta que o dono deu.
+Todos os ecrãs com logótipo têm fundo claro, excepto o hero da landing. **O
+desenho escreve "Itudoo" (I maiúsculo); a app escreve "iTudoo".**
+
+**Ícones, gerados da versão preta**, todos com **fundo branco** — com fundo
+transparente o texto preto desaparecia nos separadores escuros do browser.
+`icon.png` 512, `icon-192.png`, `apple-touch-icon.png` 180, `icon-maskable.png`
+(logótipo a 60%, dentro da zona segura), `favicon.ico` 16/32/48. **A 16 px a
+palavra quase não se lê**: um símbolo próprio resolvia, e é trabalho de design.
+Versão `?v=2` → `?v=3` no `index.html` e no `manifest.json`; o `sw.js` subiu de
+`itudoo-v1` para `itudoo-v2`, o que muda o ficheiro e força o browser a instalar
+o SW novo. `og-image.png` refeita (1200×630, Poppins); o `og-image-v2.png`
+duplicado saiu.
+
+**Landing em dois comportamentos** (`src/pages/Landing.tsx`, com teste):
+no BROWSER, landing de marketing (hero preto, Como funciona, Porquê o iTudoo,
+instalar a app); na APP INSTALADA (`isStandalone()`), o ecrã simples de entrar.
+Os textos não prometem tempos de entrega nem cidades além de Bissau. O botão
+"Instalar a app" só aparece quando o browser o permite (`beforeinstallprompt`);
+senão, instruções — um botão morto era pior.
+
+- **O título do hero, "Tudo o que precisas, num só lugar", foi pedido pelo dono
+  e é, palavra por palavra, o slogan do Bornaal.** A tagline do iTudoo é "Tudo o
+  que precisas. Mais perto." — confirmar qual fica.
+
+**Interface:** botões `rounded-xl`, secundário só com contorno (sem
+preenchimento). Cartão de produto com nome + categoria + preço e "+" laranja
+circular. **Navegação inferior: Início / Enviar / Pedidos / Conversas / Perfil**
+(decisão do dono): "Explorar" saiu por ser o mesmo ecrã que Início, e
+"pacotes"/"documentos" juntaram-se num só "Enviar", que é um ecrã só.
+
+**Campo "+245" (`PhoneInput`): prefixo VISUAL, fora do valor, de propósito.** O
+telefone é a identidade da conta (§8, §48). Com "+245" no valor, um número de 7
+dígitos virava 10 dígitos que `normalizePhone` não corta — outra conta, e o
+cliente a ver "PIN errado" na sua. Há teste. Usado no login, no registo e no
+telefone do checkout.
+
+**Achado, não tratado:** a página `/sobre` continua a descrever o Bornaal
+("prestadores de serviços", "contacte via WhatsApp"). Conteúdo do dono.
 
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 

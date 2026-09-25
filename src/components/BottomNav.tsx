@@ -1,4 +1,4 @@
-import { Home, Search, ShoppingBag, MessageSquare, User } from "lucide-react";
+import { Home, Package, ShoppingBag, MessageSquare, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,8 +11,10 @@ export const BottomNav = () => {
   const { data: unreadCount = 0 } = useUnreadCount(user?.id ?? null);
   const items = [
     { to: "/inicio", icon: Home, label: t("bottomNav.home") },
-    { to: "/explorar", icon: Search, label: t("bottomNav.explore") },
-    { to: "/meus-pedidos", icon: ShoppingBag, label: t("bottomNav.orders", "Pedidos") },
+    // "Explorar" saiu: era o mesmo ecrã que Início. "Enviar" (documentos e
+    // pacotes, §19) é o mesmo ecrã para os dois tipos, por isso é um só lugar.
+    { to: "/enviar", icon: Package, label: t("bottomNav.send") },
+    { to: "/meus-pedidos", icon: ShoppingBag, label: t("bottomNav.orders") },
     { to: "/conversas", icon: MessageSquare, label: t("bottomNav.chat") },
     { to: "/perfil", icon: User, label: t("bottomNav.profile") },
   ];
@@ -26,7 +28,7 @@ export const BottomNav = () => {
             className="relative flex flex-col items-center gap-0.5 px-2 py-2 text-muted-foreground transition-colors"
             activeClassName="text-primary"
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-6 w-6" />
             {to === "/perfil" && unreadCount > 0 && (
               <Badge className="absolute -top-0.5 -right-1 h-4 min-w-[16px] text-[9px] px-1 flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}

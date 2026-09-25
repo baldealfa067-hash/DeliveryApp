@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/PhoneInput";
 import { Label } from "@/components/ui/label";
 import { Loader2, UserPlus, LogIn } from "lucide-react";
 import { toast } from "sonner";
@@ -166,11 +167,8 @@ export const ClientSignupDialog = ({ open, onOpenChange, onSuccess }: ClientSign
   const campoTelefone = (id: string) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{t("auth.phone")}</Label>
-      <Input
+      <PhoneInput
         id={id}
-        type="tel"
-        inputMode="tel"
-        autoComplete="tel"
         placeholder={t("auth.phonePlaceholder")}
         value={phone}
         onChange={(e) => {

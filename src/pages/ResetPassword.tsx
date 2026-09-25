@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { isPasswordBreached } from "@/lib/passwordBreach";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 
 const ResetPassword = () => {
   const { t } = useTranslation();

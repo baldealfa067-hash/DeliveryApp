@@ -42,7 +42,7 @@ import { formatCFA } from "@/lib/format";
 import ManageList from "@/components/ManageList";
 import ManageCategoryList from "@/components/ManageCategoryList";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
@@ -697,7 +697,7 @@ const AdminDashboard = () => {
             <span>{item.label}</span>
           </span>
           {typeof item.count === "number" && item.count > 0 ? (
-            <span className={"text-xs rounded-full px-1.5 py-0.5 min-w-5 text-center " + (menu === item.key ? "bg-primary text-white" : "bg-muted text-muted-foreground")}>
+            <span className={"text-xs rounded-full px-1.5 py-0.5 min-w-5 text-center " + (menu === item.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
               {item.count}
             </span>
           ) : null}

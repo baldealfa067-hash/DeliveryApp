@@ -42,7 +42,7 @@ import { toast } from "sonner";
 import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
 import { ManualOrderDialog } from "@/components/ManualOrderDialog";
 import { BusinessCashSettlements } from "@/components/BusinessCashSettlements";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 
 type DashboardProfile = {
   id: string;

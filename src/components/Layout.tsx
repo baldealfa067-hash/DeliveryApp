@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { NotificationBell } from "./NotificationBell";
 import { LanguageSelector } from "./LanguageSelector";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 
 export const Layout = () => (
   <div className="min-h-screen bg-background pb-20">

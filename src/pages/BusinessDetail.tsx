@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/PhoneInput";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -605,10 +606,11 @@ const BusinessDetail = () => {
             photoUrl ? "from-black/85 via-black/45 to-transparent" : "from-primary via-primary/60 to-transparent"
           )}
         >
-          <h1 className="flex items-end gap-1.5 p-4 text-display text-white drop-shadow-sm">
+          {/* Sem foto o fundo é laranja, e o texto é preto: branco dava 2.61:1. */}
+          <h1 className={cn("flex items-end gap-1.5 p-4 text-display", photoUrl ? "text-white drop-shadow-sm" : "text-primary-foreground")}>
             <span className="min-w-0 break-words">{name}</span>
             {isVerified && (
-              <BadgeCheck className="mb-1 h-6 w-6 shrink-0 text-white" aria-label={t("businessDetailExtra.verifiedLabel")} />
+              <BadgeCheck className="mb-1 h-6 w-6 shrink-0" aria-label={t("businessDetailExtra.verifiedLabel")} />
             )}
           </h1>
         </div>
@@ -678,7 +680,7 @@ const BusinessDetail = () => {
                   <h3 className="mb-2 border-b pb-1 text-caption font-semibold text-primary">{cat.name}</h3>
                   <div className="flex flex-col gap-3">
                     {items.map((item) => (
-                      <MenuItemRow key={item.id} item={item} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
+                      <MenuItemRow key={item.id} item={item} category={cat.name} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
                     ))}
                   </div>
                 </div>
@@ -689,7 +691,7 @@ const BusinessDetail = () => {
                 <h3 className="mb-2 border-b pb-1 text-caption font-semibold text-primary">{t("businessDetail.others")}</h3>
                 <div className="flex flex-col gap-3">
                   {uncategorized.map((item) => (
-                    <MenuItemRow key={item.id} item={item} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
+                    <MenuItemRow key={item.id} item={item} category={t("businessDetail.others")} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
                   ))}
                 </div>
               </div>
@@ -739,13 +741,12 @@ const BusinessDetail = () => {
               <>
                 <div className="mb-3">
                   <Label htmlFor="order-delivery-phone">{t("businessDetail.customerPhone")} *</Label>
-                  <Input
+                  <PhoneInput
                     id="order-delivery-phone"
-                    type="tel"
                     placeholder={t("businessDetail.phonePlaceholder")}
                     value={deliveryPhone}
                     onChange={(e) => setDeliveryPhone(e.target.value)}
-                    className="mt-1.5"
+                    wrapperClassName="mt-1.5"
                   />
                 </div>
                 <div className="mb-3">
@@ -1246,9 +1247,8 @@ const BusinessDetail = () => {
                 telefone que o motorista vai usar. */}
             <div className="grid gap-2">
               <Label htmlFor="order-phone">{t("businessDetail.customerPhone")}</Label>
-              <Input
+              <PhoneInput
                 id="order-phone"
-                type="tel"
                 placeholder={t("businessDetail.phonePlaceholder")}
                 value={activeConsumption === "entrega" ? deliveryPhone : orderCustomerPhone}
                 onChange={(e) =>
@@ -1302,7 +1302,7 @@ const BusinessDetail = () => {
           >
             <span className="relative flex shrink-0 items-center">
               <ShoppingCart className="h-6 w-6" aria-hidden="true" />
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary-foreground px-1 text-caption font-bold text-primary">
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary-foreground px-1 text-caption font-bold text-primary-on-dark">
                 {cartCount}
               </span>
             </span>
@@ -1315,20 +1315,23 @@ const BusinessDetail = () => {
   );
 };
 
-const MenuItemRow = ({ item, qty, onAdd, onRemove }: { item: MenuItem; qty: number; onAdd: () => void; onRemove: () => void }) => {
+/** Cartão de produto: fundo branco, imagem arredondada, nome + categoria +
+ *  preço, e o "+" laranja circular no canto (marca iTudoo). */
+const MenuItemRow = ({ item, category, qty, onAdd, onRemove }: { item: MenuItem; category: string; qty: number; onAdd: () => void; onRemove: () => void }) => {
   const { t } = useTranslation();
   return (
-  <div className="flex items-center gap-3 rounded-lg border bg-card p-4">
+  <div className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-card">
     {item.photo_url ? (
       <ImagePreviewModal src={item.photo_url} alt={item.name} />
     ) : (
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden="true">
         <UtensilsCrossed className="h-5 w-5" />
       </div>
     )}
     <div className="min-w-0 flex-1">
-      <div className="text-body font-medium">{item.name}</div>
-      <div className="text-price text-primary">{formatCFA(item.price)}</div>
+      <div className="text-body font-semibold">{item.name}</div>
+      <div className="truncate text-caption text-muted-foreground">{category}</div>
+      <div className="text-price">{formatCFA(item.price)}</div>
       {/* §83, não surpreender: o cliente vê que acabou antes de tentar, em vez
           de levar com o erro do servidor depois de encher o carrinho. A recusa
           continua a existir no servidor — isto é só cortesia de interface. */}
@@ -1347,8 +1350,8 @@ const MenuItemRow = ({ item, qty, onAdd, onRemove }: { item: MenuItem; qty: numb
         {t("businessDetail.soldOut")}
       </Button>
     ) : qty === 0 ? (
-      <Button variant="outline" className="h-11 shrink-0 gap-1 px-4" onClick={onAdd}>
-        <Plus className="h-4 w-4" /> {t("common.add")}
+      <Button size="icon" className="h-11 w-11 shrink-0 rounded-full" onClick={onAdd} aria-label={`${t("common.add")} ${item.name}`}>
+        <Plus className="h-5 w-5" />
       </Button>
     ) : (
       <div className="flex shrink-0 items-center gap-1">

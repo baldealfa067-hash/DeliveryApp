@@ -3,7 +3,7 @@ import { ArrowLeft, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import logo from "@/assets/logotipo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 
 const About = () => {
   const { t } = useTranslation();

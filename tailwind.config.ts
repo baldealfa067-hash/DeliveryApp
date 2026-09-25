@@ -14,6 +14,19 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Poppins", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      // `text-primary` NAO usa o laranja exacto: #FF7A00 sobre branco da 2.5:1 e
+      // falha AA para texto. So a COR DE TEXTO troca para --primary-text
+      // (4.73:1); bg-primary, border-primary e o resto continuam o laranja da
+      // marca. O resto de `primary` (foreground, light, on-dark) herda-se de
+      // `colors` por fusao.
+      textColor: {
+        primary: {
+          DEFAULT: "hsl(var(--primary-text))",
+        },
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -25,6 +38,11 @@ export default {
           foreground: "hsl(var(--primary-foreground))",
           light: "hsl(var(--primary-light))",
           "on-dark": "hsl(var(--primary-on-dark))",
+        },
+        // Preto de destaque (hero). Nao e o texto normal, que e --foreground.
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          foreground: "hsl(var(--ink-foreground))",
         },
         // Estados do pedido/pagamento. Usar `-soft` como fundo de badge
         // e `-foreground` como texto sobre esse fundo.

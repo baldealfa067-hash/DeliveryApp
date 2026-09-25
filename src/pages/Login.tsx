@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/PhoneInput";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +25,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getPostLoginDestination } from "@/lib/getPostLoginDestination";
 import { isPasswordBreached } from "@/lib/passwordBreach";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 
 type ProfileType = "business";
 type AuthMode = "choose" | "client" | "professional" | "driver" | "fleet";
@@ -413,11 +414,8 @@ const Login = () => {
   const campoTelefone = (id: string) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{t("auth.phone")}</Label>
-      <Input
+      <PhoneInput
         id={id}
-        type="tel"
-        inputMode="tel"
-        autoComplete="tel"
         placeholder={t("auth.phonePlaceholder")}
         value={phone}
         onChange={(e) => {

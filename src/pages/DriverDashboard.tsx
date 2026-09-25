@@ -57,7 +57,7 @@ import { TrendingUp, Route } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/itudoo-logo-preto.png";
 import { DeliveryPayload } from "@/components/DeliveryPayload";
 import { formatCFA } from "@/lib/format";
 // DriverMap disabled by product decision — voice directions replace map in Bissau context

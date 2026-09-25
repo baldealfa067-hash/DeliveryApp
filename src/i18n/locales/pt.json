@@ -117,7 +117,9 @@
     "explore": "Explorar",
     "chat": "Conversas",
     "requests": "Pedidos",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "send": "Enviar",
+    "orders": "Pedidos"
   },
   "notificationBell": {
     "notifications": "Notificações",
@@ -948,7 +950,30 @@
     "tagline": "Tudo o que precisas. Mais perto.",
     "signIn": "Entrar",
     "createAccount": "Criar conta",
-    "browse": "Ver restaurantes sem conta"
+    "browse": "Ver restaurantes sem conta",
+    "heroTitle": "Tudo o que precisas, num só lugar",
+    "heroSubtitle": "Comida dos restaurantes de Bissau e envio de documentos e objetos, entregues por frotas locais.",
+    "howTitle": "Como funciona",
+    "step1Title": "Escolhe",
+    "step1Desc": "Um restaurante e o que te apetece, ou o que queres enviar.",
+    "step2Title": "Diz onde",
+    "step2Desc": "A tua localização e uma mensagem de voz: «perto da escola, depois da farmácia».",
+    "step3Title": "Recebe",
+    "step3Desc": "Um motorista leva-te o pedido. Pagas na entrega ou por Orange Money.",
+    "whyTitle": "Porquê o iTudoo",
+    "fastTitle": "Entrega rápida",
+    "fastDesc": "Frotas de Bissau, com motoristas que conhecem os bairros.",
+    "safeTitle": "Seguro",
+    "safeDesc": "Sabes o preço antes de confirmar, e cada entrega fica provada com código ou fotografia.",
+    "everywhereTitle": "Em todo lugar",
+    "everywhereDesc": "Não precisas de morada: a tua mensagem de voz leva o motorista até ti, em toda a Bissau.",
+    "qualityTitle": "Qualidade",
+    "qualityDesc": "Cada pedido pode ser avaliado, e as avaliações ficam à vista na página do restaurante.",
+    "appTitle": "Leva o iTudoo no telemóvel",
+    "appDesc": "Instala a app: fica no ecrã principal como qualquer aplicação e avisa-te quando o teu pedido muda.",
+    "appInstall": "Instalar a app",
+    "appIosHint": "No iPhone: abre no Safari, toca em Partilhar e escolhe «Adicionar ao ecrã principal».",
+    "appOtherHint": "No telemóvel: abre este site no Chrome e escolhe «Adicionar ao ecrã principal» no menu."
   },
   "verification": {
     "verified": "Verificado",

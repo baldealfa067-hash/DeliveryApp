@@ -4,8 +4,9 @@
 
 @layer base {
   :root {
-    /* iTudoo: fundo quase branco, neutro. O vermelho da marca e so para
-       botoes principais, icones activos e logotipo -- nunca para blocos. */
+    /* iTudoo: fundo quase branco, neutro. O laranja da marca (#FF7A00) e para
+       botoes principais, icones activos e logotipo -- nunca para blocos. O preto
+       (--ink) e para seccoes de destaque (hero), nao para tudo. */
     --background: 0 0% 98%;
     --foreground: 220 15% 10%;
 
@@ -15,13 +16,22 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 10%;
 
-    --primary: 358 78% 42%;
-    --primary-foreground: 0 0% 100%;
+    /* #FF7A00 exacto. Texto em cima e PRETO (8.03:1): branco dava 2.61:1 e
+       falhava AA. Decisao do dono, 2026-09-25. */
+    --primary: 28.7 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    /* O laranja como COR DE TEXTO sobre branco dava 2.5:1. `text-primary` usa
+       este tom (tailwind.config.ts, textColor), 4.73:1 sobre o fundo. O
+       preenchimento (bg-primary) continua o laranja exacto. */
+    --primary-text: 27 100% 36%;
     /* Fundo de destaque suave: cartão selecionado, chip ativo */
-    --primary-light: 358 80% 97.5%;
-    /* Marca sobre fundo escuro (hero, gradientes sobre foto): o vermelho de
-       48% perde-se contra preto. Mesmo matiz, subido em luminosidade. */
-    --primary-on-dark: 0 90% 68%;
+    --primary-light: 29 100% 96%;
+    /* Marca sobre fundo escuro (hero preto): o laranja exacto, 8.03:1. */
+    --primary-on-dark: 28.7 100% 50%;
+
+    /* Preto de destaque: fundo do hero da landing. */
+    --ink: 0 0% 0%;
+    --ink-foreground: 0 0% 100%;
 
     --secondary: 45 90% 50%;
     --secondary-foreground: 220 15% 10%;
@@ -34,12 +44,13 @@
     --accent: 220 14% 95%;
     --accent-foreground: 220 15% 10%;
 
-    --destructive: 345 70% 34%;
+    --destructive: 0 72% 40%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 90%;
     --input: 220 13% 90%;
-    --ring: 358 78% 48%;
+    /* Anel de foco: o laranja exacto so da 2.5:1 contra o fundo. */
+    --ring: 27 100% 36%;
 
     --radius: 0.75rem;
 
@@ -51,9 +62,11 @@
        A cor NUNCA é o único indicador — acompanhar sempre de texto ou ícone. */
 
     /* Pendente / à espera — pedido novo, comprovativo por validar */
-    --pending: 38 92% 50%;
-    --pending-soft: 38 92% 92%;
-    --pending-foreground: 38 95% 24%;
+    /* Amarelo, afastado do laranja da marca: a 38 graus ficava a 9 do
+       #FF7A00, e "pedido novo" parecia um botao. */
+    --pending: 45 93% 47%;
+    --pending-soft: 48 96% 89%;
+    --pending-foreground: 38 92% 22%;
 
     /* Em curso — em preparação, a caminho */
     --progress: 217 91% 60%;
@@ -66,11 +79,11 @@
     --success-foreground: 145 63% 22%;
 
     /* Problema — cancelado, comprovativo rejeitado */
-    /* A marca e vermelho VIVO e claro; o problema e vinho ESCURO. E a
-       luminancia que os separa (0.158 vs 0.061), nao so o matiz. */
-    --problem: 345 70% 34%;
-    --problem-soft: 345 60% 95%;
-    --problem-foreground: 345 70% 28%;
+    /* Vermelho, agora que a marca e laranja. Separa-se pelo matiz (0 vs 29) e
+       pela luminancia (0.101 vs 0.352). Branco em cima 6.95:1. */
+    --problem: 0 72% 40%;
+    --problem-soft: 0 80% 96%;
+    --problem-foreground: 0 72% 32%;
 
     /* Sombras — suaves, nunca pesadas */
     --shadow-card: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
@@ -96,10 +109,13 @@
     --popover: 220 13% 11%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 358 72% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 358 45% 18%;
-    --primary-on-dark: 0 90% 70%;
+    --primary: 28.7 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --primary-text: 28.7 100% 55%;
+    --primary-light: 29 60% 16%;
+    --primary-on-dark: 28.7 100% 55%;
+    --ink: 0 0% 0%;
+    --ink-foreground: 0 0% 100%;
 
     --secondary: 45 90% 45%;
     --secondary-foreground: 220 15% 10%;
@@ -110,17 +126,17 @@
     --accent: 220 10% 18%;
     --accent-foreground: 0 0% 95%;
 
-    --destructive: 345 60% 45%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 10% 19%;
     --input: 220 10% 19%;
-    --ring: 358 72% 50%;
+    --ring: 28.7 100% 50%;
 
     /* Estados — fundo escurece, texto clareia */
-    --pending: 38 92% 58%;
-    --pending-soft: 38 50% 16%;
-    --pending-foreground: 38 92% 72%;
+    --pending: 45 93% 55%;
+    --pending-soft: 45 50% 16%;
+    --pending-foreground: 45 92% 72%;
 
     --progress: 217 91% 66%;
     --progress-soft: 217 45% 18%;
@@ -130,9 +146,9 @@
     --success-soft: 145 40% 15%;
     --success-foreground: 145 60% 66%;
 
-    --problem: 340 55% 60%;
-    --problem-soft: 340 40% 18%;
-    --problem-foreground: 340 80% 80%;
+    --problem: 0 65% 60%;
+    --problem-soft: 0 40% 18%;
+    --problem-foreground: 0 80% 80%;
 
     --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.2);
     --shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.4);
@@ -146,12 +162,12 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Poppins', sans-serif;
     overflow-x: clip;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 }
 

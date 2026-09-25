@@ -117,7 +117,9 @@
     "explore": "Esplore",
     "chat": "Koversas",
     "requests": "Pedidus",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "send": "Manda",
+    "orders": "Pedidus"
   },
   "notificationBell": {
     "notifications": "Notifikasons",
@@ -285,7 +287,30 @@
     "tagline": "Tudu ku bu mistí. Mas pertu.",
     "signIn": "Entra",
     "createAccount": "Kria konta",
-    "browse": "Djubi restorantis sin konta"
+    "browse": "Djubi restorantis sin konta",
+    "heroTitle": "Tudu ku bu mistí, na un son lugar",
+    "heroSubtitle": "Kumida di restorantis di Bissau i manda dokumentu ku kusas, ku frotas di li ta leba.",
+    "howTitle": "Kuma ki ta funsiona",
+    "step1Title": "Djubi",
+    "step1Desc": "Un restoranti ku kil ku bu misti kume, o kil ku bu misti manda.",
+    "step2Title": "Fala undi",
+    "step2Desc": "Bu lokalizason ku un mensajen di vos: «pertu di skola, dipus di farmasia».",
+    "step3Title": "Risibi",
+    "step3Desc": "Un motorista ta leba bu pedidu. Bu ta paga na entrega o ku Orange Money.",
+    "whyTitle": "Pabia di kê iTudoo",
+    "fastTitle": "Entrega lestu",
+    "fastDesc": "Frotas di Bissau, ku motoristas ku kunsi bairus.",
+    "safeTitle": "Siguru",
+    "safeDesc": "Bu ta sibi presu antis di konfirma, i kada entrega ta fika provadu ku kodigu o fotografia.",
+    "everywhereTitle": "Na tudu lugar",
+    "everywhereDesc": "Bu ka mistí morada: bu mensajen di vos ta leba motorista te bu na tudu Bissau.",
+    "qualityTitle": "Kualidadi",
+    "qualityDesc": "Kada pedidu pudi avaliadu, i avaliasons ta parsi na pajina di restoranti.",
+    "appTitle": "Leba iTudoo na bu telmovel",
+    "appDesc": "Instala app: i ta fika na ekran prinsipal suma kualker aplikason i i ta avisa bu ora ku bu pedidu muda.",
+    "appInstall": "Instala app",
+    "appIosHint": "Na iPhone: abri na Safari, toka na Partilha i skodji «Djunta na ekran prinsipal».",
+    "appOtherHint": "Na telmovel: abri es site na Chrome i skodji «Djunta na ekran prinsipal» na menu."
   },
   "requests": {
     "title": "Pedidus di Servisu",
