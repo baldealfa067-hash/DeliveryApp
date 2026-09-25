@@ -1407,7 +1407,10 @@ simples.** O mockup NÃO estava disponível na sessão em que isto foi aplicado:
 partiu-se da referência dada pelo dono (`0 75% 50%`) e dos princípios descritos.
 **Confirmar contra o mockup.**
 
-- **`--primary` `358 78% 48%` (#DA1B21)** — vermelho vivo. Branco em cima 5.05:1.
+- **`--primary` `358 78% 42%` (#BF181D)** — vermelho vivo. Branco em cima 6.27:1.
+  Era `48%` (#DA1B21, 5.05:1); o dono pediu-o um pouco mais escuro a 2026-09-25.
+  Parou-se em 42% e não em 40% porque a 40% começava a puxar para o vinho do
+  `--problem`. **O `--ring` ficou em `48%`** — o pedido era só este token.
 - **Fundo `0 0% 98%`, cartões brancos, cinzas neutros** (matiz 220). Sai o creme.
 - **`--accent` voltou a cinza neutro.** Pinta o hover de todos os menus/selects;
   vermelho ali contrariava "vermelho só em botões principais, ícones activos e
@@ -1433,8 +1436,15 @@ Francês: "d'iTudoo". **O hero do `/landing` tinha o nome partido em dois spans
 outra vez** (`VE<span>XA</span>`) — agora escrito inteiro, para a próxima troca
 o encontrar numa procura.
 
-**Domínio:** `og:url`/`og:image` apontam a `https://deleveryapp-olive.vercel.app/`,
-confirmado pelo dono. Fecha a dívida do `www.vexa.gw`.
+**Domínio: `https://www.itudoo.com/`** (2026-09-25, comprado e ligado no Vercel
+pelo dono). `itudoo.com` e `http://` redirecionam para lá com 308. Substitui o
+`deleveryapp-olive.vercel.app` provisório nas etiquetas `og:`/`twitter:` do
+`index.html` — é o único sítio onde o domínio está escrito: o `manifest.json` usa
+caminhos relativos, e os redireccionamentos de login usam `window.location.origin`.
+**O que o código não controla:** a *Site URL* e a lista de *Redirect URLs* da
+autenticação do Supabase vivem no painel. Sem `https://www.itudoo.com/**` lá, o
+login com Google e a recuperação de palavra-passe devolvem o utilizador ao
+domínio antigo.
 
 **Continua em aberto (herdado do VEXA):** R2 (logótipo — o "B" do Bornaal ainda
 se vê), R5, R6 e o `og-image.png`.
@@ -1462,6 +1472,40 @@ idioma (é o primeiro ecrã; quem não lê português tem de poder mudar antes).
 / `bg-primary/5` (rosa com ícone vermelho) — ecrã de registo, landing, painéis.
 Neutralizá-los é o que falta para "vermelho com moderação", mas são 53 sítios a
 triar um a um.
+
+## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
+
+O dono reportou que, ao tocar em "Entrar" no ecrã de entrada, chegava a páginas
+da app sem telefone nem PIN. **Não era bypass.** "Entrar" leva ao ecrã de
+telefone+PIN; o que acontecia era seta de voltar → "Voltar" do ecrã de escolha →
+`/inicio`, que é público por §9. Medido em produção, browser limpo: zero sessão
+criada, zero contas/sessões novas em `auth`, login anónimo desligado (422),
+token forjado recusado, 104 de 108 RPCs e todas as tabelas privadas recusam o
+anónimo por HTTP.
+
+O que saiu da investigação, e foi corrigido (aprovado pelo dono):
+
+- **"Ver restaurantes sem conta" no ecrã de entrada** (`landing.browse`, 4
+  idiomas). A navegação pública fica; deixa de depender de um "Voltar" que parecia
+  uma porta escondida.
+- **`/painel-frota` sem sessão ficava em "A carregar..." para sempre** (RPCs a
+  401 com a consulta a repetir). Guarda nova `RequireSession` — só sessão, sem
+  papel, porque o papel `fleet` nasce dentro deste ecrã. Com teste.
+- 🔴 **`order_ratings` era legível por qualquer pessoa sem conta** — a única fuga
+  real. `USING (true)` para `anon` entregava `driver_id`, `customer_id`,
+  `customer_name` e `order_id`: qualquer um calculava a média de cada motorista
+  (que a 9.4 decidiu NÃO ser pública — a tabela aberta tornava `get_driver_rating`
+  decorativa) e ligava nomes de clientes a pedidos. **Corrige a nota da 9.4 que
+  dava a leitura pública como decisão.** Agora:
+  - lêem as LINHAS: o autor, o dono do restaurante avaliado (só as de alvo
+    `restaurante`) e o admin. `anon` perdeu o `SELECT` na tabela. O motorista e a
+    frota lêem zero — o motorista vê só a média, por `get_driver_rating`;
+  - a montra pública passa pela RPC `get_business_reviews`: **só estrelas,
+    comentário e data, sem nome e sem ids** (decisão do dono, entre três opções).
+    O nome do cliente deixou de aparecer na página do restaurante.
+  - Testado por HTTP com JWT normal (`scripts/avaliacoes-test.mjs`, agora 27
+    assertivas, com um controlo que prova que os "zero" vêm da policy). Há
+    asserções na migração que rebentam se alguém reabrir a tabela.
 
 ---
 
