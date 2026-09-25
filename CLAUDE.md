@@ -1520,9 +1520,9 @@ Os textos não prometem tempos de entrega nem cidades além de Bissau. O botão
 "Instalar a app" só aparece quando o browser o permite (`beforeinstallprompt`);
 senão, instruções — um botão morto era pior.
 
-- **O título do hero, "Tudo o que precisas, num só lugar", foi pedido pelo dono
-  e é, palavra por palavra, o slogan do Bornaal.** A tagline do iTudoo é "Tudo o
-  que precisas. Mais perto." — confirmar qual fica.
+- **O título do hero é a tagline, "Tudo o que precisas. Mais perto."** Chegou a
+  ser "Tudo o que precisas, num só lugar", que é palavra por palavra o slogan do
+  Bornaal; o dono trocou-o no mesmo dia.
 
 **Interface:** botões `rounded-xl`, secundário só com contorno (sem
 preenchimento). Cartão de produto com nome + categoria + preço e "+" laranja
@@ -1536,8 +1536,24 @@ dígitos virava 10 dígitos que `normalizePhone` não corta — outra conta, e o
 cliente a ver "PIN errado" na sua. Há teste. Usado no login, no registo e no
 telefone do checkout.
 
-**Achado, não tratado:** a página `/sobre` continua a descrever o Bornaal
-("prestadores de serviços", "contacte via WhatsApp"). Conteúdo do dono.
+**`/sobre` reescrita (texto do dono):** sai o Bornaal ("prestadores de
+serviços") e o email `bornaal.com@gmail.com`. "Como funciona" é o MESMO
+componente da landing (`ComoFunciona`). Contacto: os dois números da equipa,
+**957107795 e 966804992**, com "Ligar" e "WhatsApp" — em `src/lib/contactos.ts`,
+um só sítio, e o componente `ContactosEquipa` para os reaproveitar.
+
+**Chat interno — auditado, NÃO removido, à espera do dono (2026-09-25).** O
+pedido era remover "o suporte / falar com a equipa". **Não existe suporte no
+código.** O que existe (`/conversas`, `/mensagem/:userId`, `useChat`, tabela
+`messages`) é conversa directa entre utilizadores, e a única entrada é o botão
+"Mensagem" na página do restaurante: cliente ↔ dono do restaurante. Não é a
+coordenação da entrega (essa é por telefone). Na base: 6 mensagens, 1 conversa,
+toda a 2026-09-06, entre um cliente e um restaurante — nenhuma com o admin.
+Dependências: `create_notification` monta `/mensagem/<id>` para
+`reference_type = 'chat'` (6 notificações), `useNotifications` idem, a tabela
+está na publicação `supabase_realtime`, e o `ChatDialog` só é usado pelas páginas
+órfãs da beleza (R5). A mensagem de voz dessa conversa é o 11.º ficheiro do
+`portfolio` público (ver "Órfãos de voz").
 
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 

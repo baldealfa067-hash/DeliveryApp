@@ -951,7 +951,6 @@
     "signIn": "Entrar",
     "createAccount": "Criar conta",
     "browse": "Ver restaurantes sem conta",
-    "heroTitle": "Tudo o que precisas, num só lugar",
     "heroSubtitle": "Comida dos restaurantes de Bissau e envio de documentos e objetos, entregues por frotas locais.",
     "howTitle": "Como funciona",
     "step1Title": "Escolhe",
@@ -1063,15 +1062,8 @@
   },
   "aboutPage": {
     "title": "Sobre o iTudoo",
-    "missionTitle": "A nossa missão",
-    "missionDesc": "O iTudoo nasceu com uma missão simples: conectar pessoas que precisam de serviços com prestadores de confiança na Guiné-Bissau. Acreditamos que todos merecem acesso fácil a profissionais qualificados, sem intermediários e sem complicações.",
-    "visionTitle": "A nossa visão",
-    "visionDesc": "Queremos ser a principal plataforma de serviços da Guiné-Bissau, promovendo a economia local e criando oportunidades para prestadores de serviços em todo o país. Valorizamos a transparência, a confiança e a comunidade.",
-    "howItWorksTitle": "Como funciona",
-    "step1": "Pesquise por categoria ou localização para encontrar prestadores.",
-    "step2": "Contacte directamente via WhatsApp ou mensagem interna.",
-    "step3": "Avalie o serviço e ajude a comunidade a crescer.",
-    "contactTitle": "Contacto"
+    "intro1": "O iTudoo é uma plataforma de entregas feita para Bissau. Pedes comida dos teus restaurantes preferidos, envias documentos ou encomendas, e acompanhas tudo em tempo real — sem precisar de mapa, sem endereços complicados. Basta gravares uma mensagem de voz a explicar onde estás.",
+    "intro2": "Trabalhamos com restaurantes locais e frotas de motoristas da cidade, para que a entrega chegue mais depressa e mais perto de ti."
   },
   "termsPage": {
     "title": "Termos de Uso",
@@ -1576,5 +1568,9 @@
     "fieldHelp": "Explique como chegar. Referências valem mais que a morada.",
     "saved": "Indicação gravada. Passa a valer em todos os pedidos.",
     "removed": "Indicação removida."
+  },
+  "teamContact": {
+    "title": "Contacto",
+    "call": "Ligar"
   }
 }

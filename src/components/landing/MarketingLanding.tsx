@@ -1,19 +1,10 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  Download,
-  MapPin,
-  Mic,
-  PackageCheck,
-  ShieldCheck,
-  Star,
-  Store,
-  Timer,
-  type LucideIcon,
-} from "lucide-react";
+import { Download, MapPin, ShieldCheck, Star, Timer, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useInstallApp } from "@/hooks/useInstallApp";
+import { ComoFunciona } from "@/components/landing/ComoFunciona";
 import logoBranco from "@/assets/itudoo-logo-branco.png";
 import logoPreto from "@/assets/itudoo-logo-preto.png";
 
@@ -24,20 +15,6 @@ import logoPreto from "@/assets/itudoo-logo-preto.png";
  * Os textos não prometem o que a plataforma não faz: nenhum tempo de entrega,
  * nenhuma cidade além de Bissau (§2), nenhum "pagamento online" (§22).
  */
-const Passo = ({ n, titulo, texto, Icone }: { n: number; titulo: string; texto: string; Icone: LucideIcon }) => (
-  <li className="flex gap-4">
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-      <Icone className="h-6 w-6" aria-hidden="true" />
-    </div>
-    <div>
-      <h3 className="text-title">
-        <span className="text-primary">{n}.</span> {titulo}
-      </h3>
-      <p className="mt-1 text-body text-muted-foreground">{texto}</p>
-    </div>
-  </li>
-);
-
 const Vantagem = ({ titulo, texto, Icone }: { titulo: string; texto: string; Icone: LucideIcon }) => (
   <div className="rounded-xl border bg-card p-5 shadow-card">
     <Icone className="h-7 w-7 text-primary" aria-hidden="true" />
@@ -61,7 +38,9 @@ const MarketingLanding = () => {
           </header>
 
           <div className="mx-auto mt-12 max-w-2xl text-center md:mt-20">
-            <h1 className="text-4xl font-bold leading-tight md:text-6xl">{t("landing.heroTitle")}</h1>
+            {/* A tagline do iTudoo. "Tudo o que precisas, num só lugar" era a
+                frase do Bornaal, palavra por palavra (2026-09-25). */}
+            <h1 className="text-4xl font-bold leading-tight md:text-6xl">{t("landing.tagline")}</h1>
             <p className="mt-5 text-lg text-ink-foreground/80 md:text-xl">{t("landing.heroSubtitle")}</p>
 
             <div className="mx-auto mt-10 flex max-w-sm flex-col gap-3">
@@ -92,11 +71,7 @@ const MarketingLanding = () => {
       <main className="mx-auto max-w-5xl px-4">
         <section className="py-14 md:py-20" aria-labelledby="como-funciona">
           <h2 id="como-funciona" className="text-center text-display">{t("landing.howTitle")}</h2>
-          <ol className="mx-auto mt-10 grid max-w-3xl gap-8 md:grid-cols-3">
-            <Passo n={1} titulo={t("landing.step1Title")} texto={t("landing.step1Desc")} Icone={Store} />
-            <Passo n={2} titulo={t("landing.step2Title")} texto={t("landing.step2Desc")} Icone={Mic} />
-            <Passo n={3} titulo={t("landing.step3Title")} texto={t("landing.step3Desc")} Icone={PackageCheck} />
-          </ol>
+          <ComoFunciona className="mx-auto mt-10 grid max-w-3xl gap-8 md:grid-cols-3" />
         </section>
 
         <section className="pb-14 md:pb-20" aria-labelledby="porque">

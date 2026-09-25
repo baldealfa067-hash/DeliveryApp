@@ -28,7 +28,8 @@ beforeEach(() => {
 describe("Landing", () => {
   it("no browser mostra a landing de marketing, com Entrar e Criar conta", () => {
     montar();
-    expect(screen.getByText("landing.heroTitle")).toBeTruthy();
+    // O título do hero é a tagline do iTudoo, não a frase do Bornaal.
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("landing.tagline");
     expect(screen.getByText("landing.howTitle")).toBeTruthy();
     expect(screen.getByText("landing.whyTitle")).toBeTruthy();
     expect(screen.getByText("landing.appTitle")).toBeTruthy();
@@ -38,7 +39,7 @@ describe("Landing", () => {
   it("na app instalada salta a landing e mostra o ecrã simples", () => {
     standalone = true;
     montar();
-    expect(screen.queryByText("landing.heroTitle")).toBeNull();
+    expect(screen.queryByText("landing.howTitle")).toBeNull();
     expect(screen.getByText("landing.signIn").closest("a")?.getAttribute("href")).toBe("/login?mode=cliente");
     expect(screen.getByText("landing.createAccount").closest("a")?.getAttribute("href")).toBe("/login?tab=registar");
   });

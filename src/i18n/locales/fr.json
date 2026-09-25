@@ -951,7 +951,6 @@
     "signIn": "Se connecter",
     "createAccount": "Créer un compte",
     "browse": "Voir les restaurants sans compte",
-    "heroTitle": "Tout ce dont vous avez besoin, au même endroit",
     "heroSubtitle": "Les plats des restaurants de Bissau et l'envoi de documents et d'objets, livrés par des flottes locales.",
     "howTitle": "Comment ça marche",
     "step1Title": "Choisissez",
@@ -1062,16 +1061,9 @@
     "unknown": "inconnu"
   },
   "aboutPage": {
-    "title": "À propos d'iTudoo",
-    "missionTitle": "Notre mission",
-    "missionDesc": "iTudoo est né avec une mission simple : connecter les personnes ayant besoin de services avec des prestataires de confiance en Guinée-Bissau. Nous croyons que chacun mérite un accès facile à des professionnels qualifiés, sans intermédiaires ni complications.",
-    "visionTitle": "Notre vision",
-    "visionDesc": "Nous voulons devenir la principale plateforme de services en Guinée-Bissau, en favorisant l'économie locale et en créant des opportunités pour les prestataires partout dans le pays. Nous valorisons la transparence, la confiance et la communauté.",
-    "howItWorksTitle": "Comment ça marche",
-    "step1": "Recherchez par catégorie ou localisation pour trouver des prestataires.",
-    "step2": "Contactez directement via WhatsApp ou message interne.",
-    "step3": "Évaluez le service et aidez la communauté à grandir.",
-    "contactTitle": "Contact"
+    "title": "À propos d’iTudoo",
+    "intro1": "iTudoo est une plateforme de livraison conçue pour Bissau. Commandez chez vos restaurants préférés, envoyez des documents ou des colis, et suivez tout en temps réel — sans carte, sans adresses compliquées. Il suffit d’enregistrer un message vocal pour expliquer où vous êtes.",
+    "intro2": "Nous travaillons avec des restaurants locaux et des flottes de livreurs de la ville, pour que la livraison arrive plus vite et plus près de vous."
   },
   "termsPage": {
     "title": "Conditions d'utilisation",
@@ -1576,5 +1568,9 @@
     "fieldHelp": "Expliquez comment y arriver. Les repères valent mieux que l'adresse.",
     "saved": "Indications enregistrées. Elles s'appliquent désormais à chaque commande.",
     "removed": "Indications supprimées."
+  },
+  "teamContact": {
+    "title": "Contact",
+    "call": "Appeler"
   }
 }

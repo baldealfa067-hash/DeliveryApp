@@ -288,7 +288,6 @@
     "signIn": "Entra",
     "createAccount": "Kria konta",
     "browse": "Djubi restorantis sin konta",
-    "heroTitle": "Tudu ku bu mistí, na un son lugar",
     "heroSubtitle": "Kumida di restorantis di Bissau i manda dokumentu ku kusas, ku frotas di li ta leba.",
     "howTitle": "Kuma ki ta funsiona",
     "step1Title": "Djubi",
@@ -1250,5 +1249,14 @@
     "fieldHelp": "Splika kuma pa tchiga. Referensias ta bali mas di ki morada.",
     "saved": "Indikason gravadu. Gosi i ta bali na tudu pedidus.",
     "removed": "Indikason tiradu."
+  },
+  "aboutPage": {
+    "title": "Sobri iTudoo",
+    "intro1": "iTudoo i un plataforma di entrega fitu pa Bissau. Bu ta pidi kumida na bu restorantis priferidu, bu ta manda dokumentu o enkomenda, i bu ta kompanha tudu na ora — sin mistí mapa, sin morada konplikadu. Basta bu grava un mensajen di vos pa splika undi ku bu sta.",
+    "intro2": "No ta tarbadja ku restorantis di li ku frotas di motoristas di prasa, pa entrega tchiga mas lestu i mas pertu di bu."
+  },
+  "teamContact": {
+    "title": "Kontatu",
+    "call": "Tchoma"
   }
 }

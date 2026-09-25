@@ -951,7 +951,6 @@
     "signIn": "Log in",
     "createAccount": "Create account",
     "browse": "Browse restaurants without an account",
-    "heroTitle": "Everything you need, in one place",
     "heroSubtitle": "Food from Bissau's restaurants and delivery of documents and parcels, carried by local fleets.",
     "howTitle": "How it works",
     "step1Title": "Choose",
@@ -1063,15 +1062,8 @@
   },
   "aboutPage": {
     "title": "About iTudoo",
-    "missionTitle": "Our mission",
-    "missionDesc": "iTudoo was born with a simple mission: connect people who need services with trusted providers in Guinea-Bissau. We believe everyone deserves easy access to qualified professionals, without middlemen or hassle.",
-    "visionTitle": "Our vision",
-    "visionDesc": "We want to become the leading service platform in Guinea-Bissau, boosting the local economy and creating opportunities for providers across the country. We value transparency, trust and community.",
-    "howItWorksTitle": "How it works",
-    "step1": "Search by category or location to find providers.",
-    "step2": "Contact directly via WhatsApp or internal message.",
-    "step3": "Rate the service and help the community grow.",
-    "contactTitle": "Contact"
+    "intro1": "iTudoo is a delivery platform made for Bissau. Order food from your favourite restaurants, send documents or parcels, and follow everything in real time — no map needed, no complicated addresses. Just record a voice message explaining where you are.",
+    "intro2": "We work with local restaurants and the city's driver fleets, so your delivery arrives faster and closer to you."
   },
   "termsPage": {
     "title": "Terms of Use",
@@ -1576,5 +1568,9 @@
     "fieldHelp": "Explain how to get there. Landmarks beat street addresses.",
     "saved": "Directions saved. They now apply to every order.",
     "removed": "Directions removed."
+  },
+  "teamContact": {
+    "title": "Contact",
+    "call": "Call"
   }
 }
