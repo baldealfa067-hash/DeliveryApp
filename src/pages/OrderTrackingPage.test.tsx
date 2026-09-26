@@ -27,6 +27,9 @@ const envio = { ...base, business_id: null, business_name: "", items: [], total:
 
 const estado = { data: [base] as unknown[], isLoading: false, isFetching: false, isError: false, refetch: vi.fn() };
 const mutate = vi.fn();
+const historico = { data: [] as Array<{ status: string; note: string | null; created_at: string }>, refetch: vi.fn() };
+const hist = (...s: string[]) =>
+  s.map((status, i) => ({ status, note: null, created_at: `2026-09-26T10:0${i}:00Z` }));
 
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "u1" }, loading: false }),
@@ -34,7 +37,7 @@ vi.mock("@/hooks/useAuth", () => ({
 vi.mock("@/hooks/useOrders", async (orig) => ({
   ...(await orig<typeof import("@/hooks/useOrders")>()),
   useCustomerOrders: () => estado,
-  useOrderHistory: () => ({ data: [] }),
+  useOrderHistory: () => historico,
   useUpdateOrderStatus: () => ({ mutate, isPending: false }),
 }));
 
@@ -51,6 +54,7 @@ describe("OrderTrackingPage", () => {
   beforeEach(async () => {
     await i18n.changeLanguage("pt");
     estado.data = [base];
+    historico.data = [];
     mutate.mockReset();
   });
 
@@ -144,6 +148,42 @@ describe("OrderTrackingPage", () => {
       desenhar({ criado: true });
       expect(screen.queryByText(i18n.t("orderTracking.notFound"))).not.toBeInTheDocument();
       Object.assign(estado, { isFetching: false });
+    });
+  });
+
+  describe("linha do tempo de um pedido cancelado", () => {
+    const passo = (k: string) => screen.queryByText(i18n.t(`orderStatus.${k}`), { selector: "p" });
+
+    it("comida cancelada depois de confirmar: pára em Confirmado e acaba em Cancelado", () => {
+      estado.data = [{ ...base, status: "cancelado" }];
+      historico.data = hist("novo", "confirmado", "cancelado");
+      desenhar();
+      expect(passo("novo")).toBeInTheDocument();
+      expect(passo("confirmado")).toBeInTheDocument();
+      for (const futuro of ["em_preparacao", "pronto", "a_caminho", "concluido"]) {
+        expect(passo(futuro)).not.toBeInTheDocument();
+      }
+      const fim = screen.getByTestId("timeline-cancelado");
+      expect(fim).toHaveTextContent(i18n.t("orderStatus.cancelado"));
+      // Cor do problema, não o cinzento neutro dos passos por vir.
+      expect(fim.querySelector("p")).toHaveClass("text-problem");
+    });
+
+    it("envio cancelado à espera de motorista: só o primeiro passo, e Cancelado", () => {
+      estado.data = [{ ...envio, status: "cancelado" }];
+      historico.data = hist("aguardando_motorista", "cancelado");
+      desenhar();
+      expect(passo("aguardando_motorista")).toBeInTheDocument();
+      expect(passo("motorista_encontrado")).not.toBeInTheDocument();
+      expect(passo("a_caminho")).not.toBeInTheDocument();
+      expect(screen.getByTestId("timeline-cancelado")).toBeInTheDocument();
+    });
+
+    it("um pedido NÃO cancelado continua a mostrar o percurso inteiro", () => {
+      historico.data = hist("novo");
+      desenhar();
+      expect(passo("concluido")).toBeInTheDocument();
+      expect(screen.queryByTestId("timeline-cancelado")).not.toBeInTheDocument();
     });
   });
 });

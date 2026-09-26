@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
@@ -28,6 +28,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { formatCFA } from "@/lib/format";
 import { clientePodeCancelar } from "@/lib/orderTransitions";
+import { ultimoPassoAntesDeCancelar } from "@/lib/orderTimeline";
 import { OrderTotals } from "@/components/OrderTotals";
 
 const DELIVERY_STATUS_FLOW = [
@@ -87,12 +88,19 @@ const OrderTrackingPage = () => {
     isError: falhou,
     refetch,
   } = useCustomerOrders(user?.id ?? null);
-  const { data: history = [] } = useOrderHistory(id ?? null);
+  const { data: history = [], refetch: releHistorico } = useOrderHistory(id ?? null);
   const updateStatus = useUpdateOrderStatus();
   const queryClient = useQueryClient();
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
 
   const order = customerOrders.find((o) => o.id === id);
+  // O histórico lia-se uma vez e ficava. Quando o estado muda (o restaurante
+  // cancela, o cliente cancela, o motorista aceita), volta-se a ler — senão a
+  // linha do tempo cortava no sítio certo sem saber a hora do corte.
+  const estadoAtual = order?.status;
+  useEffect(() => {
+    if (estadoAtual) void releHistorico();
+  }, [estadoAtual, releHistorico]);
   const chegada = (location.state ?? {}) as AcabadoDeCriar;
   // Fecha-se trocando o estado da navegação: um refresh depois já não reabre.
   const fecharConfirmacao = () => navigate(location.pathname, { replace: true, state: null });
@@ -143,7 +151,17 @@ const OrderTrackingPage = () => {
   const statusFlow = envio
     ? SEND_STATUS_FLOW
     : order.consumption_option === "entrega" ? DELIVERY_STATUS_FLOW : LOCAL_STATUS_FLOW;
-  const currentStatusIndex = statusFlow.indexOf(order.status);
+  // Um pedido cancelado mostra só o caminho que fez: até ao último passo que o
+  // histórico registou, e depois "Cancelado". O resto do percurso não se
+  // desenha — não vai acontecer.
+  const cancelado = order.status === "cancelado";
+  const passos = cancelado
+    ? statusFlow.slice(0, ultimoPassoAntesDeCancelar(statusFlow, history) + 1)
+    : statusFlow;
+  const currentStatusIndex = cancelado ? passos.length : statusFlow.indexOf(order.status);
+  const entradaCancelado = cancelado
+    ? [...history].reverse().find((h) => h.status === "cancelado")
+    : undefined;
   // Quem decide é o servidor (`update_order_status`); isto só esconde o botão
   // fora da janela, para não oferecer o que ele vai recusar.
   const podeCancelar = clientePodeCancelar(order.status, envio);
@@ -320,11 +338,11 @@ const OrderTrackingPage = () => {
         <CardContent className="p-4">
           <h2 className="text-sm font-semibold mb-3">{t("orderTracking.progress")}</h2>
           <div className="space-y-0">
-            {statusFlow.map((status, idx) => {
+            {passos.map((status, idx) => {
               const isPast = idx < currentStatusIndex;
               const isCurrent = idx === currentStatusIndex;
-              const isFuture = idx > currentStatusIndex;
               const historyEntry = history.find((h) => h.status === status);
+              const temLinha = idx < passos.length - 1 || cancelado;
 
               return (
                 <div key={status} className="flex gap-3">
@@ -340,8 +358,8 @@ const OrderTrackingPage = () => {
                     >
                       {isPast ? "✓" : isCurrent ? STATUS_ICONS[status] ?? "●" : "○"}
                     </div>
-                    {idx < statusFlow.length - 1 && (
-                      <div className={`w-0.5 h-6 ${isPast ? "bg-primary" : "bg-muted"}`} />
+                    {temLinha && (
+                      <div className={`w-0.5 h-6 ${cancelado ? "bg-problem/40" : isPast ? "bg-primary" : "bg-muted"}`} />
                     )}
                   </div>
                   <div className="pb-4">
@@ -358,6 +376,26 @@ const OrderTrackingPage = () => {
                 </div>
               );
             })}
+            {/* O fim de um pedido cancelado: a cor do problema, não o cinzento
+                neutro dos passos que ainda estão por vir. */}
+            {cancelado && (
+              <div className="flex gap-3" data-testid="timeline-cancelado">
+                <div className="flex flex-col items-center">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-problem text-white">
+                    <XCircle className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                </div>
+                <div className="pb-1">
+                  <p className="text-sm font-semibold text-problem">{t("orderStatus.cancelado")}</p>
+                  {entradaCancelado && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(entradaCancelado.created_at).toLocaleString()}
+                      {entradaCancelado.note && ` · ${entradaCancelado.note}`}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

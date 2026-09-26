@@ -1664,9 +1664,19 @@ Quatro pontos achados pelo dono a usar a app real.
   acompanhamento mostra o botão dentro da janela, com "até quando", e fora dela
   diz porquê e a quem ligar. `canTransition` no frontend passou a conhecer a
   janela do envio (`clientePodeCancelar`).
-- **Em aberto, decisão do dono:** o "prazo" é hoje o ESTADO (até o restaurante
-  confirmar / um motorista aceitar), não minutos fixos. Se se quiser um relógio
-  (ex.: 2 minutos), é uma mudança em `update_order_status` e na matriz.
+- **Prazo de cancelamento — DECIDIDO pelo dono (2026-09-26): fica por ESTADO.**
+  Até o restaurante confirmar / até um motorista aceitar. **Sem minutos fixos:**
+  o corte certo é "antes de alguém começar a trabalhar nisto", não um relógio
+  arbitrário. Não reabrir sem o dono.
+
+**Linha do tempo de um pedido cancelado (2026-09-26, pedido do dono).** Mostrava
+o percurso inteiro a cinzento, como se o pedido ainda fosse passar por lá. Agora
+mostra só até ao último passo que o HISTÓRICO registou
+(`ultimoPassoAntesDeCancelar`, em `src/lib/orderTimeline.ts`) e acaba numa linha
+"Cancelado" na cor de problema, com hora e motivo. O ponto de paragem tem de vir
+de `get_order_history`: `orders.status` já diz `cancelado` e perdeu o estado
+anterior. Sem histórico, mostra só o primeiro passo — de menos, nunca inventado.
+O histórico passou a ser relido quando o estado muda (antes lia-se uma vez).
 
 **Achado lateral corrigido:** no acompanhamento, os totais estavam dentro de um
 `flex justify-between` que os encolhia — "Taxa de entrega500 CFA" colado.
