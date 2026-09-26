@@ -10,6 +10,7 @@ import { CategoryGrid, type GridCategory } from "@/components/CategoryGrid";
 import { Pagination } from "@/components/Pagination";
 import { useProviders, useBusinessCategories } from "@/hooks/useProviders";
 import { useBairros } from "@/hooks/useBairros";
+import { useBusinessesOpen } from "@/hooks/useBusinessesOpen";
 import { BAIRROS_FILTER } from "@/lib/locations";
 import { getPageCount, paginateArray } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
@@ -93,6 +94,9 @@ const Explore = () => {
   const pageCount = getPageCount(filtered.length, PAGE_SIZE);
   const paginated = paginateArray(filtered, page, PAGE_SIZE);
 
+  // Só a página visível: uma chamada para os cartões que se estão a ver.
+  const { data: abertos = {} } = useBusinessesOpen(paginated.map((p) => p.id));
+
   return (
     <div className="mx-auto max-w-lg px-4 pt-6 sm:px-6">
       <h1 className="mb-4 text-display">{current.label}</h1>
@@ -136,10 +140,8 @@ const Explore = () => {
           📦
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-title">Enviar</span>
-          <span className="block text-caption text-muted-foreground">
-            Documentos e objetos, de um ponto a outro
-          </span>
+          <span className="block text-title">{t("sendPage.title")}</span>
+          <span className="block text-caption text-muted-foreground">{t("sendPage.subtitle")}</span>
         </span>
       </Link>
 
@@ -179,7 +181,7 @@ const Explore = () => {
         <>
           <div className="flex flex-col gap-3">
             {paginated.map((p) => (
-              <RestaurantCard key={p.id} {...p} />
+              <RestaurantCard key={p.id} {...p} abertoAgora={abertos[p.id]} />
             ))}
           </div>
           <Pagination page={page} pageCount={pageCount} total={filtered.length} onPageChange={setPage} />

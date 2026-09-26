@@ -2,9 +2,12 @@ import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useUrlPrivado, type BucketPrivado } from "@/lib/armazenamentoPrivado";
+import { VoicePlayer } from "@/components/VoicePlayer";
 
 /** Áudio de um bucket privado: pede o URL assinado ao Storage, que decide se quem
- *  está a ver pode ouvir. Sem permissão ou sem rede, diz que não abriu. */
+ *  está a ver pode ouvir. Sem permissão ou sem rede, diz que não abriu.
+ *  Toca num `VoicePlayer` (um botão), não no `<audio controls>` nativo, que no
+ *  telemóvel escondia o "play" atrás de um menu de três pontos. */
 export const AudioPrivado = ({
   bucket,
   refFicheiro,
@@ -16,9 +19,9 @@ export const AudioPrivado = ({
 }) => {
   const { t } = useTranslation();
   const { data: url, isLoading, isError } = useUrlPrivado(bucket, refFicheiro);
-  if (isLoading) return <Skeleton className={cn("h-8 flex-1 min-w-0 rounded-full", className)} />;
+  if (isLoading) return <Skeleton className={cn("h-12 flex-1 min-w-0 rounded-full", className)} />;
   if (isError || !url) return <span className="text-caption text-muted-foreground">{t("common.mediaUnavailable")}</span>;
-  return <audio src={url} controls className={className} />;
+  return <VoicePlayer src={url} className={className} />;
 };
 
 /** Imagem de um bucket privado. `onAbrir` recebe o URL assinado (não o caminho),

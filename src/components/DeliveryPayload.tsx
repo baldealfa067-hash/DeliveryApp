@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Package, Banknote } from "lucide-react";
 import { formatCFA } from "@/lib/format";
 
@@ -35,56 +36,65 @@ export const DeliveryPayload = ({
   paymentMethod?: string;
   paymentStatus?: string;
 }) => {
+  const { t } = useTranslation();
   const comida = orderTotal ?? 0;
   const taxa = deliveryFee ?? 0;
   const emDinheiro = (paymentMethod ?? "entrega") !== "online";
   const orangeMoneyPago = !emDinheiro && paymentStatus === "validado";
 
+  // Texto a 13px no mínimo, e um item por linha: estava a 11px e com os itens
+  // numa frase corrida, o que não se lê de pé na rua (§51).
   return (
-    <div className="mt-2 space-y-2 rounded-md border bg-muted/40 p-2">
+    <div className="mt-3 w-full space-y-3 rounded-lg border bg-muted/40 p-3">
       {items && items.length > 0 && (
-        <div className="flex items-start gap-1.5">
-          <Package className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <p className="text-[11px] leading-relaxed">
-            {items.map((i, n) => (
-              <span key={`${i.name}-${n}`}>
-                {n > 0 && ", "}
-                <span className="font-medium">{i.qty}×</span> {i.name}
+        <ul className="space-y-1">
+          {items.map((i, n) => (
+            <li key={`${i.name}-${n}`} className="flex items-start gap-2 text-sm">
+              {n === 0 ? (
+                <Package className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              ) : (
+                <span className="w-4 shrink-0" aria-hidden="true" />
+              )}
+              <span className="min-w-0 break-words">
+                <span className="font-semibold tabular-nums">{i.qty}×</span> {i.name}
               </span>
-            ))}
-          </p>
-        </div>
+            </li>
+          ))}
+        </ul>
       )}
 
-      <div className="space-y-0.5 text-[11px]">
+      <dl className="space-y-1 text-sm">
         {comida > 0 && (
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">
-              Comida {emDinheiro && <span className="opacity-70">· do restaurante</span>}
-            </span>
-            <span className="tabular-nums">{formatCFA(comida)}</span>
+          <div className="flex items-baseline justify-between gap-3">
+            <dt className="min-w-0 text-muted-foreground">
+              {t("deliveryPayload.food")}
+              {emDinheiro && <span className="block text-caption">{t("deliveryPayload.foodBelongsToRestaurant")}</span>}
+            </dt>
+            <dd className="shrink-0 tabular-nums">{formatCFA(comida)}</dd>
           </div>
         )}
         {taxa > 0 && (
-          <div className="flex justify-between font-medium text-primary">
-            <span>A tua entrega</span>
-            <span className="tabular-nums">{formatCFA(taxa)}</span>
+          <div className="flex items-baseline justify-between gap-3 font-semibold text-primary">
+            <dt>{t("deliveryPayload.yourFee")}</dt>
+            <dd className="shrink-0 tabular-nums">{formatCFA(taxa)}</dd>
           </div>
         )}
         {emDinheiro && comida > 0 && taxa > 0 && (
-          <div className="flex justify-between border-t pt-0.5 font-semibold">
-            <span>Recebes do cliente</span>
-            <span className="tabular-nums">{formatCFA(comida + taxa)}</span>
+          <div className="flex items-baseline justify-between gap-3 border-t pt-1.5 font-bold">
+            <dt>{t("deliveryPayload.collectFromCustomer")}</dt>
+            <dd className="shrink-0 tabular-nums">{formatCFA(comida + taxa)}</dd>
           </div>
         )}
-      </div>
+      </dl>
 
-      <div className="flex items-center gap-1.5">
-        <Banknote className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <span className="text-[11px] font-medium">
-          {orangeMoneyPago ? "Orange Money — pago" : emDinheiro ? "Dinheiro na entrega" : "Orange Money — por validar"}
-        </span>
-      </div>
+      <p className="flex items-center gap-2 text-sm font-medium">
+        <Banknote className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        {orangeMoneyPago
+          ? t("deliveryPayload.orangeMoneyPaid")
+          : emDinheiro
+            ? t("deliveryPayload.cashOnDelivery")
+            : t("deliveryPayload.orangeMoneyPending")}
+      </p>
     </div>
   );
 };

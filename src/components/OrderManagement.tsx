@@ -155,7 +155,7 @@ const VoiceNote = ({ url, customerName }: { url: string; customerName: string | 
         <Volume2 className="h-4 w-4 shrink-0" aria-hidden="true" />
         {t("orderManagement.voiceDirectionFrom", { name: customerName ?? t("orderManagement.voiceDirection") })}
       </p>
-      <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={url} className="h-9 w-full min-w-0" />
+      <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={url} className="w-full min-w-0" />
     </div>
   );
 };

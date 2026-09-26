@@ -1560,7 +1560,11 @@
     "stop": "Stop",
     "saving": "Saving…",
     "saved": "Recorded",
-    "unsaved": "Recorded (not saved yet)"
+    "unsaved": "Recorded (not saved yet)",
+    "recording": "Recording…",
+    "maxHint": "Up to {{seconds}} seconds",
+    "micDenied": "Couldn't use the microphone. Allow access in your browser settings and try again.",
+    "delete": "Delete recording"
   },
   "locationVoice": {
     "title": "Spoken directions to your business",
@@ -1574,5 +1578,18 @@
     "title": "Contact",
     "call": "Call",
     "intro": "Talk to the iTudoo team by phone or WhatsApp."
+  },
+  "voicePlayer": {
+    "play": "Play directions",
+    "pause": "Pause"
+  },
+  "deliveryPayload": {
+    "food": "Food",
+    "foodBelongsToRestaurant": "belongs to the restaurant",
+    "yourFee": "Your delivery fee",
+    "collectFromCustomer": "Collect from customer",
+    "cashOnDelivery": "Cash on delivery",
+    "orangeMoneyPaid": "Orange Money — paid",
+    "orangeMoneyPending": "Orange Money — awaiting check"
   }
 }

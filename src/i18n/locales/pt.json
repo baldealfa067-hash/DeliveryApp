@@ -1560,7 +1560,11 @@
     "stop": "Parar",
     "saving": "A guardar…",
     "saved": "Gravada",
-    "unsaved": "Gravada (por guardar)"
+    "unsaved": "Gravada (por guardar)",
+    "recording": "A gravar…",
+    "maxHint": "Até {{seconds}} segundos",
+    "micDenied": "Não foi possível usar o microfone. Autoriza o acesso nas definições do browser e tenta outra vez.",
+    "delete": "Apagar gravação"
   },
   "locationVoice": {
     "title": "Indicação de voz do negócio",
@@ -1574,5 +1578,18 @@
     "title": "Contacto",
     "call": "Ligar",
     "intro": "Fala com a equipa do iTudoo por telefone ou WhatsApp."
+  },
+  "voicePlayer": {
+    "play": "Ouvir indicação",
+    "pause": "Pausar"
+  },
+  "deliveryPayload": {
+    "food": "Comida",
+    "foodBelongsToRestaurant": "é do restaurante",
+    "yourFee": "A tua entrega",
+    "collectFromCustomer": "Recebes do cliente",
+    "cashOnDelivery": "Dinheiro na entrega",
+    "orangeMoneyPaid": "Orange Money — pago",
+    "orangeMoneyPending": "Orange Money — por validar"
   }
 }

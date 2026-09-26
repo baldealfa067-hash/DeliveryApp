@@ -29,8 +29,8 @@ import { useDeliveryPrice } from "@/hooks/useFleet";
 import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
 import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
-import { useVoiceRecorder, formatDuration } from "@/hooks/useVoiceRecorder";
-import { Mic, Square, Play, Pause, RotateCcw, Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
+import { VoiceRecorderField } from "@/components/VoiceRecorderField";
+import { Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
 import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { contactFromUser } from "@/lib/clientAuth";
 import { COMPROVATIVOS_BUCKET, caminhoComprovativo } from "@/lib/comprovativos";
@@ -125,7 +125,9 @@ const BusinessDetail = () => {
   const [sending, setSending] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<GeoPosition | null>(null);
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
-  const [voiceUploading, setVoiceUploading] = useState(false);
+  // Muda para remontar o campo de voz depois de um pedido enviado: o gravador
+  // vive dentro do campo, e sem isto a gravacao anterior ficava a mostra.
+  const [voiceFieldKey, setVoiceFieldKey] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<"entrega" | "online">("entrega");
   /** Nome do objecto no bucket privado `comprovativos` (não é uma URL). */
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
@@ -136,9 +138,6 @@ const BusinessDetail = () => {
   const [confirmarAposLogin, setConfirmarAposLogin] = useState(false);
   const paymentSectionRef = useRef<HTMLDivElement | null>(null);
   const paymentProofRef = useRef<HTMLInputElement>(null);
-  const [voicePlaying, setVoicePlaying] = useState(false);
-  const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
-  const recorder = useVoiceRecorder();
   const [orderConfirmOpen, setOrderConfirmOpen] = useState(false);
   const [orderCustomerName, setOrderCustomerName] = useState("");
   const [orderCustomerPhone, setOrderCustomerPhone] = useState("");
@@ -260,12 +259,6 @@ const BusinessDetail = () => {
     );
   }, [consumptionOption]);
 
-  // Auto-stop voice recording at 30 seconds — must be before early returns (Rules of Hooks)
-  useEffect(() => {
-    if (recorder.state === "recording" && recorder.duration >= 30) {
-      recorder.stopRecording();
-    }
-  }, [recorder.state, recorder.duration]);
 
 
   // A barra desaparece enquanto se escreve. O padding do fim da pagina resolve o
@@ -329,45 +322,6 @@ const BusinessDetail = () => {
       }
       return { ...c, [itemId]: qty };
     });
-  };
-
-  const uploadVoiceNote = async (): Promise<string | null> => {
-    if (!recorder.audioBlob || !user?.id) return null;
-    const blob = recorder.audioBlob;
-    if (blob.size === 0) return null;
-    setVoiceUploading(true);
-    try {
-      const ext = blob.type.includes("mp4") ? "mp4" : "webm";
-      // Bucket PRIVADO: a morada falada só a ouvem o cliente, o restaurante, o
-      // motorista atribuído e o admin. Guarda-se o nome do objecto, não uma URL.
-      const fileName = caminhoPrivado(user.id, ext);
-      const { error } = await supabase.storage
-        .from(BUCKET_PRIVADO.notasVoz)
-        .upload(fileName, blob, { contentType: tipoSemParametros(blob.type, "audio/webm") });
-      if (error) throw error;
-      setVoiceNoteUrl(fileName);
-      return fileName;
-    } catch (err) {
-      console.error("[voice] upload error:", err);
-      return null;
-    } finally {
-      setVoiceUploading(false);
-    }
-  };
-
-  const toggleVoicePlayback = () => {
-    if (!recorder.audioUrl) return;
-    if (!voiceAudioRef.current) {
-      voiceAudioRef.current = new Audio(recorder.audioUrl);
-      voiceAudioRef.current.onended = () => setVoicePlaying(false);
-    }
-    if (voicePlaying) {
-      voiceAudioRef.current.pause();
-      setVoicePlaying(false);
-    } else {
-      voiceAudioRef.current.play();
-      setVoicePlaying(true);
-    }
   };
 
   const uploadPaymentProof = async (file: File): Promise<string | null> => {
@@ -452,11 +406,9 @@ const BusinessDetail = () => {
     }
     setSending(true);
     try {
-      // Upload voice note if recorded
-      let uploadedVoiceUrl = voiceNoteUrl;
-      if (recorder.state === "recorded" && recorder.audioBlob && !voiceNoteUrl) {
-        uploadedVoiceUrl = await uploadVoiceNote();
-      }
+      // A voz ja foi enviada pelo VoiceRecorderField quando a gravacao acabou
+      // (§72): aqui so segue o nome do ficheiro.
+      const uploadedVoiceUrl = voiceNoteUrl;
 
       const orderId = await createOrder.mutateAsync({
         businessId: id,
@@ -490,8 +442,7 @@ const BusinessDetail = () => {
       setPaymentMethod("entrega");
       setPaymentProofUrl(null);
       setPaymentProofPreview(null);
-      recorder.reset();
-      voiceAudioRef.current = null;
+      setVoiceFieldKey((k) => k + 1);
     } catch (err) {
       console.error("[order] error:", err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -771,81 +722,15 @@ const BusinessDetail = () => {
                   />
                 </div>
                 {/* Voice note for delivery directions — product decision: voice replaces map in Bissau context */}
-                <div className="mb-3 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-3">
-                  <Label className="text-xs font-semibold text-primary">
-                    {t("businessDetail.voiceNoteLabel")}
-                  </Label>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 mb-2">
-                    {t("businessDetail.voiceNoteHint")}
-                  </p>
-                  {recorder.state === "idle" && !voiceNoteUrl && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={recorder.startRecording}
-                      className="w-full gap-2 min-h-12 text-sm font-semibold border-primary/40"
-                    >
-                      <Mic className="h-5 w-5 text-primary" />
-                      {t("businessDetail.voiceRecord")}
-                    </Button>
-                  )}
-                  {recorder.state === "recording" && (
-                    <div className="flex items-center gap-3">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={recorder.stopRecording}
-                        className="h-12 w-12 rounded-full shrink-0"
-                      >
-                        <Square className="h-5 w-5" />
-                      </Button>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
-                          <span className="text-sm font-bold">{formatDuration(recorder.duration)}</span>
-                          <span className="text-xs text-muted-foreground">/ 0:30</span>
-                        </div>
-                        <div className="h-1 bg-muted rounded-full mt-1 overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${Math.min(100, (recorder.duration / 30) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {(recorder.state === "recorded" || voiceNoteUrl) && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={toggleVoicePlayback}
-                        className="h-10 w-10 rounded-full shrink-0"
-                      >
-                        {voicePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                      </Button>
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">{t("businessDetail.voiceRecorded")}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{formatDuration(recorder.duration)}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          recorder.reset();
-                          setVoiceNoteUrl(null);
-                          voiceAudioRef.current = null;
-                          setVoicePlaying(false);
-                        }}
-                        className="gap-1 text-xs"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" /> {t("businessDetail.voiceRerecord")}
-                      </Button>
-                    </div>
-                  )}
+                <div className="mb-3">
+                  <VoiceRecorderField
+                    key={voiceFieldKey}
+                    titulo={t("businessDetail.voiceNoteLabel")}
+                    ajuda={t("businessDetail.voiceNoteHint")}
+                    valor={voiceNoteUrl}
+                    aoMudar={setVoiceNoteUrl}
+                    pasta="orders/voice"
+                  />
                 </div>
 
                 {/* Pagamento (§22, §23). Duas escolhas grandes, lado a lado em

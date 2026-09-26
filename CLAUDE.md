@@ -1590,6 +1590,48 @@ na página do restaurante e nas duas páginas órfãs. No lugar: o ecrã
   e `portfolio_images`, que ficam por servirem a beleza. `types.ts` regenerado.
 - A voz da conversa saiu do `portfolio` público — ver "Órfãos de voz".
 
+## Melhoramentos de produto — voz, motorista, lista (2026-09-26)
+
+- **Tradução em falta no "Enviar":** não estava no ecrã Enviar — estava no
+  **cartão "Enviar" do ecrã Início** (`Explore.tsx`), "Enviar / Documentos e
+  objetos…" escrito à mão. Usa agora `sendPage.title`/`subtitle`. O guarda
+  `locales.test.ts` não o apanhava: só verifica as chaves que o código pede, e
+  texto fixo não pede chave nenhuma. **Achar texto fixo exige ver o ecrã noutro
+  idioma**, não correr o teste.
+- **`VoicePlayer`: UM botão, toca/pausa.** Substitui o `<audio controls>` nativo
+  em `AudioPrivado`, cujo "play" o Chrome escondia atrás de um menu de três
+  pontos no telemóvel. Botão de 48px, barra de progresso, estado "a carregar"
+  (o ficheiro vem do Storage). Serve o motorista, a gestão de pedidos e o
+  gravador.
+- **`VoiceRecorderField` redesenhado** e agora usado também no checkout, que
+  tinha uma cópia própria de ~90 linhas. A gravação do checkout passou a subir
+  ao terminar, como no Enviar (§72), em vez de no "Confirmar". Microfone
+  recusado mostra aviso (antes voltava calado ao início).
+- **Painel do motorista:** acções no FUNDO do cartão a toda a largura (numa
+  coluna à direita espremiam o conteúdo), moradas em duas linhas em vez de
+  cortadas, `DeliveryPayload` a 13–14px com um item por linha e traduzido
+  (estava a 11px e com texto fixo — era dívida registada da 9.5).
+- **"Aberto / Fechado" nos cartões da lista**, por `get_businesses_open`: uma
+  chamada para a página inteira, que chama `is_business_open` — a mesma regra,
+  sem segunda cópia. Pública como `get_business_hours`; teto de 200 ids.
+  Testado por HTTP: bate com a resposta individual de cada restaurante.
+
+**Achados da auditoria de layout, reportados e NÃO corrigidos (à espera do
+dono):**
+- 🔴 `/pedido/:id` — o botão "Ligar ao restaurante" põe nome + telefone numa
+  linha sem quebra; com um nome comprido a página fica mais larga que o ecrã e
+  desliza para o lado.
+- 🟡 `/painel-loja` — a barra dos 4 separadores (Pedidos/Vendas/Conta
+  Corrente/Perfil) é mais larga que 390px; "Perfil" fica meio fora.
+- 🔴 **`get_driver_daily_stats` dá HTTP 400 sempre** (o `generate_series` devolve
+  `timestamp` e a função declara `date`) e, mesmo corrigido, conta
+  `status = 'entregue'`, estado que já não existe desde a Fase 1 — o resumo do
+  motorista mostra sempre zero.
+
+**Armadilha de ferramenta:** `pkill -f "vite --port 5199"` / `pgrep -f` apanham o
+próprio shell que corre o comando (o padrão está no texto dele) e matam-no a
+meio. Parar o servidor pelo PID guardado ao arrancá-lo.
+
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 
 O dono reportou que, ao tocar em "Entrar" no ecrã de entrada, chegava a páginas

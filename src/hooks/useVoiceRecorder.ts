@@ -5,6 +5,9 @@ type RecorderState = "idle" | "recording" | "recorded";
 export function useVoiceRecorder() {
   const [state, setState] = useState<RecorderState>("idle");
   const [duration, setDuration] = useState(0);
+  // Microfone recusado ou indisponível. Antes voltava a "idle" calado, e quem
+  // tocava em "Gravar" não percebia porque nada acontecia.
+  const [micError, setMicError] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -27,6 +30,7 @@ export function useVoiceRecorder() {
   }, [audioUrl]);
 
   const startRecording = useCallback(async () => {
+    setMicError(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -76,6 +80,7 @@ export function useVoiceRecorder() {
         setDuration((d) => d + 1);
       }, 1000);
     } catch {
+      setMicError(true);
       setState("idle");
     }
   }, []);
@@ -116,6 +121,7 @@ export function useVoiceRecorder() {
   return {
     state,
     duration,
+    micError,
     audioBlob,
     audioUrl,
     startRecording,

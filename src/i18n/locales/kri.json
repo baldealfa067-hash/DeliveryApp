@@ -1241,7 +1241,11 @@
     "stop": "Para",
     "saving": "Ta grava…",
     "saved": "Gravadu",
-    "unsaved": "Gravadu (inda pa guarda)"
+    "unsaved": "Gravadu (inda pa guarda)",
+    "recording": "Na grava…",
+    "maxHint": "Te {{seconds}} sigundu",
+    "micDenied": "Ka pudi usa mikrofoni. Dixa asesu na konfigurason di browser i tenta dinovu.",
+    "delete": "Paga gravason"
   },
   "locationVoice": {
     "title": "Indikason di vos di negosiu",
@@ -1260,5 +1264,18 @@
     "title": "Kontatu",
     "call": "Tchoma",
     "intro": "Papia ku ekipa di iTudoo na telfoni o WhatsApp."
+  },
+  "voicePlayer": {
+    "play": "Obi indikason",
+    "pause": "Para"
+  },
+  "deliveryPayload": {
+    "food": "Kumida",
+    "foodBelongsToRestaurant": "i di restoranti",
+    "yourFee": "Bu entrega",
+    "collectFromCustomer": "Bu ta risibi di klienti",
+    "cashOnDelivery": "Dinheru na entrega",
+    "orangeMoneyPaid": "Orange Money — pagadu",
+    "orangeMoneyPending": "Orange Money — pa validadu"
   }
 }

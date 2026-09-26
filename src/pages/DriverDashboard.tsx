@@ -475,30 +475,33 @@ const DriverDashboard = () => {
                   ? "🛵 " + t("driverDashboard.onTheWayToRestaurant")
                   : "📦 " + t("driverDashboard.onTheWayToCustomer")}
               </p>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold truncate">
+              {/* Nome e morada por inteiro (a morada em duas linhas), e o botão de
+                  ligar por baixo: lado a lado, o botão empurrava os dois para
+                  reticências e o motorista não lia a morada toda. */}
+              <div className="space-y-2">
+                <div className="min-w-0">
+                  <p className="text-base font-bold break-words">
                     {activeDelivery.status === "aceite"
                       ? activeDelivery.restaurant_name
                       : activeDelivery.customer_name}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="line-clamp-2 text-sm text-muted-foreground">
                     {activeDelivery.status === "aceite"
                       ? activeDelivery.restaurant_address
                       : activeDelivery.customer_address}
                   </p>
                 </div>
-                <div className="flex flex-col gap-1 shrink-0">
+                <div className="flex flex-wrap gap-2">
                   {activeDelivery.status === "aceite" && activeDelivery.restaurant_phone && (
                     <a href={`tel:${activeDelivery.restaurant_phone.replace(/\s/g, "")}`}
-                      className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-md">
-                      <Phone className="h-3.5 w-3.5" /> {t("driverDashboard.callRestaurant")}
+                      className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-sm font-medium text-primary">
+                      <Phone className="h-4 w-4" /> {t("driverDashboard.callRestaurant")}
                     </a>
                   )}
                   {activeDelivery.status === "recolhido" && activeDelivery.customer_phone && (
                     <a href={`tel:${activeDelivery.customer_phone.replace(/\s/g, "")}`}
-                      className="flex items-center gap-1 text-xs text-success-foreground font-medium bg-success-soft px-2 py-1 rounded-md">
-                      <Phone className="h-3.5 w-3.5" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
+                      className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-success-soft px-3 text-sm font-medium text-success-foreground">
+                      <Phone className="h-4 w-4" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
                     </a>
                   )}
                 </div>
@@ -516,19 +519,11 @@ const DriverDashboard = () => {
                   davam ao motorista duas caixas para a mesma coisa, uma delas
                   sempre vazia. */}
               {vozDaRecolha(activeDelivery) && activeDelivery.status !== "recolhido" && (
-                <div className="mt-2 flex items-center gap-2 rounded-md bg-primary/10 border border-primary/30 px-2.5 py-2">
-                  <Volume2 className="h-4 w-4 text-primary shrink-0" />
-                  <span className="text-xs font-medium text-primary shrink-0">{t("driverDashboard.whereToPickUp")}</span>
-                  <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={vozDaRecolha(activeDelivery) as string} className="h-8 flex-1 min-w-0" />
-                </div>
+                <BlocoVoz tom="recolha" etiqueta={t("driverDashboard.whereToPickUp")} refFicheiro={vozDaRecolha(activeDelivery) as string} />
               )}
               {/* Voice note from customer */}
               {activeDelivery.voice_note_url && (
-                <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2.5 py-2">
-                  <Volume2 className="h-4 w-4 text-amber-600 shrink-0" />
-                  <span className="text-xs font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirectionFrom", { name: activeDelivery.customer_name ?? t("driverDashboard.voiceDirection") })}</span>
-                  <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={activeDelivery.voice_note_url} className="h-8 flex-1 min-w-0" />
-                </div>
+                <BlocoVoz tom="entrega" etiqueta={t("driverDashboard.voiceDirectionFrom", { name: activeDelivery.customer_name ?? t("driverDashboard.voiceDirection") })} refFicheiro={activeDelivery.voice_note_url} />
               )}
               {/* Google Maps link */}
               {activeDelivery.status === "recolhido" && activeDelivery.customer_lat != null && activeDelivery.customer_lng != null && (
@@ -580,32 +575,32 @@ const DriverDashboard = () => {
               <div className="flex flex-col gap-3 mt-3">
                 {availableDeliveries.map((d) => (
                   <Card key={d.id}>
+                    {/* O botão vai POR BAIXO, a toda a largura. Numa coluna à
+                        direita ocupava a altura toda do cartão e deixava o
+                        conteúdo espremido, com as moradas cortadas. */}
                     <CardContent className="p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold">{d.restaurant_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">📍 {d.restaurant_address ?? t("driverDashboard.notAvailable")}</p>
-                          <p className="text-xs text-muted-foreground truncate">🏠 {d.customer_address ?? t("driverDashboard.notAvailable")}</p>
-                          {d.distance_km && (
-                            <p className="text-xs text-muted-foreground mt-1">↔ {d.distance_km.toFixed(1)} km</p>
-                          )}
-                          <DeliveryPayload
-                            items={d.items}
-                            orderTotal={d.order_total}
-                            deliveryFee={d.delivery_fee}
-                            paymentMethod={d.payment_method}
-                            paymentStatus={d.payment_status}
-                          />
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => acceptDelivery.mutate(d.id)}
-                          disabled={acceptDelivery.isPending}
-                          className="gap-1 shrink-0"
-                        >
-                          {t("driverDashboard.accept")}
-                        </Button>
+                      <div className="min-w-0 space-y-0.5">
+                        <p className="text-base font-bold break-words">{d.restaurant_name}</p>
+                        <p className="line-clamp-2 text-sm text-muted-foreground">📍 {d.restaurant_address ?? t("driverDashboard.notAvailable")}</p>
+                        <p className="line-clamp-2 text-sm text-muted-foreground">🏠 {d.customer_address ?? t("driverDashboard.notAvailable")}</p>
+                        {d.distance_km && (
+                          <p className="text-sm text-muted-foreground">↔ {d.distance_km.toFixed(1)} km</p>
+                        )}
                       </div>
+                      <DeliveryPayload
+                        items={d.items}
+                        orderTotal={d.order_total}
+                        deliveryFee={d.delivery_fee}
+                        paymentMethod={d.payment_method}
+                        paymentStatus={d.payment_status}
+                      />
+                      <Button
+                        onClick={() => acceptDelivery.mutate(d.id)}
+                        disabled={acceptDelivery.isPending}
+                        className="mt-3 h-12 w-full text-base"
+                      >
+                        {t("driverDashboard.accept")}
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -623,83 +618,73 @@ const DriverDashboard = () => {
                 {/* Active deliveries */}
                 {myDeliveries.filter((d) => ["aceite", "recolhido"].includes(d.status)).map((d) => (
                   <Card key={d.id} className="border-primary/30">
+                    {/* Mesma regra do cartão de cima: acções no fundo, a toda a
+                        largura; o conteúdo usa o cartão inteiro. */}
                     <CardContent className="p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold">#{d.order_number}</span>
-                            <Badge className="text-[10px] bg-primary/10 text-primary border-0">
-                              {d.status === "aceite"
-                                ? t("driverDashboard.goToRestaurant")
-                                : t("driverDashboard.goToCustomer")}
-                            </Badge>
-                          </div>
-                          <p className="text-sm font-medium">{d.customer_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">🏠 {d.customer_address}</p>
-                          <div className="flex flex-col gap-0.5 mt-1">
-                            {d.restaurant_phone && (
-                              <a href={`tel:${d.restaurant_phone.replace(/\s/g, "")}`} className="text-xs text-primary flex items-center gap-1">
-                                <Phone className="h-3 w-3" /> {t("driverDashboard.callRestaurant")}
-                              </a>
-                            )}
-                            {d.status === "recolhido" && d.customer_phone && (
-                              <a href={`tel:${d.customer_phone.replace(/\s/g, "")}`} className="text-xs text-success-foreground flex items-center gap-1 font-medium">
-                                <Phone className="h-3 w-3" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
-                              </a>
-                            )}
-                          </div>
-                          <DeliveryPayload
-                            items={d.items}
-                            orderTotal={d.order_total}
-                            deliveryFee={d.delivery_fee}
-                            paymentMethod={d.payment_method}
-                            paymentStatus={d.payment_status}
-                          />
-                          {vozDaRecolha(d) && (
-                            <div className="mt-1.5 flex items-center gap-1.5 rounded bg-primary/10 border border-primary/30 px-2 py-1.5">
-                              <Volume2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                              <span className="text-[10px] font-medium text-primary shrink-0">{t("driverDashboard.whereToPickUp")}</span>
-                              <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={vozDaRecolha(d) as string} className="h-7 flex-1 min-w-0" />
-                            </div>
-                          )}
-                          {d.voice_note_url && (
-                            <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 py-1.5">
-                              <Volume2 className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                              <span className="text-[10px] font-medium text-amber-800 dark:text-amber-200 shrink-0">{t("driverDashboard.voiceDirectionFrom", { name: d.customer_name ?? t("driverDashboard.voiceDirection") })}</span>
-                              <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={d.voice_note_url} className="h-7 flex-1 min-w-0" />
-                            </div>
-                          )}
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <span className="text-base font-bold">#{d.order_number}</span>
+                          <Badge className="border-0 bg-primary/10 text-caption text-primary">
+                            {d.status === "aceite"
+                              ? t("driverDashboard.goToRestaurant")
+                              : t("driverDashboard.goToCustomer")}
+                          </Badge>
                         </div>
-                        <div className="flex flex-col gap-1.5 shrink-0">
-                          {d.status === "aceite" && (
-                            <Button size="sm" onClick={() => pickupDelivery.mutate(d.id)} disabled={pickupDelivery.isPending} className="gap-1">
-                              {t("driverDashboard.pickup")}
-                            </Button>
+                        <p className="text-base font-semibold break-words">{d.customer_name}</p>
+                        <p className="line-clamp-2 text-sm text-muted-foreground">🏠 {d.customer_address}</p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+                          {d.restaurant_phone && (
+                            <a href={`tel:${d.restaurant_phone.replace(/\s/g, "")}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary">
+                              <Phone className="h-4 w-4" /> {t("driverDashboard.callRestaurant")}
+                            </a>
                           )}
-                          {d.status === "recolhido" && (
-                            <>
-                              <Button size="sm" onClick={() => {
-                                setCodeDeliveryId(d.id);
-                                setCodeInput("");
-                                setCodeError(false);
-                                setCodeDialogOpen(true);
-                              }} className="gap-1">
-                                <CheckCircle2 className="h-3.5 w-3.5" /> {t("driverDashboard.enterCode")}
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => {
-                                setSelectedDeliveryId(d.id);
-                                setProofDialogOpen(true);
-                              }} className="gap-1">
-                                <Camera className="h-3.5 w-3.5" /> {t("driverDashboard.proof")}
-                              </Button>
-                              {/* Fase 9.3: o botao "Sem codigo" saiu. Concluia a entrega sem
-                                  deixar rasto nenhum, e o backend passou a recusar esse
-                                  caminho de qualquer forma. Ficam as duas saidas com
-                                  prova: o codigo do cliente, ou uma fotografia. */}
-                            </>
+                          {d.status === "recolhido" && d.customer_phone && (
+                            <a href={`tel:${d.customer_phone.replace(/\s/g, "")}`} className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-success-foreground">
+                              <Phone className="h-4 w-4" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
+                            </a>
                           )}
                         </div>
                       </div>
+                      <DeliveryPayload
+                        items={d.items}
+                        orderTotal={d.order_total}
+                        deliveryFee={d.delivery_fee}
+                        paymentMethod={d.payment_method}
+                        paymentStatus={d.payment_status}
+                      />
+                      {vozDaRecolha(d) && (
+                        <BlocoVoz tom="recolha" etiqueta={t("driverDashboard.whereToPickUp")} refFicheiro={vozDaRecolha(d) as string} />
+                      )}
+                      {d.voice_note_url && (
+                        <BlocoVoz tom="entrega" etiqueta={t("driverDashboard.voiceDirectionFrom", { name: d.customer_name ?? t("driverDashboard.voiceDirection") })} refFicheiro={d.voice_note_url} />
+                      )}
+                      {d.status === "aceite" && (
+                        <Button onClick={() => pickupDelivery.mutate(d.id)} disabled={pickupDelivery.isPending} className="mt-3 h-12 w-full text-base">
+                          {t("driverDashboard.pickup")}
+                        </Button>
+                      )}
+                      {d.status === "recolhido" && (
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <Button onClick={() => {
+                            setCodeDeliveryId(d.id);
+                            setCodeInput("");
+                            setCodeError(false);
+                            setCodeDialogOpen(true);
+                          }} className="h-12 gap-1.5 text-base">
+                            <CheckCircle2 className="h-4 w-4" /> {t("driverDashboard.enterCode")}
+                          </Button>
+                          <Button variant="outline" onClick={() => {
+                            setSelectedDeliveryId(d.id);
+                            setProofDialogOpen(true);
+                          }} className="h-12 gap-1.5 text-base">
+                            <Camera className="h-4 w-4" /> {t("driverDashboard.proof")}
+                          </Button>
+                          {/* Fase 9.3: o botao "Sem codigo" saiu. Concluia a entrega sem
+                              deixar rasto nenhum, e o backend passou a recusar esse
+                              caminho de qualquer forma. Ficam as duas saidas com
+                              prova: o codigo do cliente, ou uma fotografia. */}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -809,5 +794,28 @@ const DriverDashboard = () => {
     </div>
   );
 };
+
+/** Uma indicação de voz no painel do motorista: a etiqueta numa linha e o
+ *  leitor (um botão) por baixo, com a largura toda. Lado a lado, num ecrã de
+ *  390px a etiqueta — que não encolhe — espremia o leitor contra a margem. */
+const BlocoVoz = ({ tom, etiqueta, refFicheiro }: { tom: "recolha" | "entrega"; etiqueta: string; refFicheiro: string }) => (
+  <div
+    className={
+      tom === "recolha"
+        ? "mt-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2.5"
+        : "mt-2 rounded-lg border border-pending/40 bg-pending-soft px-3 py-2.5"
+    }
+  >
+    <p
+      className={`mb-2 flex items-start gap-1.5 text-caption font-medium ${
+        tom === "recolha" ? "text-primary" : "text-pending-foreground"
+      }`}
+    >
+      <Volume2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 break-words">{etiqueta}</span>
+    </p>
+    <AudioPrivado bucket={BUCKET_PRIVADO.notasVoz} refFicheiro={refFicheiro} className="w-full" />
+  </div>
+);
 
 export default DriverDashboard;

@@ -15,6 +15,8 @@ interface RestaurantCardProps {
   is_verified?: boolean | null;
   avgRating: number;
   reviewCount: number;
+  /** Do servidor (`get_businesses_open`). `undefined` = não se sabe: sem selo. */
+  abertoAgora?: boolean;
 }
 
 /**
@@ -23,7 +25,7 @@ interface RestaurantCardProps {
  * pedir, não negociar. Chat e telefone vivem na página do restaurante.
  */
 export const RestaurantCard = ({
-  id, name, category, location, photo_url, prep_time_minutes, is_verified, avgRating, reviewCount,
+  id, name, category, location, photo_url, prep_time_minutes, is_verified, avgRating, reviewCount, abertoAgora,
 }: RestaurantCardProps) => {
   const { t, i18n } = useTranslation();
   const { data: businessCats = [] } = useBusinessCategories();
@@ -49,6 +51,25 @@ export const RestaurantCard = ({
           <div className="flex h-full w-full items-center justify-center bg-primary-light">
             <span className="text-5xl font-bold text-primary">{name.charAt(0).toUpperCase()}</span>
           </div>
+        )}
+
+        {/* Aberto / Fechado sem ter de entrar no restaurante (2026-09-26). Sobre
+            a foto, por isso com fundo próprio — branco (aberto) ou preto
+            (fechado) — e texto que não depende do que a foto tem por baixo. A
+            cor nunca é o único sinal: vai sempre a palavra. */}
+        {abertoAgora !== undefined && (
+          <span
+            className={cn(
+              "absolute left-2 top-2 z-10 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-caption font-semibold shadow-card",
+              abertoAgora ? "bg-card text-success-foreground" : "bg-ink/85 text-ink-foreground"
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={cn("h-2 w-2 rounded-full", abertoAgora ? "bg-success" : "bg-muted-foreground")}
+            />
+            {abertoAgora ? t("businessHours.open") : t("businessHours.closed")}
+          </span>
         )}
 
         {/* Máscara em gradiente: o nome tem de se ler sobre qualquer fotografia,
