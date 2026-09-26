@@ -285,7 +285,11 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
           setSelectedOrder(null);
         }}
       >
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 bg-muted/50 p-1 sm:grid-cols-4 lg:grid-cols-7">
+        {/* Colunas pela largura do ecrã, com o rótulo mais comprido ("Confirmados")
+            a caber inteiro: 2 abaixo de 360px, 3 num telemóvel, 4 daí para cima.
+            Sem 7 colunas em `lg`: o painel é estreito mesmo num ecrã largo, e as
+            células ficavam com 87px, a partir as palavras a meio. */}
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 bg-muted/50 p-1 min-[360px]:grid-cols-3 sm:grid-cols-4">
           {STATUS_TABS.map((tab) => {
             const count = getOrdersByStatus(tab.value).length;
             const Icon = tab.icon;
@@ -293,13 +297,19 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="flex min-h-14 flex-col items-center gap-0.5 px-1 py-2 text-caption data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                // `min-w-0` + `whitespace-normal` + `break-words`: o TabsTrigger base
+                // traz `whitespace-nowrap`, e numa grelha de 3 colunas a 360px
+                // "Confirmados (1)" era mais largo que a célula e escrevia por
+                // cima de "Preparação (1)". Agora o rótulo quebra dentro da sua
+                // célula, e o contador vai para uma linha própria — nenhum dos
+                // dois consegue sair para a célula vizinha, em largura nenhuma.
+                className="flex min-h-14 min-w-0 flex-col items-center gap-0.5 overflow-hidden whitespace-normal px-1 py-2 text-caption data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Icon className={cn("h-4 w-4", TONE_STRONG[orderStatusTone(tab.value)])} aria-hidden="true" />
-                <span className="text-center leading-tight">
+                <Icon className={cn("h-4 w-4 shrink-0", TONE_STRONG[orderStatusTone(tab.value)])} aria-hidden="true" />
+                <span className="w-full break-words text-center leading-tight">
                   {t(`orderManagement.tab.${tab.value}`, t(tab.label))}
-                  {count > 0 && <span className="font-bold"> ({count})</span>}
                 </span>
+                {count > 0 && <span className="font-bold leading-none">({count})</span>}
               </TabsTrigger>
             );
           })}

@@ -598,7 +598,8 @@
     "emptyHint": "Fasi to pedidu nobu na un resturanti.",
     "browseRestaurants": "Buska Resturantis",
     "loginRequired": "Fasi login pa berti to pedidus.",
-    "items": "itensis"
+    "items": "itensis",
+    "sendLabel": "Envio di dokumentu o objetu"
   },
   "orderTracking": {
     "title": "Pedidu",
@@ -617,7 +618,24 @@
     "deliveryCodeHint": "Mostra es kodigu pa motorista ora ki i tchiga",
     "callAboutOrder": "Liga riba di pididu",
     "callRestaurant": "Liga pa resturanti",
-    "callDriver": "Liga pa motorista"
+    "callDriver": "Liga pa motorista",
+    "sendTitle": "Envio",
+    "sendBadge": "Envio di dokumentu o objetu",
+    "sendBadgeHint": "I ka pedidu di resturanti: bu ta paga son entrega.",
+    "sendDetails": "Detalis di envio",
+    "destination": "Destinu",
+    "cancelOrder": "Anula pedidu",
+    "cancelSend": "Anula envio",
+    "cancelUntilRestaurant": "Bu pudi anula ti ora ku resturanti kofirma pedidu.",
+    "cancelUntilDriver": "Bu pudi anula ti ora ku un motorista aseta envio.",
+    "cancelClosedRestaurant": "Resturanti dja kofirma pedidu: bu ka pudi anula-l mas na app. Pa anula, liga pa resturanti.",
+    "cancelClosedSend": "Un motorista dja aseta es envio: bu ka pudi anula-l mas na app. Papia ku motorista.",
+    "cancelConfirmTitle": "Anula es pedidu?",
+    "cancelConfirmBody": "Dipus di anuladu, i ka ta pudi torna abri.",
+    "cancelConfirmYes": "Sin, anula",
+    "cancelConfirmNo": "Nau, disa-l",
+    "cancelled": "Pedidu anuladu.",
+    "cancelError": "Ka pudi anula."
   },
   "orderStatus": {
     "novo": "Pedidu Nobu",
@@ -1277,5 +1295,20 @@
     "cashOnDelivery": "Dinheru na entrega",
     "orangeMoneyPaid": "Orange Money — pagadu",
     "orangeMoneyPending": "Orange Money — pa validadu"
+  },
+  "orderTotals": {
+    "food": "Kumida",
+    "deliveryFee": "Taxa di entrega",
+    "deliveryShort": "entrega"
+  },
+  "orderPlaced": {
+    "title": "Pedidu mandadu!",
+    "titleSend": "Envio kriadu!",
+    "titleRepeated": "Es envio dja staba kriadu",
+    "number": "Numuru #{{number}}",
+    "body": "Bu sta na pagina di bu pedidu: li bu ta odja kada pasu, ti i tchiga na bo.",
+    "bodySend": "Bu sta na pagina di bu envio: li bu ta odja ora ku motorista aseta-l, panha-l i entrega-l.",
+    "later": "Bu ta atcha-l sempri na Pedidus, na menu di baxu.",
+    "ok": "N ntindi"
   }
 }

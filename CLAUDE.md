@@ -1632,6 +1632,49 @@ dono):**
 próprio shell que corre o comando (o padrão está no texto dele) e matam-no a
 meio. Parar o servidor pelo PID guardado ao arrancá-lo.
 
+## Acompanhamento, confirmação e cancelamento pelo cliente (2026-09-26)
+
+Quatro pontos achados pelo dono a usar a app real.
+
+- **Separadores do painel do restaurante sobrepunham-se.** O `TabsTrigger` base
+  traz `whitespace-nowrap`; "Confirmados (1)" era mais largo que a célula e
+  escrevia por cima de "Preparação (1)" — a 320, 360 **e 1280 px** (o
+  `lg:grid-cols-7` contava a largura do ecrã, mas o painel é estreito: células de
+  87 px). Agora 2/3/4 colunas, rótulo que quebra dentro da célula, contador em
+  linha própria. Medido por geometria no browser: 0 colisões e 0 palavras
+  partidas em pt/en/fr/kri × 6 larguras.
+- **Um envio parecia um pedido de comida com a comida a zero.** Detecta-se por
+  `business_id` nulo (`ehEnvio`, garantido pelo CHECK `orders_kind_coerente`) —
+  `get_customer_orders` não devolve `kind`, e acrescentá-lo obrigava a DROP da
+  função e a repor GRANTs. No acompanhamento: etiqueta de envio no topo, sem linha
+  "Comida", linha do tempo sem cozinha (começa em `aguardando_motorista`). Na
+  lista "Pedidos": "📦 Envio…" em vez de nome vazio e "0 itens". O texto fixo de
+  `OrderTotals` ("Comida"/"Taxa de entrega") entrou no i18n.
+- **Confirmação ao criar o pedido:** os dois fluxos (checkout e Enviar) levam ao
+  `/pedido/:id` com estado de navegação `{ criado }`, e o `OrderPlacedDialog`
+  abre por cima — o ecrã por trás é a resposta a "onde o sigo?". Diz também até
+  quando pode cancelar. Fechar limpa o estado: um refresh não o reabre.
+  **Mudança de comportamento:** o pedido de restaurante deixou de ficar na
+  página da loja com um toast; vai para o acompanhamento.
+- **Cancelamento pelo cliente — a regra do servidor não mudou.** Auditada por
+  HTTP com JWT normal (`scripts/cancelamento-cliente-test.mjs`, 18 assertivas):
+  restaurante só em `novo`; envio em `novo`/`aguardando_motorista`; o stock
+  volta; a oferta sai da lista do motorista; estranho não cancela. **O que
+  faltava era o ecrã: nenhum ecrã do cliente oferecia cancelar.** Agora o
+  acompanhamento mostra o botão dentro da janela, com "até quando", e fora dela
+  diz porquê e a quem ligar. `canTransition` no frontend passou a conhecer a
+  janela do envio (`clientePodeCancelar`).
+- **Em aberto, decisão do dono:** o "prazo" é hoje o ESTADO (até o restaurante
+  confirmar / um motorista aceitar), não minutos fixos. Se se quiser um relógio
+  (ex.: 2 minutos), é uma mudança em `update_order_status` e na matriz.
+
+**Achado lateral corrigido:** no acompanhamento, os totais estavam dentro de um
+`flex justify-between` que os encolhia — "Taxa de entrega500 CFA" colado.
+
+**Armadilha de teste registada:** o Radix põe o resto da página `aria-hidden`
+enquanto um diálogo está aberto — `getByRole` deixa de encontrar os botões por
+trás, e parece que "desapareceram". Medir pelo texto, não pela ausência do botão.
+
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 
 O dono reportou que, ao tocar em "Entrar" no ecrã de entrada, chegava a páginas

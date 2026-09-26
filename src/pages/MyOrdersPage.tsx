@@ -19,6 +19,7 @@ import { LoadError } from "@/components/LoadError";
 import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 import { OrderTotals } from "@/components/OrderTotals";
+import { ehEnvio } from "@/hooks/useOrders";
 
 const STATUS_LABELS: Record<string, { key: string; color: string }> = {
   novo: { key: "orderStatus.novo", color: "bg-blue-100 text-blue-800" },
@@ -112,9 +113,13 @@ const MyOrdersPage = () => {
                             {t(statusInfo.key)}
                           </Badge>
                         </div>
-                        <p className="text-sm font-medium truncate">{order.business_name}</p>
+                        {/* Um envio não tem restaurante nem artigos: sem isto
+                            aparecia sem nome e com "0 itens". */}
+                        <p className="text-sm font-medium truncate">
+                          {ehEnvio(order) ? `📦 ${t("myOrders.sendLabel")}` : order.business_name}
+                        </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {order.items.length} {t("myOrders.items")} ·{" "}
+                          {!ehEnvio(order) && <>{order.items.length} {t("myOrders.items")} ·{" "}</>}
                           <OrderTotals
                             variant="inline"
                             total={order.total}

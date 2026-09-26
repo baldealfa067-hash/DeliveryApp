@@ -37,6 +37,14 @@ export interface Order {
   driver_phone?: string | null;
 }
 
+/**
+ * Um envio (Fase 7) é o único pedido sem restaurante: o CHECK
+ * `orders_kind_coerente` obriga `business_id` nulo num envio e preenchido em
+ * todos os outros. Por isso chega o `business_id` — `get_customer_orders` não
+ * devolve `kind`, e acrescentá-lo obrigava a DROP da função e a repor GRANTs.
+ */
+export const ehEnvio = (order: { business_id?: string | null }): boolean => !order.business_id;
+
 export interface OrderHistoryEntry {
   status: string;
   note: string | null;

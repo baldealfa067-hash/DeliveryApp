@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { formatCFA } from "@/lib/format";
 
 /**
@@ -45,6 +46,7 @@ export const OrderTotals = ({
   consumptionOption,
   labelTotal,
   variant = "full",
+  envio = false,
 }: {
   total: number;
   deliveryFee?: number | null;
@@ -52,7 +54,14 @@ export const OrderTotals = ({
   /** Rótulo do total, para reaproveitar as traduções já existentes. */
   labelTotal?: string;
   variant?: Variante;
+  /**
+   * Um envio (Fase 7) não tem comida: `total` é 0 por CHECK e o cliente paga só
+   * a taxa. Mostrar "Comida: 0 CFA" fazia-o parecer um pedido de restaurante
+   * com um erro — a linha sai, fica a taxa e o total.
+   */
+  envio?: boolean;
 }) => {
+  const { t } = useTranslation();
   const temTaxa = temTaxaDeEntrega(consumptionOption, deliveryFee);
   const aPagar = totalAPagar(total, consumptionOption, deliveryFee);
 
@@ -69,7 +78,7 @@ export const OrderTotals = ({
         <span className="block text-price text-primary">{formatCFA(total)}</span>
         {temTaxa && (
           <span className="block whitespace-nowrap text-caption text-muted-foreground">
-            + {formatCFA(deliveryFee)} entrega
+            + {formatCFA(deliveryFee)} {t("orderTotals.deliveryShort")}
           </span>
         )}
       </span>
@@ -87,12 +96,14 @@ export const OrderTotals = ({
 
   return (
     <div className="space-y-1">
+      {!envio && (
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">{t("orderTotals.food")}</span>
+          <span>{formatCFA(total)}</span>
+        </div>
+      )}
       <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">Comida</span>
-        <span>{formatCFA(total)}</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">Taxa de entrega</span>
+        <span className="text-muted-foreground">{t("orderTotals.deliveryFee")}</span>
         <span>{formatCFA(deliveryFee)}</span>
       </div>
       <div className="flex justify-between border-t pt-1">

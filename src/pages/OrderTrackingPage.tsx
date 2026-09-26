@@ -1,10 +1,9 @@
-import { useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   ArrowLeft,
   Package,
-  Clock,
-  CheckCircle2,
   XCircle,
   Loader2,
   MessageSquare,
@@ -15,25 +14,38 @@ import { LoadError } from "@/components/LoadError";
 import { RateOrder } from "@/components/RateOrder";
 import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { OrderPlacedDialog, type AcabadoDeCriar } from "@/components/OrderPlacedDialog";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useCustomerOrders,
-  useBusinessOrders,
   useOrderHistory,
   useUpdateOrderStatus,
+  ehEnvio,
   type Order,
 } from "@/hooks/useOrders";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { formatCFA } from "@/lib/format";
+import { clientePodeCancelar } from "@/lib/orderTransitions";
 import { OrderTotals } from "@/components/OrderTotals";
-import { supabase } from "@/integrations/supabase/client";
 
 const DELIVERY_STATUS_FLOW = [
   "novo",
   "confirmado",
   "em_preparacao",
   "pronto",
+  "aguardando_motorista",
+  "motorista_encontrado",
+  "pedido_recolhido",
+  "a_caminho",
+  "concluido",
+];
+
+// Um envio nasce em `aguardando_motorista` (Fase 7): não passa por confirmar nem
+// preparar. Com a lista do restaurante, os quatro primeiros passos apareciam
+// como "feitos" num pedido que nunca teve cozinha.
+const SEND_STATUS_FLOW = [
   "aguardando_motorista",
   "motorista_encontrado",
   "pedido_recolhido",
@@ -67,15 +79,23 @@ const OrderTrackingPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     data: customerOrders = [],
     isLoading: aCarregar,
+    isFetching,
     isError: falhou,
     refetch,
   } = useCustomerOrders(user?.id ?? null);
   const { data: history = [] } = useOrderHistory(id ?? null);
+  const updateStatus = useUpdateOrderStatus();
+  const queryClient = useQueryClient();
+  const [confirmarCancelar, setConfirmarCancelar] = useState(false);
 
   const order = customerOrders.find((o) => o.id === id);
+  const chegada = (location.state ?? {}) as AcabadoDeCriar;
+  // Fecha-se trocando o estado da navegação: um refresh depois já não reabre.
+  const fecharConfirmacao = () => navigate(location.pathname, { replace: true, state: null });
 
   if (!user) {
     navigate("/login", { replace: true });
@@ -95,7 +115,9 @@ const OrderTrackingPage = () => {
     );
   }
 
-  if (aCarregar) {
+  // Acabado de criar, a lista em cache ainda não tem o pedido novo: enquanto
+  // volta a ler, é "a carregar" — não "pedido não encontrado".
+  if (aCarregar || (!order && isFetching)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -117,8 +139,37 @@ const OrderTrackingPage = () => {
     );
   }
 
-  const statusFlow = order.consumption_option === "entrega" ? DELIVERY_STATUS_FLOW : LOCAL_STATUS_FLOW;
+  const envio = ehEnvio(order);
+  const statusFlow = envio
+    ? SEND_STATUS_FLOW
+    : order.consumption_option === "entrega" ? DELIVERY_STATUS_FLOW : LOCAL_STATUS_FLOW;
   const currentStatusIndex = statusFlow.indexOf(order.status);
+  // Quem decide é o servidor (`update_order_status`); isto só esconde o botão
+  // fora da janela, para não oferecer o que ele vai recusar.
+  const podeCancelar = clientePodeCancelar(order.status, envio);
+  const terminado = order.status === "concluido" || order.status === "cancelado";
+
+  const cancelar = () =>
+    updateStatus.mutate(
+      { orderId: order.id, newStatus: "cancelado", note: "Cancelado pelo cliente" },
+      {
+        onSuccess: () => {
+          // O servidor já disse que sim: o ecrã passa já a "cancelado", sem
+          // esperar pela re-leitura. Senão, durante esse intervalo, o aviso
+          // dizia "cancelado" com o botão de cancelar ainda activo por baixo.
+          queryClient.setQueryData<Order[]>(["customer-orders", user.id], (lista) =>
+            lista?.map((o) => (o.id === order.id ? { ...o, status: "cancelado" } : o)),
+          );
+          setConfirmarCancelar(false);
+          toast.success(t("orderTracking.cancelled"));
+        },
+        onError: (e: unknown) => {
+          setConfirmarCancelar(false);
+          toast.error((e as { message?: string })?.message ?? t("orderTracking.cancelError"));
+          void refetch();
+        },
+      },
+    );
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-20">
@@ -126,11 +177,27 @@ const OrderTrackingPage = () => {
         <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-lg font-bold">{t("orderTracking.title")} #{order.order_number}</h1>
-          <p className="text-xs text-muted-foreground">{order.business_name}</p>
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold">
+            {envio ? t("orderTracking.sendTitle") : t("orderTracking.title")} #{order.order_number}
+          </h1>
+          {!envio && <p className="truncate text-xs text-muted-foreground">{order.business_name}</p>}
         </div>
       </div>
+
+      {/* Um envio não é um pedido de restaurante, e tem de se ver à primeira:
+          sem isto o ecrã era o de um pedido de comida com a comida a zero. */}
+      {envio && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border bg-muted/60 p-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background">
+            <Package className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">{t("orderTracking.sendBadge")}</p>
+            <p className="text-xs text-muted-foreground">{t("orderTracking.sendBadgeHint")}</p>
+          </div>
+        </div>
+      )}
 
       {/* Status Banner */}
       <Card className="mb-4 border-primary/20">
@@ -148,6 +215,34 @@ const OrderTrackingPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Até quando se cancela (2026-09-26). A regra já existia no servidor desde
+          a Fase 1 (restaurante) e a 7.1 (envio), mas nenhum ecrã a oferecia: o
+          cliente não tinha como cancelar nem sabia que podia. Fora da janela,
+          diz-se porquê e a quem ligar, em vez de o botão só desaparecer. */}
+      {podeCancelar ? (
+        <Card className="mb-4">
+          <CardContent className="space-y-3 p-4">
+            <p className="text-sm">
+              {envio ? t("orderTracking.cancelUntilDriver") : t("orderTracking.cancelUntilRestaurant")}
+            </p>
+            <Button
+              variant="outline"
+              className="w-full border-problem text-problem hover:bg-problem-soft hover:text-problem"
+              onClick={() => setConfirmarCancelar(true)}
+            >
+              <XCircle className="h-4 w-4" />
+              {envio ? t("orderTracking.cancelSend") : t("orderTracking.cancelOrder")}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        !terminado && (
+          <p className="mb-4 px-1 text-xs text-muted-foreground">
+            {envio ? t("orderTracking.cancelClosedSend") : t("orderTracking.cancelClosedRestaurant")}
+          </p>
+        )
+      )}
 
       {/* Ligar sobre o pedido (§52: "quem está cuidando dele?"). O telefone do
           motorista só chega do servidor enquanto ele está com o pedido. Um envio
@@ -189,7 +284,9 @@ const OrderTrackingPage = () => {
       {/* Order Items */}
       <Card className="mb-4">
         <CardContent className="p-4">
-          <h2 className="text-sm font-semibold mb-2">{t("orderTracking.orderDetails")}</h2>
+          <h2 className="text-sm font-semibold mb-2">
+            {envio ? t("orderTracking.sendDetails") : t("orderTracking.orderDetails")}
+          </h2>
           <div className="space-y-1.5">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm">
@@ -197,12 +294,15 @@ const OrderTrackingPage = () => {
                 <span className="font-medium">{formatCFA(item.price * item.qty)}</span>
               </div>
             ))}
-            <div className="flex justify-between text-sm font-bold border-t pt-1.5 mt-1.5">
+            {/* Bloco, não `flex justify-between`: dentro de um flex os totais
+                encolhiam à largura do texto e "Taxa de entrega" colava ao valor. */}
+            <div className={envio ? undefined : "border-t pt-1.5 mt-1.5"}>
               <OrderTotals
                 total={order.total}
                 deliveryFee={order.delivery_fee}
                 consumptionOption={order.consumption_option}
                 labelTotal={t("orderTracking.total")}
+                envio={envio}
               />
             </div>
           </div>
@@ -295,7 +395,9 @@ const OrderTrackingPage = () => {
       {order.address && (
         <Card className="mb-4">
           <CardContent className="p-4">
-            <h2 className="text-sm font-semibold mb-1">{t("orderTracking.deliveryAddress")}</h2>
+            <h2 className="text-sm font-semibold mb-1">
+              {envio ? t("orderTracking.destination") : t("orderTracking.deliveryAddress")}
+            </h2>
             <p className="text-sm text-muted-foreground">{order.address}</p>
           </CardContent>
         </Card>
@@ -313,6 +415,26 @@ const OrderTrackingPage = () => {
         </Link>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmarCancelar}
+        onOpenChange={setConfirmarCancelar}
+        title={t("orderTracking.cancelConfirmTitle")}
+        description={t("orderTracking.cancelConfirmBody")}
+        confirmLabel={t("orderTracking.cancelConfirmYes")}
+        cancelLabel={t("orderTracking.cancelConfirmNo")}
+        destructive
+        busy={updateStatus.isPending}
+        onConfirm={cancelar}
+      />
+
+      <OrderPlacedDialog
+        open={!!chegada.criado}
+        onClose={fecharConfirmacao}
+        envio={envio}
+        repetido={chegada.repetido}
+        orderNumber={order.order_number}
+      />
     </div>
   );
 };

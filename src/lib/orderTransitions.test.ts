@@ -74,6 +74,18 @@ describe("máquina de estados do pedido — limites por actor", () => {
     expect(canTransition("confirmado", "cancelado", "customer")).toBe(false);
     expect(canTransition("em_preparacao", "cancelado", "customer")).toBe(false);
     expect(canTransition("novo", "confirmado", "customer")).toBe(false);
+    // Um pedido de restaurante à espera de motorista já foi confirmado há muito.
+    expect(canTransition("aguardando_motorista", "cancelado", "customer")).toBe(false);
+  });
+
+  it("num envio, o cliente cancela até um motorista aceitar — e não depois", () => {
+    expect(canTransition("aguardando_motorista", "cancelado", "customer", true)).toBe(true);
+    expect(canTransition("novo", "cancelado", "customer", true)).toBe(true);
+    expect(canTransition("motorista_encontrado", "cancelado", "customer", true)).toBe(false);
+    expect(canTransition("pedido_recolhido", "cancelado", "customer", true)).toBe(false);
+    expect(canTransition("a_caminho", "cancelado", "customer", true)).toBe(false);
+    // A janela mais larga do envio é só para cancelar.
+    expect(canTransition("aguardando_motorista", "motorista_encontrado", "customer", true)).toBe(false);
   });
 
   it("o motorista não confirma nem prepara pedidos", () => {

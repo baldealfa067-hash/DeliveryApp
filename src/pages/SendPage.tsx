@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { VoiceRecorderField } from "@/components/VoiceRecorderField";
+import type { AcabadoDeCriar } from "@/components/OrderPlacedDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useBairros } from "@/hooks/useBairros";
 import { useGeolocation } from "@/hooks/useGeolocation";
@@ -109,10 +110,10 @@ const SendPage = () => {
         telefone: telefone.trim(),
       },
       {
-        onSuccess: (r) => {
-          toast.success(r.repetido ? t("sendPage.alreadyCreated") : t("sendPage.created", { number: r.order_number }));
-          navigate(`/pedido/${r.order_id}`);
-        },
+        // A confirmação é o OrderPlacedDialog, já no ecrã do envio.
+        onSuccess: (r) => navigate(`/pedido/${r.order_id}`, {
+          state: { criado: true, repetido: !!r.repetido } satisfies AcabadoDeCriar,
+        }),
         onError: (e) => toast.error(e.message),
       },
     );

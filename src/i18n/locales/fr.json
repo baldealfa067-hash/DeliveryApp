@@ -1164,7 +1164,8 @@
     "emptyHint": "Passez votre première commande dans un restaurant.",
     "browseRestaurants": "Parcourir les Restaurants",
     "loginRequired": "Connectez-vous pour voir vos commandes.",
-    "items": "articles"
+    "items": "articles",
+    "sendLabel": "Envoi de document ou d'objet"
   },
   "orderTracking": {
     "title": "Commande",
@@ -1183,7 +1184,24 @@
     "deliveryCodeHint": "Montrez ce code au livreur à son arrivée",
     "callAboutOrder": "Appeler au sujet de la commande",
     "callRestaurant": "Appeler le restaurant",
-    "callDriver": "Appeler le livreur"
+    "callDriver": "Appeler le livreur",
+    "sendTitle": "Envoi",
+    "sendBadge": "Envoi de document ou d'objet",
+    "sendBadgeHint": "Ce n'est pas une commande de restaurant : vous ne payez que la livraison.",
+    "sendDetails": "Détails de l'envoi",
+    "destination": "Destination",
+    "cancelOrder": "Annuler la commande",
+    "cancelSend": "Annuler l'envoi",
+    "cancelUntilRestaurant": "Vous pouvez annuler jusqu'à ce que le restaurant confirme la commande.",
+    "cancelUntilDriver": "Vous pouvez annuler jusqu'à ce qu'un livreur accepte l'envoi.",
+    "cancelClosedRestaurant": "Le restaurant a déjà confirmé la commande : elle ne peut plus être annulée dans l'app. Pour annuler, appelez le restaurant.",
+    "cancelClosedSend": "Un livreur a déjà accepté cet envoi : il ne peut plus être annulé dans l'app. Parlez au livreur.",
+    "cancelConfirmTitle": "Annuler cette commande ?",
+    "cancelConfirmBody": "Une fois annulée, elle ne peut pas être rouverte.",
+    "cancelConfirmYes": "Oui, annuler",
+    "cancelConfirmNo": "Non, garder",
+    "cancelled": "Commande annulée.",
+    "cancelError": "Impossible d'annuler."
   },
   "orderStatus": {
     "novo": "Nouvelle commande",
@@ -1591,5 +1609,20 @@
     "cashOnDelivery": "Espèces à la livraison",
     "orangeMoneyPaid": "Orange Money — payé",
     "orangeMoneyPending": "Orange Money — à valider"
+  },
+  "orderTotals": {
+    "food": "Repas",
+    "deliveryFee": "Frais de livraison",
+    "deliveryShort": "livraison"
+  },
+  "orderPlaced": {
+    "title": "Commande envoyée !",
+    "titleSend": "Envoi créé !",
+    "titleRepeated": "Cet envoi était déjà créé",
+    "number": "Numéro #{{number}}",
+    "body": "Voici la page de votre commande : suivez chaque étape ici jusqu'à la livraison.",
+    "bodySend": "Voici la page de votre envoi : voyez ici quand un livreur l'accepte, le récupère et le livre.",
+    "later": "Vous la retrouverez toujours dans Commandes, dans le menu en bas.",
+    "ok": "Compris"
   }
 }

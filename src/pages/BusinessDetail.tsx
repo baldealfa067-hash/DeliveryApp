@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/PhoneInput";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import type { AcabadoDeCriar } from "@/components/OrderPlacedDialog";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -427,7 +428,6 @@ const BusinessDetail = () => {
         paymentMethod: activeConsumption === "entrega" ? paymentMethod : "entrega",
         paymentProofUrl: paymentMethod === "online" ? paymentProofUrl || undefined : undefined,
       });
-      toast.success(t("businessDetail.orderSuccess"));
       setCart({});
       setBairro("");
       setReferencePoint("");
@@ -443,6 +443,9 @@ const BusinessDetail = () => {
       setPaymentProofUrl(null);
       setPaymentProofPreview(null);
       setVoiceFieldKey((k) => k + 1);
+      // O sinal de que resultou é o ecrã do pedido, com a confirmação por cima
+      // (OrderPlacedDialog). Um toast em cima da loja passava despercebido.
+      navigate(`/pedido/${orderId}`, { state: { criado: true } satisfies AcabadoDeCriar });
     } catch (err) {
       console.error("[order] error:", err);
       const msg = err instanceof Error ? err.message : String(err);

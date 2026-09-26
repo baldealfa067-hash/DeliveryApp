@@ -1164,7 +1164,8 @@
     "emptyHint": "Faça o seu primeiro pedido num restaurante.",
     "browseRestaurants": "Explorar Restaurantes",
     "loginRequired": "Faça login para ver os seus pedidos.",
-    "items": "itens"
+    "items": "itens",
+    "sendLabel": "Envio de documento ou objeto"
   },
   "orderTracking": {
     "title": "Pedido",
@@ -1183,7 +1184,24 @@
     "deliveryCodeHint": "Mostra este código ao motorista quando chegar",
     "callAboutOrder": "Ligar sobre o pedido",
     "callRestaurant": "Ligar ao restaurante",
-    "callDriver": "Ligar ao motorista"
+    "callDriver": "Ligar ao motorista",
+    "sendTitle": "Envio",
+    "sendBadge": "Envio de documento ou objeto",
+    "sendBadgeHint": "Não é um pedido de restaurante: pagas só a entrega.",
+    "sendDetails": "Detalhes do envio",
+    "destination": "Destino",
+    "cancelOrder": "Cancelar pedido",
+    "cancelSend": "Cancelar envio",
+    "cancelUntilRestaurant": "Podes cancelar até o restaurante confirmar o pedido.",
+    "cancelUntilDriver": "Podes cancelar até um motorista aceitar o envio.",
+    "cancelClosedRestaurant": "O restaurante já confirmou o pedido: já não o podes cancelar na app. Para isso, liga ao restaurante.",
+    "cancelClosedSend": "Um motorista já aceitou este envio: já não o podes cancelar na app. Fala com o motorista.",
+    "cancelConfirmTitle": "Cancelar este pedido?",
+    "cancelConfirmBody": "Depois de cancelado, não se pode reabrir.",
+    "cancelConfirmYes": "Sim, cancelar",
+    "cancelConfirmNo": "Não, manter",
+    "cancelled": "Pedido cancelado.",
+    "cancelError": "Não foi possível cancelar."
   },
   "orderStatus": {
     "novo": "Novo Pedido",
@@ -1591,5 +1609,20 @@
     "cashOnDelivery": "Dinheiro na entrega",
     "orangeMoneyPaid": "Orange Money — pago",
     "orangeMoneyPending": "Orange Money — por validar"
+  },
+  "orderTotals": {
+    "food": "Comida",
+    "deliveryFee": "Taxa de entrega",
+    "deliveryShort": "entrega"
+  },
+  "orderPlaced": {
+    "title": "Pedido enviado!",
+    "titleSend": "Envio criado!",
+    "titleRepeated": "Este envio já estava criado",
+    "number": "Número #{{number}}",
+    "body": "Estás na página do teu pedido: aqui vês cada passo, até chegar a ti.",
+    "bodySend": "Estás na página do teu envio: aqui vês quando um motorista o aceita, recolhe e entrega.",
+    "later": "Também o encontras sempre em Pedidos, no menu em baixo.",
+    "ok": "Entendi"
   }
 }

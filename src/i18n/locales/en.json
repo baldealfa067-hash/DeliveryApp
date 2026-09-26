@@ -1164,7 +1164,8 @@
     "emptyHint": "Place your first order at a restaurant.",
     "browseRestaurants": "Browse Restaurants",
     "loginRequired": "Please log in to view your orders.",
-    "items": "items"
+    "items": "items",
+    "sendLabel": "Document or parcel delivery"
   },
   "orderTracking": {
     "title": "Order",
@@ -1183,7 +1184,24 @@
     "deliveryCodeHint": "Show this code to the driver when they arrive",
     "callAboutOrder": "Call about this order",
     "callRestaurant": "Call the restaurant",
-    "callDriver": "Call the driver"
+    "callDriver": "Call the driver",
+    "sendTitle": "Delivery",
+    "sendBadge": "Document or parcel delivery",
+    "sendBadgeHint": "Not a restaurant order: you only pay for the delivery.",
+    "sendDetails": "Delivery details",
+    "destination": "Destination",
+    "cancelOrder": "Cancel order",
+    "cancelSend": "Cancel delivery",
+    "cancelUntilRestaurant": "You can cancel until the restaurant confirms the order.",
+    "cancelUntilDriver": "You can cancel until a driver accepts the delivery.",
+    "cancelClosedRestaurant": "The restaurant has already confirmed the order, so it can no longer be cancelled in the app. To cancel, call the restaurant.",
+    "cancelClosedSend": "A driver has already accepted this delivery, so it can no longer be cancelled in the app. Talk to the driver.",
+    "cancelConfirmTitle": "Cancel this order?",
+    "cancelConfirmBody": "Once cancelled, it cannot be reopened.",
+    "cancelConfirmYes": "Yes, cancel",
+    "cancelConfirmNo": "No, keep it",
+    "cancelled": "Order cancelled.",
+    "cancelError": "Could not cancel."
   },
   "orderStatus": {
     "novo": "New Order",
@@ -1591,5 +1609,20 @@
     "cashOnDelivery": "Cash on delivery",
     "orangeMoneyPaid": "Orange Money — paid",
     "orangeMoneyPending": "Orange Money — awaiting check"
+  },
+  "orderTotals": {
+    "food": "Food",
+    "deliveryFee": "Delivery fee",
+    "deliveryShort": "delivery"
+  },
+  "orderPlaced": {
+    "title": "Order placed!",
+    "titleSend": "Delivery requested!",
+    "titleRepeated": "This delivery was already requested",
+    "number": "Number #{{number}}",
+    "body": "This is your order page: follow every step here until it reaches you.",
+    "bodySend": "This is your delivery page: see here when a driver accepts, picks up and delivers it.",
+    "later": "You can always find it under Orders, in the menu below.",
+    "ok": "Got it"
   }
 }

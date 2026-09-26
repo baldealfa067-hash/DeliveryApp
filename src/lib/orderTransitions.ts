@@ -56,6 +56,23 @@ export const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   cancelado: [],
 };
 
+/**
+ * Até quando o cliente pode cancelar — o espelho do bloco `v_is_customer` de
+ * `update_order_status`. O prazo não é um relógio, é o momento em que outra
+ * pessoa se compromete com o pedido:
+ *
+ *  - pedido de restaurante: até o restaurante CONFIRMAR (`novo`);
+ *  - envio (Fase 7.1): até um motorista ACEITAR. Nasce em
+ *    `aguardando_motorista`, porque não há restaurante que confirme.
+ *
+ * Auditado por HTTP a 2026-09-26 (`scripts/cancelamento-cliente-test.mjs`).
+ */
+const JANELA_CANCELAR_RESTAURANTE: OrderStatus[] = ["novo"];
+const JANELA_CANCELAR_ENVIO: OrderStatus[] = ["novo", "aguardando_motorista"];
+
+export const clientePodeCancelar = (status: string, envio: boolean): boolean =>
+  (envio ? JANELA_CANCELAR_ENVIO : JANELA_CANCELAR_RESTAURANTE).includes(status as OrderStatus);
+
 /** O motorista só toca na parte logística da entrega que lhe foi atribuída. */
 const DRIVER_STATUSES: OrderStatus[] = ["pedido_recolhido", "a_caminho", "concluido"];
 
@@ -71,14 +88,16 @@ export const canTransition = (
   from: OrderStatus,
   to: OrderStatus,
   actor: Actor,
+  /** Só muda a decisão do cliente: um envio tem outra janela de cancelamento. */
+  envio = false,
 ): boolean => {
   // O admin é a válvula de correcção operacional (fica registada no histórico).
   if (actor === "admin") return true;
 
   if (!ALLOWED_TRANSITIONS[from]?.includes(to)) return false;
 
-  // O cliente só cancela, e só antes de o restaurante confirmar.
-  if (actor === "customer") return to === "cancelado" && from === "novo";
+  // O cliente só cancela, e só dentro da janela do tipo de pedido.
+  if (actor === "customer") return to === "cancelado" && clientePodeCancelar(from, envio);
 
   if (actor === "driver") return DRIVER_STATUSES.includes(to);
 
