@@ -1,14 +1,25 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Um grupo so, de proposito: um robo segue apenas o grupo mais especifico que o
+# nomeia. Com grupos proprios para Googlebot/Bingbot (como estava), os Disallow
+# abaixo nao se aplicavam a eles.
 User-agent: *
 Allow: /
+
+# Paineis e administracao
+Disallow: /admin
+Disallow: /painel-loja
+Disallow: /painel-frota
+Disallow: /painel-motorista
+
+# Conta e pedidos do cliente
+Disallow: /perfil
+Disallow: /meus-pedidos
+Disallow: /meus-agendamentos
+Disallow: /pedido/
+Disallow: /notificacoes
+
+# Autenticacao (a de redefinir traz um token no endereco)
+Disallow: /login
+Disallow: /esqueci-senha
+Disallow: /redefinir-senha
+
+Sitemap: https://www.itudoo.com/sitemap.xml

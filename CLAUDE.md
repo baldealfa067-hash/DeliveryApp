@@ -1685,6 +1685,32 @@ O histórico passou a ser relido quando o estado muda (antes lia-se uma vez).
 enquanto um diálogo está aberto — `getByRole` deixa de encontrar os botões por
 trás, e parece que "desapareceram". Medir pelo texto, não pela ausência do botão.
 
+## Sitemap e robots.txt para o Google Search Console (2026-09-26)
+
+O domínio está validado no Search Console por DNS. `/sitemap.xml` não existia,
+caía no rewrite genérico e saía a app em HTML — o Google rejeitava.
+
+- **`public/sitemap.xml`** — só páginas que um visitante sem conta vê: `/`,
+  `/inicio` (lista de restaurantes), `/sobre`, `/contacto`, `/termos`,
+  `/privacidade`. Tudo com `https://www.itudoo.com` (com www, que é o canónico:
+  o sem-www redirecciona com 308). **Ficam de fora de propósito:** `/explorar` e
+  `/landing` (o mesmo ecrã que `/inicio` e `/`: conteúdo duplicado), `/enviar`
+  (manda para o login sem sessão), `/models` (ecrã de logótipo que sobrou) e as
+  páginas de cada restaurante `/loja/:id` — um ficheiro estático com ids
+  desactualizava-se ao primeiro restaurante novo. Se se quiser indexar
+  restaurantes, é um sitemap gerado a partir da base, não este ficheiro.
+  **O `<lastmod>` é escrito à mão:** actualizá-lo quando estas páginas mudarem.
+- **`public/robots.txt`** — um grupo `User-agent: *` só, com `Disallow` para
+  painéis, admin, conta, pedidos e autenticação, e a linha `Sitemap:`.
+  **Armadilha registada:** tinha grupos próprios para Googlebot e Bingbot. Um
+  robô segue APENAS o grupo mais específico que o nomeia — os `Disallow` de `*`
+  não se aplicariam ao Googlebot. Não voltar a acrescentar grupos por robô sem
+  lhes copiar os `Disallow`.
+- **`vercel.json`** — o rewrite para `index.html` exclui explicitamente
+  `sitemap.xml` e `robots.txt`, e os dois têm `Content-Type` declarado. A Vercel
+  já servia um ficheiro existente antes do rewrite; a exclusão faz com que, se
+  um deles faltar, dê 404 em vez de HTML com 200 (que era o erro silencioso).
+
 ## Alarme "entrei sem conta" — investigado e fechado (2026-09-25)
 
 O dono reportou que, ao tocar em "Entrar" no ecrã de entrada, chegava a páginas
