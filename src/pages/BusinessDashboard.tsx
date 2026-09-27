@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { BUCKET_PRIVADO, caminhoPrivado } from "@/lib/armazenamentoPrivado";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
-  LogOut,
   Loader2,
   Settings,
   Eye,
@@ -27,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProviderStatsQuery } from "@/hooks/useProviderStats";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { LanguageSelector } from "@/components/LanguageSelector";
+import { PanelHeader } from "@/components/PanelHeader";
 import { useBusinessCategories } from "@/hooks/useProviders";
 import { translateCategoryName } from "@/lib/categoryI18n";
 import OrderManagement from "@/components/OrderManagement";
@@ -42,7 +40,6 @@ import { toast } from "sonner";
 import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
 import { ManualOrderDialog } from "@/components/ManualOrderDialog";
 import { BusinessCashSettlements } from "@/components/BusinessCashSettlements";
-import logo from "@/assets/itudoo-logo-preto.png";
 
 type DashboardProfile = {
   id: string;
@@ -201,28 +198,12 @@ const BusinessDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logo} alt="iTudoo" className="h-8 w-auto" />
-          <div className="flex items-center gap-2">
-            {/* Saída para a app pública. Vai a /inicio e não a "/": a raiz
-                devolve contas de trabalho ao seu painel, portanto usá-la aqui
-                dava um botão que não saía do sítio. */}
-            <Link to="/inicio">
-              <Button variant="outline" size="sm" className="gap-1 min-h-11">
-                <ArrowLeft className="h-4 w-4" /> {t("common.viewSite")}
-              </Button>
-            </Link>
-            <LanguageSelector />
-            {isAdmin && (
-              <Link to="/admin"><Button variant="outline" size="sm">{t("common.admin")}</Button></Link>
-            )}
-            <Button variant="ghost" size="sm" onClick={() => signOut().then(() => navigate("/"))} className="gap-1 min-h-11">
-              <LogOut className="h-4 w-4" /> {t("common.logout")}
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PanelHeader
+        onLogout={() => signOut().then(() => navigate("/"))}
+        extra={isAdmin && (
+          <Link to="/admin"><Button variant="outline" size="sm" className="min-h-11 px-2 sm:px-3">{t("common.admin")}</Button></Link>
+        )}
+      />
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-[calc(env(safe-area-inset-bottom))]">
         {!profile ? (
@@ -237,23 +218,27 @@ const BusinessDashboard = () => {
           </Card>
         ) : (
           <Tabs defaultValue="pedidos">
-            <TabsList className="w-full h-12 mb-4">
-              <TabsTrigger value="pedidos" className="flex-1 text-sm min-h-10 gap-1.5">
-                <ShoppingCart className="h-4 w-4" />
-                {t("businessDashboard.ordersManagement")}
-              </TabsTrigger>
-              <TabsTrigger value="vendas" className="flex-1 text-sm min-h-10 gap-1.5">
-                <TrendingUp className="h-4 w-4" />
-                {t("businessDashboard.salesTab")}
-              </TabsTrigger>
-              <TabsTrigger value="conta" className="flex-1 text-sm min-h-10 gap-1.5">
-                <DollarSign className="h-4 w-4" />
-                {t("businessDashboard.accountTab")}
-              </TabsTrigger>
-              <TabsTrigger value="perfil" className="flex-1 text-sm min-h-10 gap-1.5">
-                <Store className="h-4 w-4" />
-                {t("businessDashboard.profileTab")}
-              </TabsTrigger>
+            {/* Quatro colunas iguais, ícone por cima do rótulo, rótulo que
+                quebra dentro da sua célula. Numa linha só com `whitespace-nowrap`
+                (o TabsTrigger base) a barra media 405px a 360: "Pedidos" saía
+                pela esquerda e "Perfil" pela direita. Mesmo desenho dos
+                separadores de estado em OrderManagement. */}
+            <TabsList className="mb-4 grid h-auto w-full grid-cols-4 gap-1 p-1">
+              {([
+                ["pedidos", ShoppingCart, "businessDashboard.ordersManagement"],
+                ["vendas", TrendingUp, "businessDashboard.salesTab"],
+                ["conta", DollarSign, "businessDashboard.accountTab"],
+                ["perfil", Store, "businessDashboard.profileTab"],
+              ] as const).map(([valor, Icone, chave]) => (
+                <TabsTrigger
+                  key={valor}
+                  value={valor}
+                  className="flex min-h-14 min-w-0 flex-col items-center gap-1 whitespace-normal px-1 py-2 text-xs sm:text-sm"
+                >
+                  <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="w-full break-words text-center leading-tight">{t(chave)}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="pedidos" className="mt-0 space-y-3">
@@ -277,29 +262,26 @@ const BusinessDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Week + Month + Avg */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <Card>
-                      <CardContent className="p-3 flex flex-col items-center gap-1">
-                        <span className="text-[10px] text-muted-foreground uppercase">{t("businessDashboard.last7days")}</span>
-                        <span className="text-lg font-bold">{formatCFA(salesStats.week_total)}</span>
-                        <span className="text-[10px] text-muted-foreground">{salesStats.week_count} {t("businessDashboard.orders")}</span>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-3 flex flex-col items-center gap-1">
-                        <span className="text-[10px] text-muted-foreground uppercase">{t("businessDashboard.thisMonth")}</span>
-                        <span className="text-lg font-bold">{formatCFA(salesStats.month_total)}</span>
-                        <span className="text-[10px] text-muted-foreground">{salesStats.month_count} {t("businessDashboard.orders")}</span>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-3 flex flex-col items-center gap-1">
-                        <span className="text-[10px] text-muted-foreground uppercase">{t("businessDashboard.avgTicket")}</span>
-                        <span className="text-lg font-bold">{formatCFA(salesStats.avg_ticket)}</span>
-                        <span className="text-[10px] text-muted-foreground">{t("businessDashboard.perOrder")}</span>
-                      </CardContent>
-                    </Card>
+                  {/* Semana + mês + ticket médio. No telemóvel, uma coluna com o
+                      rótulo à esquerda e o valor à direita: em 3 colunas a 360px
+                      cada cartão tem ~80px, e "28 000 CFA" (inseparável) não cabe.
+                      A partir de 640px voltam as 3 colunas. */}
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+                    <CartaoVenda
+                      rotulo={t("businessDashboard.last7days")}
+                      valor={formatCFA(salesStats.week_total)}
+                      detalhe={`${salesStats.week_count} ${t("businessDashboard.orders")}`}
+                    />
+                    <CartaoVenda
+                      rotulo={t("businessDashboard.thisMonth")}
+                      valor={formatCFA(salesStats.month_total)}
+                      detalhe={`${salesStats.month_count} ${t("businessDashboard.orders")}`}
+                    />
+                    <CartaoVenda
+                      rotulo={t("businessDashboard.avgTicket")}
+                      valor={formatCFA(salesStats.avg_ticket)}
+                      detalhe={t("businessDashboard.perOrder")}
+                    />
                   </div>
 
                   {/* Chart */}
@@ -338,15 +320,15 @@ const BusinessDashboard = () => {
                     <div className="grid grid-cols-3 gap-3 text-center">
                       <div>
                         <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.due")}</span>
-                        <span className="text-lg font-bold">{formatCFA(commission.commission_due)}</span>
+                        <span className="text-base font-bold sm:text-lg">{formatCFA(commission.commission_due)}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.paid")}</span>
-                        <span className="text-lg font-bold text-success">{formatCFA(commission.commission_paid)}</span>
+                        <span className="text-base font-bold text-success sm:text-lg">{formatCFA(commission.commission_paid)}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-muted-foreground uppercase block">{t("commission.balance")}</span>
-                        <span className={"text-lg font-bold " + (commission.commission_balance > 0 ? "text-pending" : "text-success")}>
+                        <span className={"text-base font-bold sm:text-lg " + (commission.commission_balance > 0 ? "text-pending" : "text-success")}>
                           {formatCFA(commission.commission_balance)}
                         </span>
                       </div>
@@ -558,3 +540,18 @@ const BusinessDashboard = () => {
 };
 
 export default BusinessDashboard;
+
+/** Um total da aba Vendas: em linha no telemóvel, em coluna a partir de 640px.
+ *  `sm:contents` desfaz o bloco da esquerda para o `order` arrumar rótulo,
+ *  valor e detalhe um por baixo do outro. */
+const CartaoVenda = ({ rotulo, valor, detalhe }: { rotulo: string; valor: string; detalhe: string }) => (
+  <Card>
+    <CardContent className="flex items-center justify-between gap-3 p-3 sm:flex-col sm:justify-center sm:gap-1 sm:text-center">
+      <div className="min-w-0 sm:contents">
+        <span className="block text-[10px] uppercase text-muted-foreground sm:order-1">{rotulo}</span>
+        <span className="block text-[10px] text-muted-foreground sm:order-3">{detalhe}</span>
+      </div>
+      <span className="shrink-0 whitespace-nowrap text-lg font-bold sm:order-2">{valor}</span>
+    </CardContent>
+  </Card>
+);

@@ -217,14 +217,23 @@ describe("área pública", () => {
 describe("saídas dos painéis", () => {
   const paineis = ["AdminDashboard", "BusinessDashboard", "DriverDashboard"];
 
-  it.each(paineis)("%s tem uma saída visível para a área pública", (painel) => {
+  // Desde 2026-09-27 o cabeçalho do restaurante e do motorista é um componente
+  // partilhado (PanelHeader), que cabe a 360px. A saída pode estar no painel ou
+  // nele — mas tem de estar num dos dois, e o painel tem de o usar.
+  const lerPainel = (painel: string) => {
     const src = readFileSync(resolve(process.cwd(), `src/pages/${painel}.tsx`), "utf-8");
+    if (!src.includes("<PanelHeader")) return src;
+    return src + readFileSync(resolve(process.cwd(), "src/components/PanelHeader.tsx"), "utf-8");
+  };
+
+  it.each(paineis)("%s tem uma saída visível para a área pública", (painel) => {
+    const src = lerPainel(painel);
     expect(src).toContain('to="/inicio"');
     expect(src).toContain("common.viewSite");
   });
 
   it.each(paineis)("%s não usa \"/\" como saída, que devolveria ao painel", (painel) => {
-    const src = readFileSync(resolve(process.cwd(), `src/pages/${painel}.tsx`), "utf-8");
+    const src = lerPainel(painel);
     // Sair da sessão pode ir a "/" — aí não há sessão e a raiz mostra a
     // Landing. O que não pode é um <Link to="/"> de navegação.
     expect(src).not.toContain('<Link to="/"');

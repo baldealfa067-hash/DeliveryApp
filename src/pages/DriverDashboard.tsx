@@ -1,10 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
 import { AudioPrivado } from "@/components/MediaPrivada";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
-  LogOut,
   Settings,
   MapPin,
   Navigation,
@@ -57,6 +55,7 @@ import { TrendingUp, Route } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { PanelHeader } from "@/components/PanelHeader";
 import logo from "@/assets/itudoo-logo-preto.png";
 import { DeliveryPayload } from "@/components/DeliveryPayload";
 import { formatCFA } from "@/lib/format";
@@ -337,25 +336,9 @@ const DriverDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <img src={logo} alt="iTudoo" className="h-8 w-auto" />
-          <div className="flex items-center gap-2">
-            {/* Saída para a app pública. Já não há "sítio sem saída útil": um
-                motorista navega e encomenda como qualquer pessoa. Vai a
-                /inicio e não a "/", que devolveria a conta a este painel. */}
-            <Link to="/inicio">
-              <Button variant="outline" size="sm" className="gap-1 min-h-11">
-                <ArrowLeft className="h-4 w-4" /> {t("common.viewSite")}
-              </Button>
-            </Link>
-            <LanguageSelector />
-            <Button variant="ghost" size="sm" onClick={() => signOut().then(() => navigate("/"))} className="gap-1 min-h-11">
-              <LogOut className="h-4 w-4" /> {t("common.logout")}
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Saída para a app pública: um motorista navega e encomenda como
+          qualquer pessoa (§9). */}
+      <PanelHeader onLogout={() => signOut().then(() => navigate("/"))} />
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-[calc(env(safe-area-inset-bottom))]">
         {/* Driver Info + Availability Toggle */}

@@ -10,6 +10,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { OrderTotals } from "@/components/OrderTotals";
+import { useBairros } from "@/hooks/useBairros";
+import { useDeliveryPrice } from "@/hooks/useFleet";
 import { formatCFA } from "@/lib/format";
 
 /**
@@ -22,6 +26,12 @@ import { formatCFA } from "@/lib/format";
  *
  * Só aparecem artigos `is_orderable`: ligados pelo dono E com stock. Deixar
  * lançar um prato esgotado só levava a RPC a recusar depois de tudo preenchido.
+ *
+ * Com entrega, o bairro é ESCOLHIDO da mesma lista do checkout, nunca escrito
+ * (2026-09-27). Texto livre gravou "cupilum" em vez de "Cupelum": nenhuma frota,
+ * nenhuma taxa, pedido parado. A taxa mostrada vem de `get_delivery_price`, a
+ * mesma função que `create_manual_order` e `create_order` usam — e o servidor
+ * recusa um bairro sem frota em vez de gravar um pedido que ninguém entrega.
  */
 interface ItemMenu {
   id: string;
@@ -46,6 +56,14 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
   const [modo, setModo] = useState<"comer_no_local" | "para_levar" | "entrega">("comer_no_local");
   const [bairro, setBairro] = useState("");
   const [morada, setMorada] = useState("");
+
+  const { data: bairros = [] } = useBairros();
+  const { data: precoEntrega, isLoading: aCarregarPreco } = useDeliveryPrice(
+    modo === "entrega" && bairro ? bairro : null,
+  );
+  const taxa = modo === "entrega" ? precoEntrega?.preco ?? null : null;
+  const semFrota = modo === "entrega" && !!bairro && !aCarregarPreco && !precoEntrega;
+  const entregaIncompleta = modo === "entrega" && (!bairro || aCarregarPreco || !precoEntrega);
 
   const { data: menu = [] } = useQuery({
     queryKey: ["menu-para-manual", businessId],
@@ -137,7 +155,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
                     <p className="text-sm truncate">{m.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatCFA(m.price)}
-                      {m.track_stock && ` · ${m.stock_qty} em stock`}
+                      {m.track_stock && ` · ${t("manualOrder.inStock", { count: m.stock_qty ?? 0 })}`}
                     </p>
                   </div>
                   <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0"
@@ -174,17 +192,40 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
               value={telefone} onChange={(e) => setTelefone(e.target.value)} />
             {modo === "entrega" && (
               <>
-                <Input placeholder={t("manualOrder.bairro")} className="h-11"
-                  value={bairro} onChange={(e) => setBairro(e.target.value)} />
+                <div className="space-y-1.5 pt-1">
+                  <Label>{t("manualOrder.bairro")}</Label>
+                  <Select value={bairro} onValueChange={setBairro}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder={t("manualOrder.selectBairro")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bairros.map((b) => (
+                        <SelectItem key={b} value={b}>{b}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {semFrota && (
+                    <p className="text-xs text-problem">{t("manualOrder.noFleet", { bairro })}</p>
+                  )}
+                </div>
                 <Input placeholder={t("manualOrder.address")} className="h-11"
                   value={morada} onChange={(e) => setMorada(e.target.value)} />
               </>
             )}
           </div>
 
-          <div className="flex items-baseline justify-between border-t pt-3">
-            <span className="text-sm text-muted-foreground">{t("manualOrder.itemCount", { count: nArtigos })}</span>
-            <span className="text-xl font-bold">{formatCFA(totalPrevisto)}</span>
+          <div className="space-y-2 border-t pt-3">
+            <p className="text-sm text-muted-foreground">{t("manualOrder.itemCount", { count: nArtigos })}</p>
+            {/* O mesmo componente do acompanhamento: comida + taxa do bairro +
+                total. Sem bairro escolhido ainda não há taxa, e o número a
+                negrito é só a comida — não se chama "total a pagar" ao que
+                ainda vai crescer. */}
+            <OrderTotals
+              total={totalPrevisto}
+              deliveryFee={taxa}
+              consumptionOption={modo}
+              labelTotal={modo === "entrega" && taxa == null ? t("orderTotals.food") : t("manualOrder.totalToPay")}
+            />
           </div>
           <p className="text-xs text-muted-foreground -mt-2">
             {t("manualOrder.totalHint")}
@@ -199,7 +240,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
               </Button>
             )}
             <Button variant={modo === "entrega" ? "default" : "outline"}
-              className="w-full h-12" disabled={criar.isPending || nArtigos === 0}
+              className="w-full h-12" disabled={criar.isPending || nArtigos === 0 || entregaIncompleta}
               onClick={() => criar.mutate(false)}>
               {criar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {modo === "entrega" ? t("manualOrder.createAndDispatch") : t("manualOrder.createAsPreparing")}

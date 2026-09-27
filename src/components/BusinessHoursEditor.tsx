@@ -174,13 +174,17 @@ export const BusinessHoursEditor = ({ businessId }: { businessId: string }) => {
                   <p className="text-xs text-muted-foreground">{t("businessHours.closed")}</p>
                 ) : (
                   ps.map((p, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <Input type="time" className="h-10 flex-1" value={p.opens_at}
+                    // `min-w-0`: sem ele um <input type="time"> não encolhe abaixo da
+                    // sua largura natural, e a 360px o ✕ ficava fora do cartão e a
+                    // página deslizava para o lado.
+                    <div key={i} className="flex items-center gap-1.5">
+                      <Input type="time" className="h-10 min-w-0 flex-1 px-2" value={p.opens_at}
                         onChange={(e) => mudar(d, i, "opens_at", e.target.value)} />
-                      <span className="text-muted-foreground text-sm">→</span>
-                      <Input type="time" className="h-10 flex-1" value={p.closes_at}
+                      <span className="shrink-0 text-sm text-muted-foreground">→</span>
+                      <Input type="time" className="h-10 min-w-0 flex-1 px-2" value={p.closes_at}
                         onChange={(e) => mudar(d, i, "closes_at", e.target.value)} />
                       <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0"
+                        aria-label={t("businessHours.removePeriod")} title={t("businessHours.removePeriod")}
                         onClick={() => tirar(d, i)}>
                         <X className="h-4 w-4" />
                       </Button>

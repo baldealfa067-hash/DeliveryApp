@@ -44,3 +44,6 @@ graphify-out/
 
 # SQL de limpeza deixado pelo rls-http-test quando nao tem chave de admin
 scripts/.limpeza-pendente.sql
+
+# Dados da auditoria de layout (tem a palavra-passe das contas de teste)
+scripts/.layout-dados.json

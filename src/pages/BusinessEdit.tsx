@@ -717,14 +717,23 @@ const BusinessDashboard = () => {
                       )}
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium truncate">{item.name}</div>
-                        <div className="text-xs text-muted-foreground">{formatCFA(item.price)} · <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{categoryName(item.category_id)}</Badge></div>
+                        {/* Preço e categoria lado a lado, com quebra limpa: com um
+                            "·" entre os dois, a categoria comprida descia de linha
+                            e o ponto ficava pendurado depois do preço. */}
+                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+                          <span>{formatCFA(item.price)}</span>
+                          <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{categoryName(item.category_id)}</Badge>
+                        </div>
                         {/* O stock é a quantidade que resta hoje. Não se escreve
                             aqui à mão: passa pela RPC, que regista porque é que
                             mudou (§30 aplicado à comida). */}
                         {item.track_stock ? (
-                          <div className="mt-1 flex items-center gap-1.5">
+                          // flex-wrap + botões que não encolhem: numa linha só, a
+                          // 390-412px os − e + eram espremidos para 18px e o
+                          // "Deixar de controlar" ficava por cima do +.
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
                             <Button
-                              size="icon" variant="outline" className="h-8 w-8"
+                              size="icon" variant="outline" className="h-8 w-8 shrink-0"
                               aria-label={t("businessEdit.stockMinus")}
                               disabled={savingStock === item.id || (item.stock_qty ?? 0) <= 0}
                               onClick={() => ajustarStock(item, (item.stock_qty ?? 0) - 1)}
@@ -735,7 +744,7 @@ const BusinessDashboard = () => {
                               {item.stock_qty ?? 0}
                             </span>
                             <Button
-                              size="icon" variant="outline" className="h-8 w-8"
+                              size="icon" variant="outline" className="h-8 w-8 shrink-0"
                               aria-label={t("businessEdit.stockPlus")}
                               disabled={savingStock === item.id}
                               onClick={() => ajustarStock(item, (item.stock_qty ?? 0) + 1)}
@@ -760,7 +769,7 @@ const BusinessDashboard = () => {
                           </Button>
                         )}
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => setItemToDelete(item)}>
+                      <Button variant="ghost" size="icon" className="shrink-0" aria-label={t("common.delete")} onClick={() => setItemToDelete(item)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>

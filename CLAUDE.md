@@ -1618,11 +1618,10 @@ na página do restaurante e nas duas páginas órfãs. No lugar: o ecrã
 
 **Achados da auditoria de layout, reportados e NÃO corrigidos (à espera do
 dono):**
-- 🔴 `/pedido/:id` — o botão "Ligar ao restaurante" põe nome + telefone numa
-  linha sem quebra; com um nome comprido a página fica mais larga que o ecrã e
-  desliza para o lado.
-- 🟡 `/painel-loja` — a barra dos 4 separadores (Pedidos/Vendas/Conta
-  Corrente/Perfil) é mais larga que 390px; "Perfil" fica meio fora.
+- ✅ ~~`/pedido/:id` — o botão "Ligar ao restaurante" põe nome + telefone numa
+  linha sem quebra~~ — corrigido a 2026-09-27 (ver "Auditoria de layout").
+- ✅ ~~`/painel-loja` — a barra dos 4 separadores é mais larga que 390px~~ —
+  corrigido a 2026-09-27, com o cabeçalho, que também saía do ecrã.
 - 🔴 **`get_driver_daily_stats` dá HTTP 400 sempre** (o `generate_series` devolve
   `timestamp` e a função declara `date`) e, mesmo corrigido, conta
   `status = 'entregue'`, estado que já não existe desde a Fase 1 — o resumo do
@@ -1744,6 +1743,105 @@ O que saiu da investigação, e foi corrigido (aprovado pelo dono):
   - Testado por HTTP com JWT normal (`scripts/avaliacoes-test.mjs`, agora 27
     assertivas, com um controlo que prova que os "zero" vêm da policy). Há
     asserções na migração que rebentam se alguém reabrir a tabela.
+
+## Auditoria de layout em todo o sistema + bairro do pedido manual (2026-09-27)
+
+Pedido do dono, a testar no telemóvel contra www.itudoo.com.
+
+### Pedido manual: o bairro é ESCOLHIDO, nunca escrito (decisão do dono)
+
+O campo era texto livre. **Caso real:** o pedido manual **#12** foi gravado com
+"cupilum" em vez de "Cupelum"; `get_delivery_price` não casou, o pedido ficou sem
+frota e sem taxa, e está parado em `aguardando_motorista`. **Não lhe mexi** — é do
+dono decidir (corrigir o bairro e reoferecer, ou cancelar).
+
+- **Ecrã:** lista com os mesmos bairros do checkout (`useBairros`), taxa pela
+  mesma função (`useDeliveryPrice` → `get_delivery_price`), e o total a pagar em
+  `OrderTotals` (comida + taxa). "Lançar e procurar motorista" fica desligado sem
+  bairro com frota.
+- **Servidor** (`create_manual_order`, migração `pedido_manual_bairro_da_lista`,
+  transformação cirúrgica sobre a definição viva): com entrega, bairro
+  obrigatório **e com frota que o sirva**, senão recusa. A resolução continua a
+  ser `get_delivery_price` — a mesma do `create_order`, sem lógica paralela.
+- **Decisão minha, reversível:** um bairro sem frota é RECUSADO no pedido manual,
+  enquanto o checkout do cliente só avisa. Mesmo critério do envio (Fase 7): um
+  pedido que ninguém vai entregar fica preso — foi o #12. Hoje os 11 bairros têm
+  frota, portanto só se nota se uma frota desligar uma zona.
+- Testado por HTTP com JWT normal (`scripts/pedido-manual-bairro-test.mjs`, 11
+  assertivas, nunca conclui pedido: não toca no ledger) e no ecrã
+  (`ManualOrderDialog.test.tsx`, verificado por mutação contra o código antigo).
+
+### Auditoria de layout — como se mede
+
+`scripts/layout-audit.mjs` + `scripts/layout-dados-teste.mjs`: Playwright, 360 /
+375 / 390 / 412 px, todos os papéis, cada separador e sub-separador, e os
+diálogos principais. Mede por geometria (overflow, texto cortado, sobreposições,
+palavras e preços partidos, placeholders, fim da página por baixo da barra).
+Dados em produção pela API pública com a chave anon, marcados `layouttest-*`,
+isolados dos reais (restaurante sem categoria = fora da lista; frota só com
+bairros fictícios).
+
+### O que estava partido em PRODUÇÃO, e foi corrigido
+
+- 🔴 **Painel do restaurante — cabeçalho e separadores** (a "correção do
+  cabeçalho" que se julgava feita nunca tinha sido publicada: o `f62dc77` só
+  corrigiu os sub-separadores de estado). A linha "Ver site / PT / Sair" media
+  366px a 360, e a barra dos 4 separadores 405px — "Pedidos" saía pela esquerda,
+  "Perfil" pela direita, **às 4 larguras**. O **motorista** tinha o mesmo
+  cabeçalho. Agora é um componente só, `PanelHeader` ("Sair" só com ícone abaixo
+  de 640px, com aria-label), e a barra é uma grelha de 4 colunas com o rótulo a
+  quebrar dentro da célula.
+- 🔴 **Diálogo do pedido manual saía do ecrã pela esquerda**, às 4 larguras.
+  Causa no primitivo: o `DialogContent` é uma `grid`, e a coluna implícita não
+  encolhe abaixo do conteúdo — um nome de prato com `truncate` alargava o
+  diálogo inteiro. Corrigido em `dialog.tsx` e `alert-dialog.tsx`
+  (`grid-cols-[minmax(0,1fr)]`), o que protege todos os diálogos.
+- 🔴 **Acompanhamento do pedido** (4 estados, 4 larguras): botão "Ligar" com
+  nome comprido → página a 492px num ecrã de 360.
+- 🔴 **Editar perfil do restaurante:** o ✕ de cada período do horário ficava
+  fora do cartão (`<input type="time">` sem `min-w-0`) → página a deslizar; e na
+  linha do stock os − / + eram espremidos e "Deixar de controlar" ficava por cima.
+- 🟡 **Página da loja sem foto:** a inicial gigante centrada ficava por baixo de
+  um nome de 3-4 linhas. Agora inicial e nome vão em fluxo e a caixa cresce.
+- 🟡 **Placeholders cortados** (pesquisa, Enviar ×2, checkout, nova categoria,
+  morada do pedido manual): encurtados nos 4 idiomas.
+- 🟡 **Preço partido em duas linhas** ("6500" / "CFA", "28 000" / "CFA") nos
+  detalhes do pedido, no "Confirmar pedido" do checkout, nos totais da aba
+  Vendas e na lista de motoristas da frota. **Resolvido na raiz:** `formatCFA`
+  usa espaços INSEPARÁVEIS (milhares e antes de "CFA"), com teste
+  (`src/lib/format.test.ts`). Consequência: um preço já não quebra, portanto
+  quem é estreito arruma-se à volta dele — os 3 totais da aba Vendas passaram a
+  uma coluna no telemóvel (rótulo à esquerda, valor à direita), 3 colunas a
+  partir de 640px. **Não voltar a pôr um espaço normal no `formatCFA`.**
+- ♿ As opções de consumo do carrinho eram `Badge`s com `onClick` (um `<div>`
+  fora do teclado, 28px de altura). Passaram a botões com `aria-pressed`.
+
+Sem problemas medidos: entrada, login, registo, início, Enviar (depois dos
+placeholders), pedidos, perfil, contacto, notificações, **painel da frota em
+todos os separadores** e detalhe do motorista, painel do motorista a partir de
+375px.
+
+### Armadilhas registadas
+
+- **`whitespace-nowrap` do Button/TabsTrigger base — terceira vez.** Separadores,
+  botão "Ligar", linha do stock: sempre o mesmo padrão. Numa linha com texto
+  variável, o filho precisa de `min-w-0` e o texto de poder quebrar.
+- **Um item de `grid`/`flex` não encolhe abaixo do conteúdo** sem `min-w-0` (ou
+  `minmax(0,1fr)` na coluna). `truncate` sozinho não chega.
+- **Placeholders não são texto do DOM**: nenhuma medição por nós de texto os vê.
+  O script mede-os com `canvas.measureText` na fonte real.
+- **A rede desta máquina até ao Vercel leva 7–18 s por pedido e pendura**; o
+  Supabase responde bem. O script descarrega o bundle de produção uma vez e
+  serve-o ao browser a partir de memória — continua a ser o mesmo código servido.
+- **O Chromium de teste mostra `<input type="time">` em 12 h** ("12:00 AM"), mais
+  largo que o "00:00" de um telemóvel em português. Serve de pior caso.
+
+### Fora do âmbito, reportado e não corrigido
+
+- `BusinessDetail` mostra os dias do horário com nomes fixos em português
+  (`["Domingo", …]`) e "Fechado" — os dias já existem no i18n
+  (`businessHours.days`).
+- Pedido #12 (`cupilum`) parado — ver acima.
 
 ---
 

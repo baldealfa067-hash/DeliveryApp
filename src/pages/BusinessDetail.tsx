@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "@/components/StarRating";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
@@ -536,8 +535,8 @@ const BusinessDetail = () => {
       {/* Foto de destaque. Mesmo padrão do RestaurantCard da lista — incluindo a
           máscara verde quando não há foto — para os dois ecrãs se reconhecerem
           um ao outro. É aqui e no item de menu que a fotografia se justifica (§9). */}
-      <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg bg-muted">
-        {photoUrl ? (
+      {photoUrl ? (
+        <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg bg-muted">
           <img
             src={photoUrl}
             alt=""
@@ -545,28 +544,36 @@ const BusinessDetail = () => {
             decoding="async"
             className="h-full w-full object-cover"
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary-light">
-            <span className="text-5xl font-bold text-primary">{name.charAt(0).toUpperCase()}</span>
+          {/* A máscara envolve o nome em vez de ter altura fixa: um nome longo
+              quebra em duas ou três linhas e assim continua sempre sobre gradiente. */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent pt-16">
+            <h1 className="flex items-end gap-1.5 p-4 text-display text-white drop-shadow-sm">
+              <span className="min-w-0 break-words">{name}</span>
+              {isVerified && (
+                <BadgeCheck className="mb-1 h-6 w-6 shrink-0" aria-label={t("businessDetailExtra.verifiedLabel")} />
+              )}
+            </h1>
           </div>
-        )}
-        {/* A máscara envolve o nome em vez de ter altura fixa: um nome longo
-            quebra em duas ou três linhas e assim continua sempre sobre gradiente. */}
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0 bg-gradient-to-t pt-16",
-            photoUrl ? "from-black/85 via-black/45 to-transparent" : "from-primary via-primary/60 to-transparent"
-          )}
-        >
+        </div>
+      ) : (
+        // Sem foto: a inicial e o nome em FLUXO, um por baixo do outro. Numa
+        // caixa 16:9 de altura fixa, com a inicial centrada e o nome por cima,
+        // um nome de quatro linhas ("Restaurante Sabores Tradicionais da
+        // Guiné-Bissau", a 360px) escrevia por cima da letra. Assim a caixa tem
+        // a altura habitual para nomes curtos e cresce para os compridos.
+        <div className="mb-4 flex min-h-[11.5rem] w-full flex-col justify-between gap-1 overflow-hidden rounded-lg bg-gradient-to-t from-primary via-primary/60 to-primary-light">
+          <span aria-hidden="true" className="self-center pt-5 text-5xl font-bold text-primary">
+            {name.charAt(0).toUpperCase()}
+          </span>
           {/* Sem foto o fundo é laranja, e o texto é preto: branco dava 2.61:1. */}
-          <h1 className={cn("flex items-end gap-1.5 p-4 text-display", photoUrl ? "text-white drop-shadow-sm" : "text-primary-foreground")}>
+          <h1 className="flex items-end gap-1.5 p-4 text-display text-primary-foreground">
             <span className="min-w-0 break-words">{name}</span>
             {isVerified && (
               <BadgeCheck className="mb-1 h-6 w-6 shrink-0" aria-label={t("businessDetailExtra.verifiedLabel")} />
             )}
           </h1>
         </div>
-      </div>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         {/* Chip neutro. Antes era um badge âmbar, cor que o sistema (§3) reserva
@@ -674,16 +681,21 @@ const BusinessDetail = () => {
             {consumptionOptions.length > 0 && (
               <div className="mb-3">
                 <Label className="text-xs">{t("businessDetail.consumptionOption")}</Label>
+                {/* Botões a sério (eram Badges com onClick: um <div> fora do
+                    teclado e do leitor de ecrã, com 28px de altura para o dedo). */}
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {consumptionOptions.map((o) => (
-                    <Badge
+                    <Button
                       key={o}
+                      type="button"
+                      size="sm"
                       variant={activeConsumption === o ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1.5 text-xs"
+                      aria-pressed={activeConsumption === o}
+                      className="min-h-10 rounded-full px-4 text-xs"
                       onClick={() => setConsumptionOption(o)}
                     >
                       {t(CONSUMPTION_LABEL_KEYS[o] ?? o)}
-                    </Badge>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -1052,9 +1064,9 @@ const BusinessDetail = () => {
           <div className="grid gap-4 py-2">
             <div className="rounded-lg border bg-muted/50 p-3 text-sm">
               {cartItems.map((i) => (
-                <div key={i.id} className="flex justify-between">
-                  <span>{i.name} x{i.id ? cart[i.id] : 0}</span>
-                  <span className="font-medium">{formatCFA(i.price * (cart[i.id] ?? 0))}</span>
+                <div key={i.id} className="flex justify-between gap-3">
+                  <span className="min-w-0">{i.name} x{i.id ? cart[i.id] : 0}</span>
+                  <span className="shrink-0 whitespace-nowrap font-medium">{formatCFA(i.price * (cart[i.id] ?? 0))}</span>
                 </div>
               ))}
               {activeConsumption === "entrega" ? (

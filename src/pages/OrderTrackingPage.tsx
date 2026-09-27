@@ -264,32 +264,37 @@ const OrderTrackingPage = () => {
 
       {/* Ligar sobre o pedido (§52: "quem está cuidando dele?"). O telefone do
           motorista só chega do servidor enquanto ele está com o pedido. Um envio
-          não tem restaurante. Botões grandes, tocar e ligar (§50, §51). */}
+          não tem restaurante. Botões grandes, tocar e ligar (§50, §51).
+          Altura automática e texto que quebra: o Button base é `whitespace-nowrap`,
+          e com um nome de restaurante comprido a página ficava mais larga que o
+          ecrã (492px num de 360) e deslizava para o lado. O número fica inteiro. */}
       {((order.business_id && order.business_phone) || order.driver_phone) && (
         <Card className="mb-4">
           <CardContent className="p-4 space-y-2">
             <h2 className="text-sm font-semibold">{t("orderTracking.callAboutOrder")}</h2>
             {order.driver_phone && (
-              <Button asChild size="lg" className="w-full h-14 gap-3 justify-start text-base">
+              <Button asChild size="lg" className="w-full h-auto min-h-14 py-2 gap-3 justify-start whitespace-normal text-base">
                 <a href={`tel:${order.driver_phone}`}>
                   <Phone className="h-5 w-5 shrink-0" />
-                  <span className="flex flex-col items-start leading-tight">
+                  <span className="flex min-w-0 flex-1 flex-col items-start text-left leading-tight">
                     <span>{t("orderTracking.callDriver")}</span>
-                    <span className="text-xs font-normal opacity-90">
-                      {[order.driver_name, order.driver_phone].filter(Boolean).join(" · ")}
+                    <span className="break-words text-xs font-normal opacity-90">
+                      {order.driver_name && <>{order.driver_name} · </>}
+                      <span className="whitespace-nowrap">{order.driver_phone}</span>
                     </span>
                   </span>
                 </a>
               </Button>
             )}
             {order.business_id && order.business_phone && (
-              <Button asChild size="lg" variant={order.driver_phone ? "outline" : "default"} className="w-full h-14 gap-3 justify-start text-base">
+              <Button asChild size="lg" variant={order.driver_phone ? "outline" : "default"} className="w-full h-auto min-h-14 py-2 gap-3 justify-start whitespace-normal text-base">
                 <a href={`tel:${order.business_phone}`}>
                   <Phone className="h-5 w-5 shrink-0" />
-                  <span className="flex flex-col items-start leading-tight">
+                  <span className="flex min-w-0 flex-1 flex-col items-start text-left leading-tight">
                     <span>{t("orderTracking.callRestaurant")}</span>
-                    <span className="text-xs font-normal opacity-90">
-                      {[order.business_name, order.business_phone].filter(Boolean).join(" · ")}
+                    <span className="break-words text-xs font-normal opacity-90">
+                      {order.business_name && <>{order.business_name} · </>}
+                      <span className="whitespace-nowrap">{order.business_phone}</span>
                     </span>
                   </span>
                 </a>
@@ -307,9 +312,9 @@ const OrderTrackingPage = () => {
           </h2>
           <div className="space-y-1.5">
             {order.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <span>{item.name} x{item.qty}</span>
-                <span className="font-medium">{formatCFA(item.price * item.qty)}</span>
+              <div key={idx} className="flex justify-between gap-3 text-sm">
+                <span className="min-w-0">{item.name} x{item.qty}</span>
+                <span className="shrink-0 whitespace-nowrap font-medium">{formatCFA(item.price * item.qty)}</span>
               </div>
             ))}
             {/* Bloco, não `flex justify-between`: dentro de um flex os totais
