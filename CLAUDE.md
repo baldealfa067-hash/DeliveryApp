@@ -1752,8 +1752,11 @@ Pedido do dono, a testar no telemóvel contra www.itudoo.com.
 
 O campo era texto livre. **Caso real:** o pedido manual **#12** foi gravado com
 "cupilum" em vez de "Cupelum"; `get_delivery_price` não casou, o pedido ficou sem
-frota e sem taxa, e está parado em `aguardando_motorista`. **Não lhe mexi** — é do
-dono decidir (corrigir o bairro e reoferecer, ou cancelar).
+frota e sem taxa, e ficou parado em `aguardando_motorista`. ✅ **Cancelado a
+2026-09-28, por decisão do dono** (sem reofertar nem adivinhar o bairro), pelo
+caminho normal (`update_order_status` → `cancelado`, em nome da conta admin da
+plataforma, com o motivo no histórico). A entrega pendente ficou `cancelado`;
+ledger do pedido: 0 lançamentos; o artigo não seguia stock, nada devolvido.
 
 - **Ecrã:** lista com os mesmos bairros do checkout (`useBairros`), taxa pela
   mesma função (`useDeliveryPrice` → `get_delivery_price`), e o total a pagar em
@@ -1763,8 +1766,8 @@ dono decidir (corrigir o bairro e reoferecer, ou cancelar).
   transformação cirúrgica sobre a definição viva): com entrega, bairro
   obrigatório **e com frota que o sirva**, senão recusa. A resolução continua a
   ser `get_delivery_price` — a mesma do `create_order`, sem lógica paralela.
-- **Decisão minha, reversível:** um bairro sem frota é RECUSADO no pedido manual,
-  enquanto o checkout do cliente só avisa. Mesmo critério do envio (Fase 7): um
+- **Um bairro sem frota é RECUSADO no pedido manual**, enquanto o checkout do
+  cliente só avisa — **confirmado pelo dono a 2026-09-28, não mudar.** Mesmo critério do envio (Fase 7): um
   pedido que ninguém vai entregar fica preso — foi o #12. Hoje os 11 bairros têm
   frota, portanto só se nota se uma frota desligar uma zona.
 - Testado por HTTP com JWT normal (`scripts/pedido-manual-bairro-test.mjs`, 11
@@ -1789,7 +1792,7 @@ bairros fictícios).
   366px a 360, e a barra dos 4 separadores 405px — "Pedidos" saía pela esquerda,
   "Perfil" pela direita, **às 4 larguras**. O **motorista** tinha o mesmo
   cabeçalho. Agora é um componente só, `PanelHeader` ("Sair" só com ícone abaixo
-  de 640px, com aria-label), e a barra é uma grelha de 4 colunas com o rótulo a
+  de 640px, com aria-label — **confirmado pelo dono a 2026-09-28**), e a barra é uma grelha de 4 colunas com o rótulo a
   quebrar dentro da célula.
 - 🔴 **Diálogo do pedido manual saía do ecrã pela esquerda**, às 4 larguras.
   Causa no primitivo: o `DialogContent` é uma `grid`, e a coluna implícita não
@@ -1836,12 +1839,19 @@ todos os separadores** e detalhe do motorista, painel do motorista a partir de
 - **O Chromium de teste mostra `<input type="time">` em 12 h** ("12:00 AM"), mais
   largo que o "00:00" de um telemóvel em português. Serve de pior caso.
 
-### Fora do âmbito, reportado e não corrigido
+### Horário da loja no idioma activo (2026-09-28, pedido do dono)
 
-- `BusinessDetail` mostra os dias do horário com nomes fixos em português
-  (`["Domingo", …]`) e "Fechado" — os dias já existem no i18n
-  (`businessHours.days`).
-- Pedido #12 (`cupilum`) parado — ver acima.
+A página da loja mostrava os dias do horário e todo o aviso "Fechado neste
+momento" escritos à mão em português, em qualquer idioma. Passou para o
+componente `AvisoLojaFechada`, com os dias de `businessHours.days` (os mesmos do
+editor, indexados por `weekday`) e 4 chaves novas em `businessDetail`
+(`closedNow`, `closedBrowseHint`, `notAcceptingNow`, `closedToast`). O horário é
+uma grelha de duas colunas: "Wednesday"/"Mercredi" desalinhavam as horas numa
+coluna de largura fixa. Teste nos 4 idiomas (`AvisoLojaFechada.test.tsx`,
+verificado por mutação) e visto no browser nos 4.
+
+**Nenhum restaurante real tem horário definido** (a 2026-09-28): o aviso só
+aparece com o interruptor "a aceitar pedidos" desligado, e aí sem lista de dias.
 
 ---
 

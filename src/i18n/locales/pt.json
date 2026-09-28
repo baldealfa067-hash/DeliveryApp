@@ -608,7 +608,11 @@
     "proofRequiredHint": "Sem o comprovativo do pagamento não é possível fazer o pedido.",
     "proofRequired": "Anexe o comprovativo do pagamento Orange Money para poder fazer o pedido.",
     "proofStillUploading": "Aguarde, o comprovativo ainda está a ser enviado.",
-    "rateFromOrder": "Avalie a partir de um pedido concluído, no seu histórico de pedidos."
+    "rateFromOrder": "Avalie a partir de um pedido concluído, no seu histórico de pedidos.",
+    "closedNow": "Fechado neste momento",
+    "closedBrowseHint": "Pode ver o menu, mas só é possível encomendar dentro do horário.",
+    "notAcceptingNow": "Este restaurante não está a aceitar pedidos agora.",
+    "closedToast": "Este restaurante está fechado neste momento."
   },
   "providerDetail": {
     "loading": "A carregar...",

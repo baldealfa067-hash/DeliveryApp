@@ -608,7 +608,11 @@
     "proofRequiredHint": "Sans justificatif de paiement, la commande ne peut pas être passée.",
     "proofRequired": "Joignez le justificatif du paiement Orange Money pour passer la commande.",
     "proofStillUploading": "Patientez, le justificatif est encore en cours d'envoi.",
-    "rateFromOrder": "Évaluez à partir d'une commande terminée, dans votre historique."
+    "rateFromOrder": "Évaluez à partir d'une commande terminée, dans votre historique.",
+    "closedNow": "Fermé en ce moment",
+    "closedBrowseHint": "Vous pouvez consulter le menu, mais les commandes ne sont possibles que pendant les heures d'ouverture.",
+    "notAcceptingNow": "Ce restaurant n'accepte pas de commandes pour le moment.",
+    "closedToast": "Ce restaurant est fermé en ce moment."
   },
   "providerDetail": {
     "loading": "Chargement...",

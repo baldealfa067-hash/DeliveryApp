@@ -608,7 +608,11 @@
     "proofRequiredHint": "Without proof of payment the order cannot be placed.",
     "proofRequired": "Attach the Orange Money proof of payment to place the order.",
     "proofStillUploading": "Please wait, the proof is still uploading.",
-    "rateFromOrder": "Rate from a completed order, in your order history."
+    "rateFromOrder": "Rate from a completed order, in your order history.",
+    "closedNow": "Closed right now",
+    "closedBrowseHint": "You can browse the menu, but orders are only possible during opening hours.",
+    "notAcceptingNow": "This restaurant is not taking orders right now.",
+    "closedToast": "This restaurant is closed right now."
   },
   "providerDetail": {
     "loading": "Loading...",

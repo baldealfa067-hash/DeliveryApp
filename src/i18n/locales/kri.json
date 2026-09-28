@@ -1000,7 +1000,11 @@
     "selectReason": "Skudji motivu",
     "sending": "Ta manda...",
     "submitReport": "Manda denunsia",
-    "total": "Total"
+    "total": "Total",
+    "closedNow": "Fitchadu gosi",
+    "closedBrowseHint": "Bu pudi odja menu, ma pedidu so pudi fasidu dentru di orariu.",
+    "notAcceptingNow": "Es restauranti ka na seta pedidu gosi.",
+    "closedToast": "Es restauranti sta fitchadu gosi."
   },
   "notifications": {
     "title": "Notifikasons",

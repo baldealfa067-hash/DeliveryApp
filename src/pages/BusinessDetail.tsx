@@ -5,6 +5,7 @@ import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Stor
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "@/components/StarRating";
+import { AvisoLojaFechada } from "@/components/AvisoLojaFechada";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { formatCFA } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -384,7 +385,7 @@ const BusinessDetail = () => {
     if (!cartItems.length) return toast.error(t("businessDetail.addItems"));
     // O backend recusa na mesma (§46); isto é só para não deixar o cliente
     // preencher tudo para levar com um erro no fim.
-    if (lojaFechada) return toast.error("Este restaurante está fechado neste momento.");
+    if (lojaFechada) return toast.error(t("businessDetail.closedToast"));
     if (!activeConsumption) return toast.error(t("businessDetail.chooseConsumption"));
     if (activeConsumption === "entrega") {
       if (!deliveryPhone.trim()) return toast.error(t("businessDetail.enterPhone"));
@@ -506,31 +507,7 @@ const BusinessDetail = () => {
       {/* Fase 2.5 — dizer que está fechado ANTES de a pessoa escolher a comida.
           Aparece no topo, não junto ao botão: descobrir que está fechado depois
           de encher o carrinho é a pior altura para o saber (§52). */}
-      {lojaFechada && (
-        <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-          <p className="text-sm font-semibold text-destructive">Fechado neste momento</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {horario?.periodos?.length
-              ? "Pode ver o menu, mas só é possível encomendar dentro do horário."
-              : "Este restaurante não está a aceitar pedidos agora."}
-          </p>
-          {!!horario?.periodos?.length && (
-            <div className="mt-2 space-y-0.5">
-              {["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"].map((nome, d) => {
-                const ps = horario.periodos.filter((x) => x.weekday === d);
-                return (
-                  <p key={d} className="text-[11px] text-muted-foreground">
-                    <span className="inline-block w-16">{nome}</span>
-                    {ps.length === 0
-                      ? "Fechado"
-                      : ps.map((x) => `${x.opens_at}–${x.closes_at}`).join(" · ")}
-                  </p>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+      {lojaFechada && <AvisoLojaFechada periodos={horario?.periodos} />}
 
       {/* Foto de destaque. Mesmo padrão do RestaurantCard da lista — incluindo a
           máscara verde quando não há foto — para os dois ecrãs se reconhecerem
