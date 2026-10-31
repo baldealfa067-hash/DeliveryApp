@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useAuth";
 
@@ -13,6 +15,10 @@ import type { AppRole } from "@/hooks/useAuth";
  *
  * Cada tipo de conta só vê a sua interface. Quem quiser outro papel cria uma
  * conta separada desse tipo.
+ *
+ * Papéis por confirmar (query ainda a correr ou falhada) nunca redireccionam:
+ * redirecionar com roles vazias por engano mandava admins e clientes para
+ * /perfil. Enquanto não há confirmação, mostra-se espera ou erro com retry.
  */
 const RequireRole = ({
   roles,
@@ -23,9 +29,20 @@ const RequireRole = ({
   children: React.ReactNode;
   redirectTo?: string;
 }) => {
-  const { user, roles: userRoles, rolesLoaded, loading } = useAuth();
+  const { t } = useTranslation();
+  const { user, roles: userRoles, rolesLoaded, rolesError, retryRoles, loading } = useAuth();
 
   if (loading || (user && !rolesLoaded)) {
+    if (user && rolesError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-muted-foreground">{t("common.errorLoading")}</p>
+          <Button variant="outline" onClick={retryRoles}>
+            {t("common.tryAgain")}
+          </Button>
+        </div>
+      );
+    }
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />

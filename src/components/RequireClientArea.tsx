@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useDriverProfile } from "@/hooks/useDrivers";
 
@@ -24,12 +26,28 @@ import { useDriverProfile } from "@/hooks/useDrivers";
  * nunca por tipo de conta.
  *
  * Visitante sem sessão passa sempre: a conta só é exigida ao encomendar.
+ *
+ * Papéis por confirmar (query ainda a correr ou falhada) nunca decidem o
+ * destino: com roles vazias por engano, um admin ou um cliente era atirado
+ * para o painel errado. Enquanto não há confirmação, espera-se ou mostra-se
+ * erro com retry.
  */
 const RequireClientArea = ({ children }: { children: React.ReactNode }) => {
-  const { user, isBusiness, isAdmin, rolesLoaded, loading } = useAuth();
+  const { t } = useTranslation();
+  const { user, isBusiness, isAdmin, rolesLoaded, rolesError, retryRoles, loading } = useAuth();
   const { data: driver, isLoading: driverLoading } = useDriverProfile(user?.id ?? null);
 
   if (loading || (user && (!rolesLoaded || driverLoading))) {
+    if (user && rolesError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-muted-foreground">{t("common.errorLoading")}</p>
+          <Button variant="outline" onClick={retryRoles}>
+            {t("common.tryAgain")}
+          </Button>
+        </div>
+      );
+    }
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />

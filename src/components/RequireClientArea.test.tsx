@@ -22,6 +22,8 @@ let authMock = {
   isBusiness: false,
   isAdmin: false,
   rolesLoaded: true,
+  rolesError: null as string | null,
+  retryRoles: () => {},
   loading: false,
 };
 let driverMock: { data: unknown; isLoading: boolean } = { data: null, isLoading: false };
@@ -47,7 +49,7 @@ const montar = (guarda: React.ReactNode) =>
   );
 
 beforeEach(() => {
-  authMock = { user: { id: "u1" }, roles: ["client"], isBusiness: false, isAdmin: false, rolesLoaded: true, loading: false };
+  authMock = { user: { id: "u1" }, roles: ["client"], isBusiness: false, isAdmin: false, rolesLoaded: true, rolesError: null, retryRoles: () => {}, loading: false };
   driverMock = { data: null, isLoading: false };
 });
 
@@ -100,6 +102,21 @@ describe("RequireClientArea", () => {
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
     expect(screen.queryByText("AREA CLIENTE")).toBeNull();
   });
+
+  /**
+   * Papéis por confirmar por ERRO de leitura nunca decidem o destino.
+   * Um erro tratado como "sem papéis" mandava admins/clientes para o painel
+   * errado — o mesmo bug que levava o refresh de /perfil a mostrar "sem
+   * perfil de prestador".
+   */
+  it("com erro de leitura de papéis mostra erro com retry, e não decide destino", () => {
+    authMock = { ...authMock, roles: [], rolesLoaded: false, rolesError: "roles" };
+    montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
+    expect(screen.queryByText("AREA CLIENTE")).toBeNull();
+    expect(screen.queryByText("PAINEL LOJA")).toBeNull();
+    expect(screen.getByText("Erro ao carregar.")).toBeTruthy();
+    expect(screen.getByText("Tentar de novo")).toBeTruthy();
+  });
 });
 
 describe("RequireRole", () => {
@@ -125,6 +142,15 @@ describe("RequireRole", () => {
     authMock = { ...authMock, user: null, roles: [] };
     montar(<RequireRole roles={["business"]}><div>PAINEL PRIVADO</div></RequireRole>);
     expect(screen.getByText("LOGIN")).toBeTruthy();
+  });
+
+  it("com erro de leitura de papéis não redirecciona: mostra erro com retry", () => {
+    authMock = { ...authMock, roles: [], rolesLoaded: false, rolesError: "roles" };
+    montar(<RequireRole roles={["business"]}><div>PAINEL PRIVADO</div></RequireRole>);
+    expect(screen.queryByText("PAINEL PRIVADO")).toBeNull();
+    expect(screen.queryByText("NAVEGACAO ABERTA")).toBeNull();
+    expect(screen.getByText("Erro ao carregar.")).toBeTruthy();
+    expect(screen.getByText("Tentar de novo")).toBeTruthy();
   });
 });
 

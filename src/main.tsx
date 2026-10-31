@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { AuthProvider } from "./components/AuthProvider";
 import "./index.css";
 import "./i18n";
 import { clearChunkRetry, installGlobalChunkErrorHandler } from "./lib/chunkError";
@@ -22,4 +23,10 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// AuthProvider: uma só leitura de sessão + papéis partilhada por toda a app
+// (sem ele, cada componente refazia a query a user_roles no arranque).
+createRoot(document.getElementById("root")!).render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>,
+);

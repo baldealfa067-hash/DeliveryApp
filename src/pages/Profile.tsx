@@ -29,7 +29,7 @@ type ProviderProfile = {
 const Profile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, isBusiness, isClient, isAdmin, roles, loading, signOut } = useAuth();
+  const { user, isBusiness, isClient, isAdmin, roles, rolesLoaded, rolesError, retryRoles, loading, signOut } = useAuth();
   // O Supabase NAO tem `user.name`: o nome gravado no registo vive em
   // `user_metadata.name`. Lia-se `user.name`, sempre undefined, e caia no email --
   // que num cliente de telefone+PIN e sintetico (`c<telefone>@deliveryapp.gw`).
@@ -40,6 +40,11 @@ const Profile = () => {
   const qc = useQueryClient();
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
+  // Estado da query de profiles: o estado "sem perfil" só pode aparecer
+  // depois de um SUCESSO da leitura. loading = a correr ou por começar;
+  // error = a query falhou (com retry); ok = leitura concluída.
+  const [profileStatus, setProfileStatus] = useState<"loading" | "error" | "ok">("loading");
+  const [profileAttempt, setProfileAttempt] = useState(0);
   const { data: commentCount = 0 } = useCommentCount(profileId);
   const { data: qualityLevel } = useQualityLevel(profileId);
   useCommentCountRealtime(profileId);
@@ -62,18 +67,33 @@ const Profile = () => {
       navigate("/painel-loja", { replace: true });
       return;
     }
+    // Sem papéis confirmados não se decide nada: as queries e o render
+    // esperam. Foi a corrida com roles vazias que pintava o estado de
+    // "sem perfil de prestador" a contas normais no arranque.
+    if (!rolesLoaded) return;
+    let cancelled = false;
+    setProfileStatus("loading");
     supabase
       .from("profiles")
       .select("id, name, category, profile_type, phone, location, description, photo_url, price_type, starting_price")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setProfile(data as ProviderProfile);
-          setProfileId((data as { id?: string }).id ?? null);
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        // Erro de leitura NAO é "sem perfil": era isto que mostrava o ecrã
+        // errado quando a query falhava. Fica estado de erro, com retry.
+        if (error) {
+          setProfileStatus("error");
+          return;
         }
+        setProfile((data as ProviderProfile | null) ?? null);
+        setProfileId((data as { id?: string } | null)?.id ?? null);
+        setProfileStatus("ok");
       });
-  }, [user, isAdmin, isBusiness, isProvider, loading, navigate]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isAdmin, isBusiness, isProvider, rolesLoaded, loading, navigate, profileAttempt]);
 
   useEffect(() => {
     if (!profileId) return;
@@ -99,7 +119,17 @@ const Profile = () => {
     navigate("/", { replace: true });
   };
 
-  if (loading) {
+  if (loading || (user && !rolesLoaded)) {
+    if (user && rolesError) {
+      return (
+        <div className="max-w-lg mx-auto px-4 py-8 flex flex-col items-center gap-3 text-center">
+          <p className="text-muted-foreground">{t("common.errorLoading")}</p>
+          <Button variant="outline" onClick={retryRoles}>
+            {t("common.tryAgain")}
+          </Button>
+        </div>
+      );
+    }
     return (
       <div className="max-w-lg mx-auto px-4 py-8 flex justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -108,6 +138,26 @@ const Profile = () => {
   }
 
   if (!user || isAdmin) return null;
+
+  // A query de profiles ainda não terminou com sucesso: nunca mostrar o
+  // estado "sem perfil" por antecipação — era isso que o refresh pintava.
+  if (profileStatus === "loading") {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-8 flex justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (profileStatus === "error") {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-8 flex flex-col items-center gap-3 text-center">
+        <p className="text-muted-foreground">{t("common.errorLoading")}</p>
+        <Button variant="outline" onClick={() => setProfileAttempt((a) => a + 1)}>
+          {t("common.tryAgain")}
+        </Button>
+      </div>
+    );
+  }
 
   const hasBelezaBusiness = isBeleza || profile?.profile_type === "beleza";
 
@@ -172,13 +222,17 @@ const Profile = () => {
         </div>
       );
     }
+    // Conta sem papel conhecido e sem perfil com nome — leitura já
+    // confirmada nos dois lados. O botão "Criar perfil de prestador" saiu:
+    // apontava para /painel, rota inexistente, e não há fluxo de registo de
+    // prestador na V1 (o registo de motorista é por frota; o de restaurante
+    // é /login?mode=profissional, acessível pelo ecrã de entrada).
     return (
       <div className="max-w-lg mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">{t("profile.myProfile")}</h1>
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
             <p className="text-muted-foreground">{t("profile.noProviderProfile")}</p>
-            <Button onClick={() => navigate("/painel")}>{t("profile.createProviderProfile")}</Button>
           </CardContent>
         </Card>
       </div>
