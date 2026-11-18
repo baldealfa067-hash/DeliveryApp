@@ -4,7 +4,6 @@ import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
 import { AudioPrivado } from "@/components/MediaPrivada";
 import { useNavigate } from "react-router-dom";
 import {
-  Settings,
   MapPin,
   Navigation,
   Package,
@@ -23,7 +22,6 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -36,7 +34,6 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import {
   useDriverProfile,
-  useRegisterDriver,
   useToggleAvailability,
   useAvailableDeliveries,
   useMyDeliveries,
@@ -83,7 +80,6 @@ const DriverDashboard = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: driver, isLoading: driverLoading } = useDriverProfile(user?.id ?? null);
-  const registerDriver = useRegisterDriver();
   const toggleAvailability = useToggleAvailability();
   const { data: availableDeliveries = [] } = useAvailableDeliveries(!!driver);
   const { data: myDeliveries = [] } = useMyDeliveries(!!driver);
@@ -96,10 +92,6 @@ const DriverDashboard = () => {
   const { data: deliveryStats } = useDriverDeliveryStats(driver?.id ?? null);
   const { data: dailyStats = [] } = useDriverDailyStats(driver?.id ?? null);
 
-  const [registerOpen, setRegisterOpen] = useState(false);
-  const [regName, setRegName] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regVehicle, setRegVehicle] = useState("moto");
   const [proofDialogOpen, setProofDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -173,13 +165,7 @@ const DriverDashboard = () => {
         <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[60vh] text-center">
           <Navigation className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <h1 className="text-xl font-bold mb-2">{t("driverDashboard.registerTitle")}</h1>
-          <p className="text-sm text-muted-foreground mb-4">Cria a tua conta de motorista para começar a entregar.</p>
-          <Button onClick={() => navigate("/login?mode=motorista")} className="gap-2 w-full max-w-xs">
-            Criar conta de motorista
-          </Button>
-          <button onClick={() => navigate("/login?mode=cliente")} className="text-sm text-muted-foreground hover:text-primary hover:underline mt-3">
-            Já tenho conta? Entrar
-          </button>
+          <Button onClick={() => navigate("/login?mode=cliente")}>{t("auth.loginTab")}</Button>
         </main>
       </div>
     );
@@ -192,16 +178,6 @@ const DriverDashboard = () => {
       </div>
     );
   }
-
-  const handleRegister = async () => {
-    if (!regName.trim() || !regPhone.trim()) return;
-    try {
-      await registerDriver.mutateAsync({ name: regName.trim(), phone: regPhone.trim(), vehicleType: regVehicle });
-      setRegisterOpen(false);
-    } catch (err) {
-      console.error("[driver] register error:", err);
-    }
-  };
 
   const compressImage = (file: File): Promise<string> =>
     new Promise((resolve) => {
@@ -292,44 +268,7 @@ const DriverDashboard = () => {
         <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[60vh] text-center">
           <Navigation className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <h1 className="text-xl font-bold mb-2">{t("driverDashboard.registerTitle")}</h1>
-          <p className="text-sm text-muted-foreground mb-6">{t("driverDashboard.registerDesc")}</p>
-          <Button onClick={() => setRegisterOpen(true)} className="gap-2">
-            <Settings className="h-4 w-4" /> {t("driverDashboard.register")}
-          </Button>
-
-          <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("driverDashboard.registerTitle")}</DialogTitle>
-                <DialogDescription>{t("driverDashboard.registerDesc")}</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-2">
-                <div className="grid gap-2">
-                  <Label>{t("common.name")}</Label>
-                  <Input value={regName} onChange={(e) => setRegName(e.target.value)} placeholder={t("driverDashboard.namePlaceholder")} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>{t("common.phone")}</Label>
-                  <Input type="tel" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder={t("driverDashboard.phonePlaceholder")} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>{t("driverDashboard.vehicleType")}</Label>
-                  <div className="flex gap-2">
-                    {["moto", "bicicleta", "carro", "pe"].map((v) => (
-                      <Button key={v} size="sm" variant={regVehicle === v ? "default" : "outline"} onClick={() => setRegVehicle(v)}>
-                        {t(`driverDashboard.vehicle.${v}`)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleRegister} disabled={registerDriver.isPending || !regName.trim() || !regPhone.trim()}>
-                  {registerDriver.isPending ? t("common.saving") : t("common.confirm")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <p className="text-sm text-muted-foreground">{t("auth.partnerManagedByAdmin")}</p>
         </main>
       </div>
     );

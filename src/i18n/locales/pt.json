@@ -163,6 +163,11 @@
     "belezaShort": "Beleza & Estética"
   },
   "auth": {
+    "phoneSignIn": "Entrar com telefone e PIN",
+    "phoneSignInDesc": "Para clientes e parceiros. Só clientes podem criar conta aqui.",
+    "emailSignIn": "Entrar com e-mail",
+    "existingAccountOnly": "Para quem já tem conta por e-mail.",
+    "partnerManagedByAdmin": "Peça ao administrador para ativar a sua conta de trabalho.",
     "independentDriver": "Motorista independente",
     "independentDriverDesc": "Crie o seu perfil para trabalhar com a sua moto.",
     "independentDriverPhoneRequired": "Entre com uma conta de telefone e PIN para criar o perfil de motorista.",
@@ -666,6 +671,12 @@
     "anonymousReviewNote": "Sem conta? A sua avaliação é anónima e será publicada após aprovação."
   },
   "admin": {
+    "addPartner": "Adicionar parceiro",
+    "partnerType": "Tipo de parceiro",
+    "partnerNeedsPin": "Este número é novo. Defina um PIN para a primeira entrada.",
+    "partnerAccountCreated": "Conta criada. Partilhe o PIN em privado.",
+    "partnerActivated": "Acesso ativado. A conta mantém o PIN atual.",
+    "partnerCreateError": "Não foi possível adicionar o parceiro.",
     "notifFleets": "Frotas",
     "notifDrivers": "Motoristas",
     "notifNoRecipients": "Não há destinatários nos grupos selecionados.",

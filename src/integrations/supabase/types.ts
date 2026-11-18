@@ -2011,6 +2011,10 @@ export type Database = {
         Args: { p_name?: string; p_phone: string; p_vehicle_type?: string }
         Returns: string
       }
+      admin_provision_partner: {
+        Args: { p_phone: string; p_name: string; p_role: string; p_fleet_id?: string | null };
+        Returns: string | null;
+      };
       admin_delete_user: { Args: { p_profile_id: string }; Returns: undefined }
       admin_list_verifications: {
         Args: never

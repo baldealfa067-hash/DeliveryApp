@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadError } from "@/components/LoadError";
@@ -16,6 +17,7 @@ export const IndependentDriverPrices = ({ driverId }: { driverId: string }) => {
   const { t } = useTranslation();
   const id = useId();
   const [bairro, setBairro] = useState("");
+  const [customZone, setCustomZone] = useState(false);
   const [price, setPrice] = useState("");
   const prices = useQuery({
     queryKey: ["driver-zone-prices", driverId],
@@ -34,6 +36,7 @@ export const IndependentDriverPrices = ({ driverId }: { driverId: string }) => {
     },
     onSuccess: async () => {
       setBairro("");
+      setCustomZone(false);
       setPrice("");
       await prices.refetch();
     },
@@ -64,11 +67,22 @@ export const IndependentDriverPrices = ({ driverId }: { driverId: string }) => {
         <form onSubmit={submit} className="space-y-3">
           <div className="space-y-1">
             <Label htmlFor={`${id}-bairro`}>{t("fleetDashboard.bairro")}</Label>
-            <Input id={`${id}-bairro`} list={`${id}-bairros`} maxLength={100}
-              value={bairro} onChange={(event) => setBairro(event.target.value)} required />
-            <datalist id={`${id}-bairros`}>
-              {LOCATION_OPTIONS.map((zone) => <option key={zone} value={zone} />)}
-            </datalist>
+            <Select value={customZone ? "__custom__" : bairro} onValueChange={(value) => {
+              setCustomZone(value === "__custom__");
+              setBairro(value === "__custom__" ? "" : value);
+            }}>
+              <SelectTrigger id={customZone ? undefined : `${id}-bairro`} className="h-11 bg-card"
+                aria-label={customZone ? t("fleetDashboard.bairro") : undefined}>
+                <SelectValue placeholder={t("common.select")} />
+              </SelectTrigger>
+              <SelectContent position="popper" side="bottom" sideOffset={6}
+                className="max-h-64 min-w-[var(--radix-select-trigger-width)] border-border bg-card text-card-foreground shadow-lg">
+                {LOCATION_OPTIONS.map((zone) => <SelectItem key={zone} value={zone}>{zone}</SelectItem>)}
+                <SelectItem value="__custom__">{t("common.others")}</SelectItem>
+              </SelectContent>
+            </Select>
+            {customZone && <Input id={`${id}-bairro`} maxLength={100} placeholder={t("fleetDashboard.bairro")}
+              value={bairro} onChange={(event) => setBairro(event.target.value)} required />}
           </div>
           <div className="space-y-1">
             <Label htmlFor={`${id}-price`}>{t("fleetDashboard.priceFcfa")}</Label>
@@ -84,6 +98,7 @@ export const IndependentDriverPrices = ({ driverId }: { driverId: string }) => {
                 <div><p className="font-medium">{row.bairro}</p><p className="text-sm text-muted-foreground">{formatCFA(row.preco)}</p></div>
                 <div className="flex gap-1">
                   <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => {
+                    setCustomZone(!LOCATION_OPTIONS.includes(row.bairro));
                     setBairro(row.bairro);
                     setPrice(String(row.preco));
                   }}>{t("driverDashboard.editZonePrice")}</Button>

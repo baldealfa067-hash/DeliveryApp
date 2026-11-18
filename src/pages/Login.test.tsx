@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 // Mock useAuth to simulate unauthenticated user in "choose" mode
@@ -30,30 +30,31 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 import Login from "./Login";
 
-describe("Login — cadastro de motorista independente", () => {
+describe("Login — registo público de clientes", () => {
   beforeEach(() => { mockNavigate.mockClear(); });
 
-  it("oferece uma página própria para o motorista independente", () => {
+  it("apresenta o acesso de cliente e a entrada por e-mail", () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    expect(screen.getByRole("link", { name: /Motorista independente/ })).toHaveAttribute("href", "/registar-motorista");
+    expect(screen.getByRole("button", { name: /Entrar com telefone e PIN/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Entrar com e-mail" })).toBeInTheDocument();
+    expect(screen.queryByText("Motorista independente")).not.toBeInTheDocument();
+    expect(screen.queryByText("Restaurante")).not.toBeInTheDocument();
   });
 
-  it("abre o cadastro por telefone e PIN a partir do link do motorista", () => {
+  it("abre a entrada com PIN num link antigo de motorista", () => {
     render(<MemoryRouter initialEntries={["/login?mode=motorista&tab=registar"]}><Login /></MemoryRouter>);
-    expect(screen.getByRole("heading", { name: "Motorista independente" })).toBeInTheDocument();
-    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", expect.stringContaining("signup"));
-    expect(screen.queryByLabelText(/palavra-passe/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", expect.stringContaining("login"));
+    expect(screen.getByLabelText("PIN")).toBeInTheDocument();
   });
 
-  it("continua a oferecer Restaurante, que e o unico perfil profissional da V1", () => {
-    render(<MemoryRouter><Login /></MemoryRouter>);
-    expect(screen.getByText("Restaurante")).toBeInTheDocument();
+  it("ignora o pedido de registo num link antigo de restaurante", () => {
+    render(<MemoryRouter initialEntries={["/login?mode=restaurante&tab=registar"]}><Login /></MemoryRouter>);
+    expect(screen.getByRole("heading", { name: "Entrar com e-mail" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Registar" })).not.toBeInTheDocument();
   });
 
-  it("clicar em Cliente nao atira ninguem para o painel de motorista", () => {
-    render(<MemoryRouter><Login /></MemoryRouter>);
-    const clienteCard = screen.getByText(/Cliente/i).closest(".cursor-pointer") as HTMLElement;
-    fireEvent.click(clienteCard);
-    expect(mockNavigate).not.toHaveBeenCalledWith("/painel-motorista");
+  it("mantém o formulário de criação de conta para clientes", () => {
+    render(<MemoryRouter initialEntries={["/login?mode=cliente&tab=registar"]}><Login /></MemoryRouter>);
+    expect(screen.getByRole("button", { name: "Criar Conta" })).toBeInTheDocument();
   });
 });

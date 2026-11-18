@@ -158,6 +158,11 @@
     "belezaShort": "Beleza i Estetika"
   },
   "auth": {
+    "phoneSignIn": "Entra ku telfoni i PIN",
+    "phoneSignInDesc": "Pa klientis i parserus. So klientis pudi kriá konta li.",
+    "emailSignIn": "Entra ku email",
+    "existingAccountOnly": "Pa ken ki dja tene konta ku email.",
+    "partnerManagedByAdmin": "Pidi administrador pa ativa bu konta di tarbadju.",
     "independentDriver": "Motorista indipendenti",
     "independentDriverDesc": "Kria bu perfil pa tarbadja ku bu mota.",
     "independentDriverPhoneRequired": "Entra ku bu numeru di telefoni ku PIN pa kria perfil di motorista.",
@@ -369,6 +374,12 @@
     "rateProviderAction": "Avalia prestaduri"
   },
   "admin": {
+    "addPartner": "Djunta parseru",
+    "partnerType": "Tipu di parseru",
+    "partnerNeedsPin": "Es numeru i nobu. Skodji un PIN pa purmeru entrada.",
+    "partnerAccountCreated": "Konta kriadu. Da PIN na privadu.",
+    "partnerActivated": "Asesu ativadu. Konta ta fika ku si PIN.",
+    "partnerCreateError": "I ka pudi djunta parseru.",
     "notifFleets": "Frotas",
     "notifDrivers": "Motoristas",
     "notifNoRecipients": "Ka ten destinatariu na grupus seledus.",

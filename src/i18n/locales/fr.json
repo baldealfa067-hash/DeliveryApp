@@ -163,6 +163,11 @@
     "belezaShort": "Beauté & Esthétique"
   },
   "auth": {
+    "phoneSignIn": "Se connecter avec téléphone et PIN",
+    "phoneSignInDesc": "Pour les clients et les partenaires. Seuls les clients peuvent créer un compte ici.",
+    "emailSignIn": "Se connecter par e-mail",
+    "existingAccountOnly": "Pour les comptes existants avec une adresse e-mail.",
+    "partnerManagedByAdmin": "Demandez à un administrateur d’activer votre compte professionnel.",
     "independentDriver": "Livreur indépendant",
     "independentDriverDesc": "Créez votre profil pour travailler avec votre moto.",
     "independentDriverPhoneRequired": "Connectez-vous avec votre numéro de téléphone et votre code PIN pour créer votre profil.",
@@ -666,6 +671,12 @@
     "anonymousReviewNote": "Pas de compte ? Votre avis est anonyme et sera publié après validation."
   },
   "admin": {
+    "addPartner": "Ajouter un partenaire",
+    "partnerType": "Type de partenaire",
+    "partnerNeedsPin": "Ce numéro est nouveau. Définissez un code PIN pour la première connexion.",
+    "partnerAccountCreated": "Compte créé. Communiquez le code PIN en privé.",
+    "partnerActivated": "Accès activé. Le compte conserve son code PIN.",
+    "partnerCreateError": "Impossible d’ajouter le partenaire.",
     "notifFleets": "Flottes",
     "notifDrivers": "Livreurs",
     "notifNoRecipients": "Aucun destinataire dans les groupes sélectionnés.",

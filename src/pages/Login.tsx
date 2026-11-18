@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/PhoneInput";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Store, User, ArrowLeft, Bike, Truck } from "lucide-react";
+import { User, Mail, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -25,11 +24,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getPostLoginDestination } from "@/lib/getPostLoginDestination";
-import { isPasswordBreached } from "@/lib/passwordBreach";
 import logo from "@/assets/itudoo-logo-preto.png";
 
-type ProfileType = "business";
-type AuthMode = "choose" | "client" | "professional" | "driver" | "fleet";
+type AuthMode = "choose" | "client" | "professional";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -38,16 +35,13 @@ const Login = () => {
   const { user, roles, rolesLoaded, rolesError, retryRoles, loading, sessionError, retrySession } = useAuth();
   const [mode, setMode] = useState<AuthMode>(() => {
     const m = searchParams.get("mode");
-    if (m === "cliente") return "client";
-    if (m === "restaurante") return "professional";
-    if (m === "frota") return "fleet";
-    if (m === "motorista") return "driver";
+    if (m === "cliente" || m === "motorista") return "client";
+    if (m === "restaurante" || m === "profissional" || m === "email") return "professional";
     return "choose";
   });
   const [tab, setTab] = useState<"login" | "signup">(
-    searchParams.get("tab") === "registar" ? "signup" : "login"
+    searchParams.get("mode") !== "motorista" && searchParams.get("tab") === "registar" ? "signup" : "login"
   );
-  const [profileType] = useState<ProfileType>("business");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -66,42 +60,6 @@ const Login = () => {
     if (signingUp.current) return;
     if (loading || !rolesLoaded) return;
     if (!user) return;
-
-    if (mode === "driver") {
-      navigate(roles.includes("driver") ? "/painel-motorista" : "/registar-motorista", { replace: true });
-      return;
-    }
-
-    // Handle Google OAuth callback — assign the role that was selected before redirect
-    if (searchParams.get("fromGoogle") === "true" && !roles.length) {
-      const savedMode = sessionStorage.getItem("bornaal:google_mode");
-      sessionStorage.removeItem("bornaal:google_mode");
-      sessionStorage.removeItem("bornaal:google_profile_type");
-
-      const assignRoleAndRedirect = async () => {
-        signingUp.current = true;
-        try {
-          if (savedMode === "client") {
-            const { error } = await supabase.rpc("register_as_client");
-            if (error) console.error("Role error:", error);
-            sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-            // Depois de registar, usa destino centralizado (driver tem prioridade)
-            const dest = await getPostLoginDestination(user.id);
-            navigate(dest, { replace: true });
-          } else {
-            const { error } = await supabase.rpc("register_as_business");
-            if (error) console.error("Role error:", error);
-            navigate("/painel-loja/editar", { replace: true });
-          }
-        } finally {
-          signingUp.current = false;
-        }
-      };
-
-      // First-time Google user — assign role
-      void assignRoleAndRedirect().catch(() => setDestinationError(true));
-      return;
-    }
 
     let active = true;
     void getPostLoginDestination(user.id, roles).then((destination) => {
@@ -172,7 +130,7 @@ const Login = () => {
       if (roleErr) console.error("[auth] register_as_client:", roleErr.message);
       toast.success(t("auth.accountCreated"));
       sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-      navigate(mode === "driver" ? "/registar-motorista" : "/inicio", { replace: true });
+      navigate("/inicio", { replace: true });
     } catch (err) {
       console.error("[auth] client signup:", err);
       toast.error(t("auth.registerError"));
@@ -191,74 +149,12 @@ const Login = () => {
     toast.success(t("auth.loginSuccess"));
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.length < 8) return toast.error(t("auth.passwordMin"));
-    if (!name.trim()) return toast.error(t("auth.enterName"));
-    if (mode === "fleet" && !phone.trim()) return toast.error("Telefone de contacto obrigatório");
-    setSubmitting(true);
-    // Antes de criar a conta: esta palavra-passe já apareceu numa fuga pública?
-    // Contas de restaurante e motorista veem dados de clientes e de vendas.
-    if (await isPasswordBreached(password)) {
-      setSubmitting(false);
-      return toast.error(t("auth.passwordBreached"));
-    }
-    signingUp.current = true;
-    try {
-      const isFleetFlow = mode === "fleet";
-      const redirectPath = isFleetFlow ? "/painel-frota" : "/painel-loja/editar";
-      const profileTypeForMeta = isFleetFlow ? "client" : profileType;
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}${redirectPath}`,
-          data: { name, profile_type: profileTypeForMeta },
-        },
-      });
-      if (error || !data.user) {
-        return toast.error(error?.message ?? t("auth.registerError"));
-      }
-      if (data.session) {
-        // Confirm email OFF — session existe, garantir role via RPC também (trigger já fez, mas RPC é idempotente)
-        if (isFleetFlow) {
-          const { error: roleErr } = await supabase.rpc("register_as_client");
-          if (roleErr) console.error("Role error:", roleErr);
-          // create_fleet() e' quem atribui o papel `fleet`. Se falhar, nao se
-          // bloqueia a entrada: /painel-frota mostra o formulario de criacao,
-          // que chama exactamente a mesma RPC.
-          const { error: fleetErr } = await (
-            supabase.rpc as unknown as (
-              fn: string, args: Record<string, unknown>,
-            ) => Promise<{ error: { message: string } | null }>
-          )("create_fleet", { p_name: name.trim(), p_phone: phone.trim(), p_bairro: null });
-          if (fleetErr) toast.error(fleetErr.message);
-        } else {
-          const { error: roleErr } = await supabase.rpc("register_as_business");
-          if (roleErr) console.error("Role error:", roleErr);
-        }
-        toast.success(t("auth.accountCreated"));
-        sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-        navigate(redirectPath, { replace: true });
-      } else {
-        // Confirm email ON — sem session, role já criada pelo trigger handle_new_user via metadata
-        // Instruir utilizador a confirmar email
-        toast.success(t("auth.accountCreated") + " " + t("auth.checkEmailToConfirm", "Verifique o seu email para confirmar a conta."));
-      }
-    } finally {
-      signingUp.current = false;
-      setSubmitting(false);
-    }
-  };
-
   const handleGoogleLogin = async () => {
-    sessionStorage.setItem("bornaal:google_mode", "professional");
-    sessionStorage.setItem("bornaal:google_profile_type", profileType);
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/login?fromGoogle=true`,
+        redirectTo: `${window.location.origin}/login?mode=email`,
       },
     });
     setSubmitting(false);
@@ -305,67 +201,24 @@ const Login = () => {
             <p className="text-sm text-muted-foreground">{t("auth.welcomeSubtitle")}</p>
           </div>
 
-          <Card
-            className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
-            onClick={() => setMode("client")}
-          >
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <User className="h-6 w-6 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold">{t("auth.clientLabel")}</p>
-                <p className="text-xs text-muted-foreground">{t("auth.clientDesc")}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <button type="button" onClick={() => setMode("client")}
+            className="flex w-full items-center gap-4 rounded-xl border bg-card p-4 text-left hover:border-primary/50">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <User className="h-6 w-6 text-primary" />
+            </span>
+            <span>
+              <span className="block font-semibold">{t("auth.phoneSignIn")}</span>
+              <span className="block text-xs text-muted-foreground">{t("auth.phoneSignInDesc")}</span>
+            </span>
+          </button>
 
-          <Card
-            className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
-            onClick={() => setMode("professional")}
-          >
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Store className="h-6 w-6 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold">Restaurante</p>
-                <p className="text-xs text-muted-foreground">Gerir restaurante e receber pedidos</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* §11: a frota é a única via de registo de operação logística na V1.
-              Reutiliza o mesmo fluxo profissional (email + password) do
-              restaurante -- não há um fluxo à parte. */}
-          <Card
-            className="cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
-            onClick={() => setMode("fleet")}
-          >
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Truck className="h-6 w-6 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold">Frota</p>
-                <p className="text-xs text-muted-foreground">Gerir motoristas, preços e entregas</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Link to="/registar-motorista" className="block rounded-xl focus-visible:outline focus-visible:outline-primary">
-            <Card className="hover:border-primary/50 hover:bg-primary/5 transition-colors">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <Bike className="h-6 w-6 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold">{t("auth.independentDriver")}</p>
-                  <p className="text-xs text-muted-foreground">{t("auth.independentDriverDesc")}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <button type="button" onClick={() => setMode("professional")}
+            className="flex w-full items-center gap-4 rounded-xl border bg-card p-4 text-left hover:border-primary/50">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
+            </span>
+            <span className="font-semibold">{t("auth.emailSignIn")}</span>
+          </button>
 
           <p className="text-center text-xs text-muted-foreground">
             {t("auth.alreadyAccount")}{" "}
@@ -378,10 +231,8 @@ const Login = () => {
     );
   }
 
-  // ─── TELA: Auth (Cliente / Restaurante / Motorista) ───
+  // ─── ECRÃ: Autenticação ───
   const isClientFlow = mode === "client";
-  const isDriverFlow = mode === "driver";
-  const isFleetFlow = mode === "fleet";
 
   const campoPin = (id: string, valor: string, setter: (v: string) => void, etiqueta: string) => (
     <div className="space-y-1.5">
@@ -421,7 +272,7 @@ const Login = () => {
   // Sem email e sem Google: o cliente identifica-se pelo telefone, que é o que
   // ele sabe de cor. O PIN é escolhido por ele, e a credencial derivada dos dois
   // é sempre a mesma — por isso entrar noutro telemóvel é só voltar a escrevê-los.
-  if (isClientFlow || isDriverFlow) {
+  if (isClientFlow) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm space-y-5">
@@ -434,7 +285,7 @@ const Login = () => {
 
           <div className="space-y-1 text-center">
             <img src={logo} alt="iTudoo" className="mx-auto h-10" />
-            <h1 className="text-title">{isDriverFlow ? t("auth.independentDriver") : t("auth.clientLoginTitle")}</h1>
+            <h1 className="text-title">{t(tab === "signup" ? "auth.clientSignupTitle" : "auth.phoneSignIn")}</h1>
             <p className="text-caption text-muted-foreground">{t("auth.clientLoginPinDesc")}</p>
           </div>
 
@@ -488,7 +339,7 @@ const Login = () => {
                 {campoPin("cli-signup-pin-2", pinConfirm, setPinConfirm, t("auth.confirmPin"))}
                 <p className="text-caption text-muted-foreground">{t("auth.pinHint")}</p>
                 <Button type="submit" disabled={submitting} className="h-12 w-full text-body font-semibold">
-                  {submitting ? t("auth.creatingAccount") : isDriverFlow ? t("auth.signupTab") : t("auth.createClientAccount")}
+                  {submitting ? t("auth.creatingAccount") : t("auth.createClientAccount")}
                 </Button>
               </form>
             </TabsContent>
@@ -523,110 +374,53 @@ const Login = () => {
         <div className="text-center space-y-1">
           <img src={logo} alt="iTudoo" className="h-10 mx-auto" />
           <h1 className="text-xl font-bold">
-            {isFleetFlow ? "Conta de Frota" : t("auth.professionalLoginTitle")}
+            {t("auth.emailSignIn")}
           </h1>
           <p className="text-xs text-muted-foreground">
-            {isFleetFlow ? "Registe a frota para gerir motoristas e entregas" : t("auth.professionalLoginSubtitle")}
+            {t("auth.existingAccountOnly")}
           </p>
         </div>
 
-        {/* Restaurante é o único perfil profissional no DeliveryApp */}
+        <Button
+          variant="outline"
+          className="w-full gap-2 h-12 text-sm"
+          onClick={handleGoogleLogin}
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          {t("auth.continueWithGoogle")}
+        </Button>
 
-        {!isFleetFlow && (
-          <>
-            {/* Google OAuth (preparado — desativado sem credenciais) */}
-            <Button
-              variant="outline"
-              className="w-full gap-2 h-12 text-sm"
-              onClick={handleGoogleLogin}
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              {t("auth.continueWithGoogle")}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">{t("auth.or")}</span>
-              </div>
-            </div>
-          </>
-        )}
-
-        <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="login">{t("auth.loginTab")}</TabsTrigger>
-            <TabsTrigger value="signup">{t("auth.signupTab")}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login">
-            <form onSubmit={handleLogin} className="flex flex-col gap-3 mt-4">
-              <div className="space-y-1">
-                <Label htmlFor="email">{t("auth.email")}</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="password">{t("auth.password")}</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-              <div className="text-right">
-                <button type="button" onClick={() => navigate("/esqueci-senha")} className="text-xs text-primary hover:underline">
-                  {t("auth.forgotPassword")}
-                </button>
-              </div>
-              <Button type="submit" disabled={submitting} className="w-full h-11">
-                {submitting ? t("auth.loggingIn") : t("auth.loginButton")}
-              </Button>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="signup">
-            <form onSubmit={handleSignup} className="flex flex-col gap-3 mt-4">
-              <div className="space-y-1">
-                <Label htmlFor="name">{isFleetFlow ? "Nome da frota" : t("auth.name")}</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-              </div>
-              {isFleetFlow && (
-                <div className="space-y-1">
-                  <Label htmlFor="fleet-phone">Telefone de contacto</Label>
-                  <Input
-                    id="fleet-phone"
-                    inputMode="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="9XXXXXXXX"
-                    required
-                  />
-                </div>
-              )}
-              <div className="space-y-1">
-                <Label htmlFor="email-s">{t("auth.email")}</Label>
-                <Input id="email-s" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="password-s">{t("auth.password")}</Label>
-                <Input id="password-s" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-              </div>
-              <Button type="submit" disabled={submitting} className="w-full h-11">
-                {submitting
-                  ? t("auth.creatingAccount")
-                  : isFleetFlow
-                    ? "Criar conta de frota"
-                    : t("auth.createBusinessAccount")}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                {t("auth.afterBusiness")}
-              </p>
-            </form>
-          </TabsContent>
-        </Tabs>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">{t("auth.or")}</span>
+          </div>
+        </div>
+        <form onSubmit={handleLogin} className="flex flex-col gap-3 mt-4">
+          <div className="space-y-1">
+            <Label htmlFor="email">{t("auth.email")}</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="password">{t("auth.password")}</Label>
+            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <div className="text-right">
+            <button type="button" onClick={() => navigate("/esqueci-senha")} className="text-xs text-primary hover:underline">
+              {t("auth.forgotPassword")}
+            </button>
+          </div>
+          <Button type="submit" disabled={submitting} className="w-full h-11">
+            {submitting ? t("auth.loggingIn") : t("auth.loginButton")}
+          </Button>
+        </form>
       </div>
     </div>
   );

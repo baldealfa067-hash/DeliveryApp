@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bike, Plus, Power, Trash2, MapPin, KeyRound, LogOut } from "lucide-react";
+import { ArrowLeft, Bike, Power, Trash2, MapPin, KeyRound, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,10 +16,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { FleetDriverDetail } from "@/components/FleetDriverDetail";
 import {
   useFleetMetrics,
-  useCreateFleet,
   useFleetDrivers,
   useZonePrices,
-  useAddDriver,
   useSetDriverActive,
   useRemoveDriver,
   useResetDriverPin,
@@ -68,49 +66,19 @@ const FleetDashboard = () => {
   const { data: drivers = [] } = useFleetDrivers();
   const { data: prices = [] } = useZonePrices(metrics?.fleet_id ?? null);
 
-  const addDriver = useAddDriver();
   const setActive = useSetDriverActive();
   const removeDriver = useRemoveDriver();
   const upsertPrice = useUpsertZonePrice();
-  const createFleet = useCreateFleet();
   const resetPin = useResetDriverPin();
 
-  const [phone, setPhone] = useState("");
-  const [name, setName] = useState("");
   const [bairro, setBairro] = useState(LOCATION_OPTIONS[0]);
   const [preco, setPreco] = useState("");
-  /** PIN devolvido pela criação, para a frota passar ao motorista. */
   const [pinNovo, setPinNovo] = useState<{ nome: string; telefone: string; pin: string } | null>(null);
   /** Motorista aberto no painel lateral de detalhe. */
   const [detalheId, setDetalheId] = useState<string | null>(null);
-  const [fleetName, setFleetName] = useState("");
-  const [fleetPhone, setFleetPhone] = useState("");
 
   const fail = (e: unknown) =>
     toast.error(e instanceof Error ? e.message : t("fleetDashboard.genericError"));
-
-  const onAddDriver = () => {
-    if (!phone.trim() || !name.trim()) return;
-    const nome = name.trim();
-    addDriver.mutate(
-      { phone: phone.trim(), name: nome },
-      {
-        onSuccess: (r) => {
-          if (r.pin) {
-            setPinNovo({ nome, telefone: r.telefone, pin: r.pin });
-            toast.success(t("fleetDashboard.driverCreated"));
-          } else {
-            // Já tinha conta: não há PIN novo, entra com o dele.
-            setPinNovo(null);
-            toast.success(t("fleetDashboard.driverLinked"));
-          }
-          setPhone("");
-          setName("");
-        },
-        onError: fail,
-      },
-    );
-  };
 
   const onSavePrice = () => {
     const valor = Number(preco);
@@ -124,14 +92,6 @@ const FleetDashboard = () => {
         },
         onError: fail,
       },
-    );
-  };
-
-  const onCreateFleet = () => {
-    if (!fleetName.trim() || !fleetPhone.trim()) return;
-    createFleet.mutate(
-      { name: fleetName.trim(), phone: fleetPhone.trim() },
-      { onSuccess: () => toast.success(t("fleetDashboard.fleetCreated")), onError: fail },
     );
   };
 
@@ -191,39 +151,7 @@ const FleetDashboard = () => {
           <h1 className="text-xl font-bold">{t("fleetDashboard.registerTitle")}</h1>
           {logoutButton}
         </div>
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <p className="text-sm text-muted-foreground">
-              {t("fleetDashboard.registerIntro")}
-            </p>
-            <div className="space-y-2">
-              <Label htmlFor="fnome">{t("fleetDashboard.fleetName")}</Label>
-              <Input
-                id="fnome"
-                value={fleetName}
-                onChange={(e) => setFleetName(e.target.value)}
-                placeholder={t("fleetDashboard.fleetNamePlaceholder")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ftel">{t("fleetDashboard.contactPhone")}</Label>
-              <Input
-                id="ftel"
-                inputMode="tel"
-                value={fleetPhone}
-                onChange={(e) => setFleetPhone(e.target.value)}
-                placeholder="9XXXXXXXX"
-              />
-            </div>
-            <Button
-              onClick={onCreateFleet}
-              disabled={createFleet.isPending}
-              className="w-full h-12"
-            >
-              {t("fleetDashboard.createFleet")}
-            </Button>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-4 text-sm">{t("auth.partnerManagedByAdmin")}</CardContent></Card>
       </div>
     );
   }
@@ -256,42 +184,6 @@ const FleetDashboard = () => {
 
         {/* ── Motoristas (§12) ─────────────────────────────────────────── */}
         <TabsContent value="motoristas" className="space-y-3 mt-3">
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-semibold">{t("fleetDashboard.addDriver")}</p>
-              <p className="text-xs text-muted-foreground">
-                {t("fleetDashboard.addDriverHint")}
-              </p>
-              <div className="space-y-2">
-                <Label htmlFor="nome">{t("fleetDashboard.name")}</Label>
-                <Input
-                  id="nome"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={t("fleetDashboard.driverNamePlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tel">{t("fleetDashboard.phone")}</Label>
-                <Input
-                  id="tel"
-                  inputMode="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="9XXXXXXXX"
-                />
-              </div>
-              <Button
-                onClick={onAddDriver}
-                disabled={addDriver.isPending || !name.trim() || !phone.trim()}
-                className="w-full h-12"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {addDriver.isPending ? t("fleetDashboard.creating") : t("fleetDashboard.createDriver")}
-              </Button>
-            </CardContent>
-          </Card>
-
           {pinNovo && (
             <Card className="border-primary/40 bg-primary/5">
               <CardContent className="p-4 space-y-2">

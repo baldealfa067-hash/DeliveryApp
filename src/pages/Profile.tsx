@@ -1,7 +1,7 @@
 import { LoadError } from "@/components/LoadError";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store, Bike } from "lucide-react";
+import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -212,14 +212,6 @@ const Profile = () => {
                 <ShoppingBag className="h-4 w-4" />
                 {t("profile.myOrders", "Meus Pedidos")}
               </Button>
-              <Button variant="outline" onClick={() => navigate("/login?mode=profissional")} className="w-full justify-start gap-2">
-                <Store className="h-4 w-4" />
-                Tornar-se Restaurante
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/registar-motorista")} className="w-full justify-start gap-2">
-                <Bike className="h-4 w-4" />
-                Torna-te motorista
-              </Button>
               <Button variant="destructive" onClick={handleLogout} className="w-full justify-start gap-2">
                 <LogOut className="h-4 w-4" />
                 {t("profile.logout")}
@@ -229,11 +221,6 @@ const Profile = () => {
         </div>
       );
     }
-    // Conta sem papel conhecido e sem perfil com nome — leitura já
-    // confirmada nos dois lados. O botão "Criar perfil de prestador" saiu:
-    // apontava para /painel, rota inexistente, e não há fluxo de registo de
-    // prestador na V1 (o registo de motorista é por frota; o de restaurante
-    // é /login?mode=profissional, acessível pelo ecrã de entrada).
     return (
       <div className="max-w-lg mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">{t("profile.myProfile")}</h1>

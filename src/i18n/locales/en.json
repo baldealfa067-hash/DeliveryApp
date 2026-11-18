@@ -163,6 +163,11 @@
     "belezaShort": "Beauty & Aesthetics"
   },
   "auth": {
+    "phoneSignIn": "Sign in with phone and PIN",
+    "phoneSignInDesc": "For customers and partners. Only customers can sign up here.",
+    "emailSignIn": "Sign in with email",
+    "existingAccountOnly": "For existing email accounts.",
+    "partnerManagedByAdmin": "Ask an administrator to activate your work account.",
     "independentDriver": "Independent driver",
     "independentDriverDesc": "Create a driver profile to work with your own motorcycle.",
     "independentDriverPhoneRequired": "Sign in with a phone number and PIN to create a driver profile.",
@@ -666,6 +671,12 @@
     "anonymousReviewNote": "No account? Your review is anonymous and will be published after approval."
   },
   "admin": {
+    "addPartner": "Add partner",
+    "partnerType": "Partner type",
+    "partnerNeedsPin": "This number is new. Set a PIN for the first sign-in.",
+    "partnerAccountCreated": "Account created. Share the PIN privately.",
+    "partnerActivated": "Access enabled. The account keeps its current PIN.",
+    "partnerCreateError": "Unable to add the partner.",
     "notifFleets": "Fleets",
     "notifDrivers": "Drivers",
     "notifNoRecipients": "There are no recipients in the selected groups.",

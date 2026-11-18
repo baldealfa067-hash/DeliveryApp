@@ -1,3 +1,4 @@
+import { AdminPartnerOnboarding } from "@/components/AdminPartnerOnboarding";
 import { useQuery } from "@tanstack/react-query";
 import { LoadError } from "@/components/LoadError";
 import { Pagination } from "@/components/Pagination";
@@ -104,6 +105,7 @@ type MenuKey =
   | "stats"
   | "send_notification"
   | "commissions"
+  | "onboarding"
   | "settings";
 
 type ProviderFilter = "todos" | "avaliacao" | "ativos" | "rejeitados";
@@ -699,6 +701,7 @@ const AdminDashboard = () => {
     { key: "food-orders", label: t("admin.foodOrders"), icon: <ClipboardList className="h-4 w-4" /> },
     { key: "shipments", label: t("admin.shipments"), icon: <Send className="h-4 w-4" /> },
     { key: "providers", label: t("admin.restaurants"), icon: <Store className="h-4 w-4" /> },
+    { key: "onboarding", label: t("admin.addPartner"), icon: <BadgeCheck className="h-4 w-4" /> },
     { key: "verifications", label: t("admin.verifications"), icon: <ShieldCheck className="h-4 w-4" />, count: pendingVerifications.length },
     { key: "complaints", label: t("admin.complaints"), icon: <ShieldAlert className="h-4 w-4" />, count: pendingComplaints.length },
     { key: "reviews", label: t("admin.reviews"), icon: <Star className="h-4 w-4" />, count: pendingReviews.length },
@@ -1239,6 +1242,13 @@ const AdminDashboard = () => {
             busy={notifSending}
             onConfirm={() => void sendBulkNotification()}
           />
+
+          {menu === "onboarding" && user && (
+            <section className="space-y-4">
+              <h1 className="text-2xl font-bold">{t("admin.addPartner")}</h1>
+              <AdminPartnerOnboarding adminId={user.id} onSaved={() => void loadAll()} />
+            </section>
+          )}
 
           {menu === "commissions" && (
             <div className="flex flex-col gap-4">
