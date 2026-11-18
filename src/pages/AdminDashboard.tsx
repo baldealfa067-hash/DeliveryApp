@@ -1,3 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
+import { LoadError } from "@/components/LoadError";
+import { Pagination } from "@/components/Pagination";
 import { useEffect, useMemo, useState } from "react";
 import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
 import { ImagemPrivada } from "@/components/MediaPrivada";
@@ -10,12 +13,10 @@ import {
   Check,
   X,
   LayoutDashboard,
-  Users,
   ShieldCheck,
   ShieldAlert,
   Star,
   ClipboardList,
-  Tag,
   MapPin,
   BarChart3,
   Settings,
@@ -68,7 +69,6 @@ type Provider = {
   verification_selfie_url: string | null;
   stats?: { profile_views: number; whatsapp_clicks: number; call_clicks: number };
 };
-type Request = { id: string; requester_name: string | null; category: string; location: string; description: string; status: string; created_at: string };
 type Review = { id: string; provider_id: string; reviewer_name: string | null; rating: number; comment: string | null; created_at: string; status: string };
 type Complaint = { id: string; provider_id: string; client_id: string | null; reason: string; description: string | null; contact: string | null; status: string; created_at: string };
 type Category = { id: string; name: string; name_en?: string | null; name_fr?: string | null };
@@ -83,7 +83,8 @@ type MenuKey =
   | "verifications"
   | "complaints"
   | "reviews"
-  | "categories"
+  | "food-orders"
+  | "shipments"
   | "lojas-categorias"
   | "bairros"
   | "stats"
@@ -142,7 +143,7 @@ const MiniBars = ({ data, color = "bg-primary" }: { data: number[]; color?: stri
   );
 };
 
-const StatCard = ({ label, value, icon, onClick }: { label: string; value: number; icon: React.ReactNode; onClick: () => void }) => (
+const StatCard = ({ label, value, icon, onClick }: { label: string; value: number | string; icon: React.ReactNode; onClick: () => void }) => (
   <button
     onClick={onClick}
     className="bg-card border rounded-xl p-4 flex items-center gap-3 text-left hover:border-primary/40 transition-colors"
@@ -152,20 +153,39 @@ const StatCard = ({ label, value, icon, onClick }: { label: string; value: numbe
     </div>
     <div className="min-w-0">
       <div className="text-2xl font-bold leading-none">{value}</div>
-      <div className="text-xs text-muted-foreground mt-1 truncate">{label}</div>
+      <div className="text-xs text-muted-foreground mt-1 break-words">{label}</div>
     </div>
   </button>
 );
+
+const ORDERS_PER_PAGE = 20;
+
+const useAdminOrders = (shipments: boolean, page: number, enabled: boolean, userId?: string) =>
+  useQuery({
+    queryKey: ["admin-orders", userId, shipments, page],
+    enabled,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const query = supabase.from("orders")
+        .select("id, order_number, business_id, status, created_at", { count: "exact" });
+      const filtered = shipments ? query.is("business_id", null) : query.not("business_id", "is", null);
+      const start = (page - 1) * ORDERS_PER_PAGE;
+      const { data, count, error } = await filtered
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(start, start + ORDERS_PER_PAGE - 1);
+      if (error) throw error;
+      return { rows: data, total: count ?? 0 };
+    },
+  });
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isAdmin, loading, signOut } = useAuth();
   const [providers, setProviders] = useState<Provider[]>([]);
-  const [requests, setRequests] = useState<Request[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [bairros, setBairros] = useState<Bairro[]>([]);
   const [businessCategories, setBusinessCategories] = useState<Category[]>([]);
   const [beautyCategories, setBeautyCategories] = useState<Category[]>([]);
@@ -174,12 +194,18 @@ const AdminDashboard = () => {
   const [quality, setQuality] = useState<Record<string, { level: string; score: number }>>({});
   const [loadingData, setLoadingData] = useState(true);
   const [menu, setMenu] = useState<MenuKey>("overview");
+  const [orderPage, setOrderPage] = useState(1);
+  const selectMenu = (next: MenuKey) => {
+    setOrderPage(1);
+    setMenu(next);
+  };
+  const foodOrders = useAdminOrders(false, menu === "food-orders" ? orderPage : 1, !!user && isAdmin, user?.id);
+  const shipments = useAdminOrders(true, menu === "shipments" ? orderPage : 1, !!user && isAdmin, user?.id);
   const [providerFilter, setProviderFilter] = useState<ProviderFilter>("avaliacao");
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("pendentes");
-  const [deleteTarget, setDeleteTarget] = useState<{ table: "profiles" | "service_requests" | "reviews"; id: string; entity: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ table: "profiles" | "reviews"; id: string; entity: string } | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Provider | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [bairroToDelete, setBairroToDelete] = useState<Bairro | null>(null);
   const [bizCategoryToDelete, setBizCategoryToDelete] = useState<Category | null>(null);
   const [belezaCategoryToDelete, setBelezaCategoryToDelete] = useState<Category | null>(null);
@@ -211,9 +237,7 @@ const AdminDashboard = () => {
     setLoadingData(true);
     const [
       { data: p },
-      { data: r },
       { data: rv },
-      { data: c },
       { data: b },
       { data: st },
       { data: cp },
@@ -225,9 +249,7 @@ const AdminDashboard = () => {
       { data: an },
     ] = await Promise.all([
       supabase.from("profiles").select("id, name, category, phone, location, price_type, starting_price, photo_url, profile_type, is_verified, verification_status").order("name"),
-      supabase.from("service_requests").select("id, requester_name, category, location, description, status, created_at").order("created_at", { ascending: false }),
       supabase.from("reviews").select("id, provider_id, reviewer_name, rating, comment, created_at, status").order("created_at", { ascending: false }),
-      supabase.from("categories").select("id, name, name_en, name_fr").order("name"),
       supabase.from("bairros").select("id, name").order("name"),
       supabase.from("provider_stats").select("provider_id, profile_views, whatsapp_clicks, call_clicks"),
       supabase.from("complaints").select("id, provider_id, client_id, reason, description, contact, status, created_at").order("created_at", { ascending: false }),
@@ -271,10 +293,8 @@ const AdminDashboard = () => {
       ...(kycMap[prov.id] ?? { verification_doc_url: null, verification_selfie_url: null, verification_reason: null }),
       stats: statsMap[prov.id] ?? { profile_views: 0, whatsapp_clicks: 0, call_clicks: 0 },
     })));
-    setRequests((r ?? []) as Request[]);
     setReviews((rv ?? []) as Review[]);
     setComplaints((cp ?? []) as Complaint[]);
-    setCategories((c ?? []) as Category[]);
     setBairros((b ?? []) as Bairro[]);
     setBusinessCategories((bc ?? []) as Category[]);
     setBeautyCategories((bl ?? []) as Category[]);
@@ -294,10 +314,8 @@ const AdminDashboard = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "complaints" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "reviews" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "service_requests" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "quality_levels" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "portfolio_images" }, () => loadAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "business_categories" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "beauty_categories" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "bairros" }, () => loadAll())
@@ -331,11 +349,18 @@ const AdminDashboard = () => {
 
   const pendingCommPayments = allCommissionPayments.filter((p) => p.status === "pendente");
 
-  const remove = async (table: "profiles" | "service_requests" | "reviews", id: string) => {
+  const remove = async (table: "profiles" | "reviews", id: string) => {
     const { error } = table === "profiles"
       ? await supabase.rpc("admin_delete_user", { p_profile_id: id })
       : await supabase.from(table).delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      const hasFleetLedger = table === "profiles" &&
+        error.code === "23503" &&
+        error.message.includes("ledger_entries_fleet_id_fkey");
+
+      toast.error(hasFleetLedger ? t("admin.deleteBlockedByFleetLedger") : error.message);
+      return;
+    }
     toast.success(t("admin.deleted"));
     loadAll();
   };
@@ -392,27 +417,6 @@ const AdminDashboard = () => {
     const { error } = await supabase.from("complaints").update({ status }).eq("id", c.id);
     if (error) return toast.error(error.message);
     toast.success(status === "validada" ? t("admin.complaintValidated") : t("admin.complaintRejected"));
-    loadAll();
-  };
-
-  const addCategory = async (data: { name: string; name_en: string | null; name_fr: string | null }) => {
-    const { error } = await supabase.from("categories").insert({ name: data.name, name_en: data.name_en, name_fr: data.name_fr });
-    if (error) return toast.error(error.message);
-    toast.success(t("admin.categoryAdded"));
-    loadAll();
-  };
-
-  const renameCategory = async (id: string, data: { name: string; name_en: string | null; name_fr: string | null }) => {
-    const { error } = await supabase.from("categories").update({ name: data.name, name_en: data.name_en, name_fr: data.name_fr }).eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success(t("admin.categoryUpdated"));
-    loadAll();
-  };
-
-  const removeCategory = async (id: string) => {
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success(t("admin.categoryDeleted"));
     loadAll();
   };
 
@@ -516,12 +520,14 @@ const AdminDashboard = () => {
   const reviewedComplaints = complaints.filter((c) => c.status !== "pendente");
   const clientName = (cid: string | null) => (cid ? providers.find((p) => p.id === cid)?.name ?? t("admin.client") : t("admin.anonymous"));
 
+  const restaurants = useMemo(() => providers.filter((p) => p.profile_type === "business"), [providers]);
+
   const filteredProviders = useMemo(() => {
-    if (providerFilter === "avaliacao") return providers.filter((p) => p.verification_status === "pendente");
-    if (providerFilter === "ativos") return providers.filter((p) => p.is_verified || p.verification_status === "aprovado");
-    if (providerFilter === "rejeitados") return providers.filter((p) => p.verification_status === "rejeitado");
-    return providers;
-  }, [providers, providerFilter]);
+    if (providerFilter === "avaliacao") return restaurants.filter((p) => p.verification_status === "pendente");
+    if (providerFilter === "ativos") return restaurants.filter((p) => p.is_verified || p.verification_status === "aprovado");
+    if (providerFilter === "rejeitados") return restaurants.filter((p) => p.verification_status === "rejeitado");
+    return restaurants;
+  }, [restaurants, providerFilter]);
 
   const filteredReviews = useMemo(() => (reviewFilter === "pendentes" ? pendingReviews : approvedReviews), [reviewFilter, pendingReviews, approvedReviews]);
 
@@ -531,8 +537,8 @@ const AdminDashboard = () => {
   }, [approvedReviews]);
 
   const topProviders = useMemo(
-    () => [...providers].sort((a, b) => (b.stats?.profile_views ?? 0) - (a.stats?.profile_views ?? 0)).slice(0, 5),
-    [providers]
+    () => [...restaurants].sort((a, b) => (b.stats?.profile_views ?? 0) - (a.stats?.profile_views ?? 0)).slice(0, 5),
+    [restaurants]
   );
 
   const statusBadge = (p: Provider) => {
@@ -665,25 +671,58 @@ const AdminDashboard = () => {
 
   const menuItems: { key: MenuKey; label: string; icon: React.ReactNode; count?: number }[] = [
     { key: "overview", label: t("admin.overview"), icon: <LayoutDashboard className="h-4 w-4" /> },
-    { key: "providers", label: t("admin.providers"), icon: <Users className="h-4 w-4" />, count: providers.length },
+    { key: "food-orders", label: t("admin.foodOrders"), icon: <ClipboardList className="h-4 w-4" /> },
+    { key: "shipments", label: t("admin.shipments"), icon: <Send className="h-4 w-4" /> },
+    { key: "providers", label: t("admin.restaurants"), icon: <Store className="h-4 w-4" /> },
     { key: "verifications", label: t("admin.verifications"), icon: <ShieldCheck className="h-4 w-4" />, count: pendingVerifications.length },
     { key: "complaints", label: t("admin.complaints"), icon: <ShieldAlert className="h-4 w-4" />, count: pendingComplaints.length },
     { key: "reviews", label: t("admin.reviews"), icon: <Star className="h-4 w-4" />, count: pendingReviews.length },
-    { key: "categories", label: t("admin.categories"), icon: <Tag className="h-4 w-4" />, count: categories.length },
-    { key: "lojas-categorias", label: t("admin.shopCategories"), icon: <Store className="h-4 w-4" />, count: businessCategories.length },
-    { key: "bairros", label: t("admin.neighborhoods"), icon: <MapPin className="h-4 w-4" />, count: bairros.length },
+    { key: "lojas-categorias", label: t("admin.shopCategories"), icon: <Store className="h-4 w-4" /> },
+    { key: "bairros", label: t("admin.neighborhoods"), icon: <MapPin className="h-4 w-4" /> },
     { key: "stats", label: t("admin.statistics"), icon: <BarChart3 className="h-4 w-4" /> },
     { key: "send_notification", label: t("admin.sendNotification"), icon: <Bell className="h-4 w-4" /> },
     { key: "commissions", label: t("admin.commissions"), icon: <Coins className="h-4 w-4" />, count: pendingCommPayments.length },
     { key: "settings", label: t("admin.settings"), icon: <Settings className="h-4 w-4" /> },
   ];
 
+  const renderOrders = (query: ReturnType<typeof useAdminOrders>, overview: boolean) => {
+    if (query.isError) return <LoadError onRetry={() => void query.refetch()} />;
+    if (!query.data) return <p role="status" className="py-4 text-sm text-muted-foreground">{t("admin.loading")}</p>;
+
+    const { rows, total } = query.data;
+    const visibleOrders = overview ? rows.slice(0, 5) : rows;
+    return (
+      <>
+        {visibleOrders.length === 0 && <p className="py-4 text-sm text-muted-foreground">{t("orderManagement.noOrders")}</p>}
+        <ul className="divide-y">
+          {visibleOrders.map((order) => (
+            <li key={order.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+              <div className="min-w-0">
+                <p className="font-medium">{order.order_number == null ? order.id.slice(0, 8) : `#${order.order_number}`}</p>
+                <p className="text-xs text-muted-foreground">
+                  {order.business_id && <>{restaurants.find((restaurant) => restaurant.id === order.business_id)?.name ?? t("admin.shop")} · </>}
+                  {new Date(order.created_at).toLocaleDateString(i18n.language === "kri" ? "pt" : i18n.language)}
+                </p>
+              </div>
+              <Badge variant="secondary">{t(`orderStatus.${order.status.replace(/\./g, "_")}`, order.status)}</Badge>
+            </li>
+          ))}
+        </ul>
+        {!overview && (
+          <Pagination page={orderPage} pageCount={Math.max(orderPage, Math.ceil(total / ORDERS_PER_PAGE))}
+            onPageChange={setOrderPage} total={total} />
+        )}
+      </>
+    );
+  };
+
   const navList = (compact = false) => (
     <nav className={compact ? "flex md:hidden gap-1 overflow-x-auto px-4 py-2" : "flex flex-col gap-1"}>
       {menuItems.map((item) => (
         <button
           key={item.key}
-          onClick={() => setMenu(item.key)}
+          onClick={() => selectMenu(item.key)}
+          aria-current={menu === item.key ? "page" : undefined}
           className={
             compact
               ? "flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-lg text-sm " +
@@ -760,60 +799,51 @@ const AdminDashboard = () => {
           {menu === "overview" && (
             <div className="flex flex-col gap-4">
               <h1 className="text-2xl font-bold">{t("admin.overview")}</h1>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                <StatCard label={t("admin.providers")} value={providers.length} icon={<Users className="h-5 w-5" />} onClick={() => setMenu("providers")} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <StatCard label={t("admin.foodOrders")} value={foodOrders.data?.total ?? "—"} icon={<ClipboardList className="h-5 w-5" />} onClick={() => selectMenu("food-orders")} />
+                <StatCard label={t("admin.shipments")} value={shipments.data?.total ?? "—"} icon={<Send className="h-5 w-5" />} onClick={() => selectMenu("shipments")} />
+                <StatCard label={t("admin.restaurants")} value={restaurants.length} icon={<Store className="h-5 w-5" />} onClick={() => setMenu("providers")} />
                 <StatCard label={t("admin.pendingVerifications")} value={pendingVerifications.length} icon={<ShieldCheck className="h-5 w-5" />} onClick={() => setMenu("verifications")} />
                 <StatCard label={t("admin.pendingReviews")} value={pendingReviews.length} icon={<Star className="h-5 w-5" />} onClick={() => setMenu("reviews")} />
                 <StatCard label={t("admin.pendingComplaints")} value={pendingComplaints.length} icon={<ShieldAlert className="h-5 w-5" />} onClick={() => setMenu("complaints")} />
-                <StatCard label={t("admin.requests")} value={requests.length} icon={<ClipboardList className="h-5 w-5" />} onClick={() => setMenu("requests")} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <h2 className="font-semibold text-sm mb-3">{t("admin.recentRequests")}</h2>
-                    {requests.slice(0, 5).map((r) => (
-                      <div key={r.id} className="py-2 border-b last:border-0 text-sm">
-                        <div className="font-medium">{r.requester_name ?? t("admin.client")}</div>
-                        <div className="text-xs text-muted-foreground">{r.category} · {r.location}</div>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{r.description}</p>
+                {([
+                  ["food-orders", t("admin.foodOrders"), foodOrders],
+                  ["shipments", t("admin.shipments"), shipments],
+                ] as const).map(([key, label, query]) => (
+                  <Card key={key}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h2 className="font-semibold text-sm">{label}</h2>
+                        <Button type="button" variant="ghost" size="icon" aria-label={label} onClick={() => selectMenu(key)}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
-                    ))}
-                    {!requests.length && <p className="text-sm text-muted-foreground text-center py-6">{t("admin.noRequests")}</p>}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <h2 className="font-semibold text-sm mb-3">{t("admin.recentComplaints")}</h2>
-                    {complaints.slice(0, 5).map((c) => (
-                      <div key={c.id} className="py-2 border-b last:border-0 text-sm">
-                        <div className="font-medium">{providerName(c.provider_id)}</div>
-                        <div className="text-xs text-muted-foreground">{c.reason} · {clientName(c.client_id)}</div>
-                        <Badge variant={c.status === "pendente" ? "destructive" : c.status === "validada" ? "default" : "secondary"} className="mt-1">{c.status}</Badge>
-                      </div>
-                    ))}
-                    {!complaints.length && <p className="text-sm text-muted-foreground text-center py-6">{t("admin.noComplaints")}</p>}
-                  </CardContent>
-                </Card>
+                      {renderOrders(query, true)}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           )}
 
           {menu === "providers" && (
             <div className="flex flex-col gap-4">
-              <h1 className="text-2xl font-bold">{t("admin.providers")}</h1>
+              <h1 className="text-2xl font-bold">{t("admin.restaurants")}</h1>
               <Tabs value={providerFilter} onValueChange={(v) => setProviderFilter(v as ProviderFilter)}>
                 <div className="overflow-x-auto -mx-4 px-4 mb-4">
                   <TabsList className="inline-flex w-max gap-1">
-                    <TabsTrigger value="avaliacao">{t("admin.inReviewCount", { count: providers.filter((p) => p.verification_status === "pendente").length })}</TabsTrigger>
-                    <TabsTrigger value="ativos">{t("admin.activeCount", { count: providers.filter((p) => p.is_verified || p.verification_status === "aprovado").length })}</TabsTrigger>
-                    <TabsTrigger value="rejeitados">{t("admin.rejectedCount", { count: providers.filter((p) => p.verification_status === "rejeitado").length })}</TabsTrigger>
-                    <TabsTrigger value="todos">{t("admin.allCount", { count: providers.length })}</TabsTrigger>
+                    <TabsTrigger value="avaliacao">{t("admin.inReviewCount", { count: restaurants.filter((p) => p.verification_status === "pendente").length })}</TabsTrigger>
+                    <TabsTrigger value="ativos">{t("admin.activeCount", { count: restaurants.filter((p) => p.is_verified || p.verification_status === "aprovado").length })}</TabsTrigger>
+                    <TabsTrigger value="rejeitados">{t("admin.rejectedCount", { count: restaurants.filter((p) => p.verification_status === "rejeitado").length })}</TabsTrigger>
+                    <TabsTrigger value="todos">{t("admin.allCount", { count: restaurants.length })}</TabsTrigger>
                   </TabsList>
                 </div>
                 <TabsContent value={providerFilter} className="flex flex-col gap-3">
                   {filteredProviders.map(providerCard)}
-                  {!filteredProviders.length && <p className="text-sm text-muted-foreground text-center py-6">{t("admin.noProvidersState")}</p>}
+                  {!filteredProviders.length && <p className="text-sm text-muted-foreground text-center py-6">{t("admin.noRestaurants")}</p>}
                 </TabsContent>
               </Tabs>
             </div>
@@ -996,47 +1026,10 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {menu === "requests" && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-2xl font-bold">{t("admin.requests")}</h1>
-              <div className="flex flex-col gap-2">
-                {requests.map((r) => (
-                  <Card key={r.id}>
-                    <CardContent className="p-3 flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="font-semibold flex items-center gap-2">
-                          {r.requester_name ?? t("admin.client")}
-                          <Badge variant={r.status === "aberto" ? "secondary" : r.status === "concluido" ? "default" : "outline"}>
-                            {r.status}
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-muted-foreground mb-1">{r.category} · {r.location}</div>
-                        <p className="text-sm">{r.description}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ table: "service_requests", id: r.id, entity: t("admin.requests") })}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-                {!requests.length && <p className="text-sm text-muted-foreground text-center py-6">{t("admin.noRequestsTab")}</p>}
-              </div>
-            </div>
-          )}
-
-          {menu === "categories" && (
-            <div className="flex flex-col gap-4">
-              <h1 className="text-2xl font-bold">{t("admin.categories")}</h1>
-              <p className="text-xs text-muted-foreground">
-                Crie a categoria em PT e adicione as traduções em inglês e francês. O nome em PT é o identificador guardado nos perfis.
-              </p>
-              <ManageCategoryList
-                items={categories}
-                onAdd={addCategory}
-                onRename={renameCategory}
-                onDelete={(id) => setCategoryToDelete(categories.find((c) => c.id === id) ?? null)}
-                emptyText={t("admin.noCategories")}
-              />
+          {(menu === "food-orders" || menu === "shipments") && (
+            <div className="space-y-4">
+              <h1 className="text-2xl font-bold">{menu === "food-orders" ? t("admin.foodOrders") : t("admin.shipments")}</h1>
+              {renderOrders(menu === "food-orders" ? foodOrders : shipments, false)}
             </div>
           )}
 
@@ -1076,9 +1069,10 @@ const AdminDashboard = () => {
           {menu === "stats" && (
             <div className="flex flex-col gap-4">
               <h1 className="text-2xl font-bold">{t("admin.statistics")}</h1>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                <StatCard label={t("admin.providers")} value={providers.length} icon={<Users className="h-5 w-5" />} onClick={() => setMenu("providers")} />
-                <StatCard label={t("admin.requests")} value={requests.length} icon={<ClipboardList className="h-5 w-5" />} onClick={() => setMenu("requests")} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <StatCard label={t("admin.restaurants")} value={restaurants.length} icon={<Store className="h-5 w-5" />} onClick={() => setMenu("providers")} />
+                <StatCard label={t("admin.foodOrders")} value={foodOrders.data?.total ?? "—"} icon={<ClipboardList className="h-5 w-5" />} onClick={() => selectMenu("food-orders")} />
+                <StatCard label={t("admin.shipments")} value={shipments.data?.total ?? "—"} icon={<Send className="h-5 w-5" />} onClick={() => selectMenu("shipments")} />
                 <StatCard label={t("admin.approvedReviews")} value={approvedReviews.length} icon={<Star className="h-5 w-5" />} onClick={() => setMenu("reviews")} />
                 <StatCard label={t("admin.validatedComplaints")} value={complaints.filter((c) => c.status === "validada").length} icon={<ShieldAlert className="h-5 w-5" />} onClick={() => setMenu("complaints")} />
                 <StatCard label={t("admin.avgRating")} value={avgRating} icon={<Star className="h-5 w-5" />} onClick={() => setMenu("reviews")} />
@@ -1394,8 +1388,8 @@ const AdminDashboard = () => {
                     <span className="font-medium">{t("admin.itudoo")}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t("admin.categories")}</span>
-                    <span className="font-medium">{categories.length}</span>
+                    <span className="text-muted-foreground">{t("admin.shopCategories")}</span>
+                    <span className="font-medium">{businessCategories.length}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t("admin.neighborhoods")}</span>
@@ -1438,19 +1432,6 @@ const AdminDashboard = () => {
           onChange: setRejectReason,
         }}
         onConfirm={() => { if (rejectTarget) rejectVerification(rejectTarget); }}
-      />
-
-      <ConfirmDialog
-        open={categoryToDelete !== null}
-        onOpenChange={(o) => { if (!o) setCategoryToDelete(null); }}
-        title={t("admin.deleteCategory")}
-        description={categoryToDelete ? t("admin.deleteCategoryConfirm", { name: categoryToDelete.name }) : ""}
-        confirmLabel={t("admin.delete")}
-        destructive
-        onConfirm={() => {
-          if (categoryToDelete) removeCategory(categoryToDelete.id);
-          setCategoryToDelete(null);
-        }}
       />
 
       <ConfirmDialog
