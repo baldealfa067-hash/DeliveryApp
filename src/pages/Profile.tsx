@@ -1,3 +1,4 @@
+import { LoadError } from "@/components/LoadError";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store, Bike } from "lucide-react";
@@ -29,7 +30,7 @@ type ProviderProfile = {
 const Profile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, isBusiness, isClient, isAdmin, roles, rolesLoaded, rolesError, retryRoles, loading, signOut } = useAuth();
+  const { user, isBusiness, isClient, isAdmin, roles, rolesLoaded, rolesError, retryRoles, loading, signOut, sessionError, retrySession } = useAuth();
   // O Supabase NAO tem `user.name`: o nome gravado no registo vive em
   // `user_metadata.name`. Lia-se `user.name`, sempre undefined, e caia no email --
   // que num cliente de telefone+PIN e sintetico (`c<telefone>@deliveryapp.gw`).
@@ -63,6 +64,10 @@ const Profile = () => {
       navigate("/admin", { replace: true });
       return;
     }
+    if (rolesLoaded && roles.includes("fleet")) {
+      navigate("/painel-frota", { replace: true });
+      return;
+    }
     if (isBusiness && !isProvider) {
       navigate("/painel-loja", { replace: true });
       return;
@@ -93,7 +98,7 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
-  }, [user, isAdmin, isBusiness, isProvider, rolesLoaded, loading, navigate, profileAttempt]);
+  }, [user, isAdmin, isBusiness, isProvider, roles, rolesLoaded, loading, navigate, profileAttempt]);
 
   useEffect(() => {
     if (!profileId) return;
@@ -118,6 +123,8 @@ const Profile = () => {
     toast.success(t("profile.sessionClosed"));
     navigate("/", { replace: true });
   };
+
+  if (sessionError) return <LoadError onRetry={retrySession} />;
 
   if (loading || (user && !rolesLoaded)) {
     if (user && rolesError) {

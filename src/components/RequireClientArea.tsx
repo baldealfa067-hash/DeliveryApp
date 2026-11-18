@@ -1,71 +1,32 @@
-import { Navigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
+import { Navigate } from "react-router-dom";
+import { LoadError } from "@/components/LoadError";
 import { useAuth } from "@/hooks/useAuth";
-import { useDriverProfile } from "@/hooks/useDrivers";
+import { getPostLoginDestination } from "@/lib/getPostLoginDestination";
 
-/**
- * Escolhe o destino por omissão na raiz do site, e mais nada.
- *
- * Quem tem conta de trabalho e abre a app pelo endereço ou pelo ícone da PWA
- * quer quase sempre o seu painel, por isso é para lá que vai. É uma
- * conveniência, não uma barreira.
- *
- * NÃO é uma guarda. Apesar do nome, não há "área de cliente": navegar, ver
- * menus, pedir e acompanhar (/inicio, /explorar, /loja/:id, /meus-pedidos,
- * /pedido/:id) são a app pública e estão abertos a qualquer conta. Um dono de
- * restaurante encomenda o almoço como qualquer pessoa. Este componente já
- * esteve a envolver essas rotas e bloqueava-as — foi retirado de lá de
- * propósito, não voltar a pôr.
- *
- * O isolamento a sério — o que impede um cliente de ver o painel de gestão de
- * um restaurante ou de um motorista — é o RequireRole, e é esse que não se
- * mexe. Do lado do servidor a regra é a mesma: as RPCs de pedidos decidem por
- * posse (quem fez o pedido, quem é dono do restaurante, quem faz a entrega) e
- * nunca por tipo de conta.
- *
- * Visitante sem sessão passa sempre: a conta só é exigida ao encomendar.
- *
- * Papéis por confirmar (query ainda a correr ou falhada) nunca decidem o
- * destino: com roles vazias por engano, um admin ou um cliente era atirado
- * para o painel errado. Enquanto não há confirmação, espera-se ou mostra-se
- * erro com retry.
- */
+/** Selects the default destination on the landing routes. Public routes such
+ * as /inicio and /meus-pedidos remain available to every account. */
 const RequireClientArea = ({ children }: { children: React.ReactNode }) => {
-  const { t } = useTranslation();
-  const { user, isBusiness, isAdmin, rolesLoaded, rolesError, retryRoles, loading } = useAuth();
-  const { data: driver, isLoading: driverLoading } = useDriverProfile(user?.id ?? null);
+  const { user, roles, rolesLoaded, rolesError, retryRoles, loading, sessionError, retrySession } = useAuth();
+  const destination = useQuery({
+    queryKey: ["post-login-destination", user?.id, roles],
+    enabled: !!user && rolesLoaded && !loading,
+    queryFn: () => getPostLoginDestination(user!.id, roles),
+  });
 
-  if (loading || (user && (!rolesLoaded || driverLoading))) {
-    if (user && rolesError) {
-      return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-          <p className="text-muted-foreground">{t("common.errorLoading")}</p>
-          <Button variant="outline" onClick={retryRoles}>
-            {t("common.tryAgain")}
-          </Button>
-        </div>
-      );
-    }
+  if (sessionError) return <LoadError onRetry={retrySession} />;
+
+  if (user && rolesError) return <LoadError onRetry={retryRoles} />;
+  if (user && destination.isError) return <LoadError onRetry={() => void destination.refetch()} />;
+  if (loading || (user && (!rolesLoaded || !destination.data))) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div role="status" className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
-
-  // O admin passa sempre, antes de tudo o resto. Os papéis acumulam-se em
-  // user_roles e um perfil de motorista é independente deles, portanto uma
-  // conta de admin que também se tenha registado como motorista para testar
-  // caía no ramo de baixo: clicava em "Início", vinha parar aqui e era
-  // devolvida ao painel de motorista, sem forma de sair. Ao clicar em "Início"
-  // um admin quer a área pública, nunca gerir uma loja ou uma entrega.
-  if (user && isAdmin) return <>{children}</>;
-
-  if (user && isBusiness) return <Navigate to="/painel-loja" replace />;
-  if (user && driver) return <Navigate to="/painel-motorista" replace />;
-
+  if (user && destination.data) return <Navigate to={destination.data} replace />;
   return <>{children}</>;
 };
 

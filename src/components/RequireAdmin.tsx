@@ -1,9 +1,14 @@
+import { LoadError } from "@/components/LoadError";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, rolesError, retryRoles, loading, sessionError, retrySession } = useAuth();
+
+  if (sessionError) return <LoadError onRetry={retrySession} />;
+
+  if (user && rolesError) return <LoadError onRetry={retryRoles} />;
 
   if (loading) {
     return (

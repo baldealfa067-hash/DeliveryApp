@@ -15,6 +15,8 @@ type AuthState = {
   isClient: boolean;
   rolesLoaded: boolean;
   rolesError: string | null;
+  sessionError: boolean;
+  retrySession: () => void;
   loading: boolean;
   retryRoles: () => void;
   signOut: () => Promise<void>;
@@ -48,6 +50,12 @@ export const useAuthState = (enabled: boolean): AuthState => {
   const [rolesLoaded, setRolesLoaded] = useState(false);
   const [rolesError, setRolesError] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
+  const [sessionError, setSessionError] = useState(false);
+  const [sessionAttempt, setSessionAttempt] = useState(0);
+  const retrySession = useCallback(() => {
+    setSessionError(false);
+    setSessionAttempt((attempt) => attempt + 1);
+  }, []);
   const [rolesAttempt, setRolesAttempt] = useState(0);
   // Utilizador a quem pertencem rolesLoaded/rolesError. Sem esta marca há uma
   // janela de render em que a sessão já chegou (user definido) mas os papéis
@@ -58,6 +66,8 @@ export const useAuthState = (enabled: boolean): AuthState => {
 
   useEffect(() => {
     if (!enabled) return;
+    let active = true;
+    let receivedSessionEvent = false;
     const aplicarSessao = (s: Session | null) => {
       setSession(s);
       setUser(s?.user ?? null);
@@ -69,17 +79,32 @@ export const useAuthState = (enabled: boolean): AuthState => {
         setRolesError(null);
       }
     };
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      // Só estado React aqui dentro: chamar funções do Supabase dentro do
-      // callback pode bloquear o cliente (deadlock documentado).
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // INITIAL_SESSION omits the error. Use getSession to classify that result.
+      if (!active || event === "INITIAL_SESSION") return;
+      receivedSessionEvent = true;
       aplicarSessao(s);
-    });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      aplicarSessao(s);
+      setSessionError(false);
       setSessionReady(true);
     });
-    return () => sub.subscription.unsubscribe();
-  }, [enabled]);
+
+    supabase.auth.getSession().then(({ data: { session: s }, error }) => {
+      if (!active || receivedSessionEvent) return;
+      if (error && (error.status == null || error.status === 0 || error.status === 429 || error.status >= 500)) {
+        setSessionError(true);
+        return;
+      }
+      aplicarSessao(s);
+      setSessionReady(true);
+    }).catch(() => {
+      if (active && !receivedSessionEvent) setSessionError(true);
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [enabled, sessionAttempt]);
 
   const userId = user?.id ?? null;
 
@@ -142,6 +167,8 @@ export const useAuthState = (enabled: boolean): AuthState => {
     isClient: roles.includes("client"),
     rolesLoaded,
     rolesError,
+    sessionError,
+    retrySession,
     loading,
     retryRoles,
     signOut,

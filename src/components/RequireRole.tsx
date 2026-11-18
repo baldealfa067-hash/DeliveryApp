@@ -1,3 +1,4 @@
+import { LoadError } from "@/components/LoadError";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -30,7 +31,9 @@ const RequireRole = ({
   redirectTo?: string;
 }) => {
   const { t } = useTranslation();
-  const { user, roles: userRoles, rolesLoaded, rolesError, retryRoles, loading } = useAuth();
+  const { user, roles: userRoles, rolesLoaded, rolesError, retryRoles, loading, sessionError, retrySession } = useAuth();
+
+  if (sessionError) return <LoadError onRetry={retrySession} />;
 
   if (loading || (user && !rolesLoaded)) {
     if (user && rolesError) {

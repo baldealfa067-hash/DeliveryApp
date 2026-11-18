@@ -15,9 +15,9 @@ import MyOrdersPage from "./MyOrdersPage";
 
 const estado = { data: [] as unknown[], isLoading: false, isError: false, refetch: vi.fn() };
 
-vi.mock("@/hooks/useAuth", () => ({
-  useAuth: () => ({ user: { id: "u1", email: "c955000000@deliveryapp.gw" }, loading: false }),
-}));
+const cliente = { id: "u1", email: "c955000000@deliveryapp.gw" };
+let auth = { user: cliente as typeof cliente | null, loading: false };
+vi.mock("@/hooks/useAuth", () => ({ useAuth: () => auth }));
 vi.mock("@/hooks/useOrders", async (orig) => ({
   ...(await orig<typeof import("@/hooks/useOrders")>()),
   useCustomerOrders: () => estado,
@@ -29,7 +29,19 @@ const desenhar = () =>
 describe("MyOrdersPage — falha vs vazio", () => {
   beforeEach(async () => {
     await i18n.changeLanguage("pt");
+    auth = { user: cliente, loading: false };
     Object.assign(estado, { data: [], isLoading: false, isError: false });
+  });
+
+  it("aguarda a recuperação da sessão ao reabrir o histórico", () => {
+    auth = { user: null, loading: true };
+    const { rerender } = desenhar();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.queryByText(i18n.t("myOrders.loginRequired"))).not.toBeInTheDocument();
+
+    auth = { user: cliente, loading: false };
+    rerender(<MemoryRouter><MyOrdersPage /></MemoryRouter>);
+    expect(screen.getByRole("heading", { name: i18n.t("myOrders.title") })).toBeInTheDocument();
   });
 
   it("com ERRO mostra a falha e o botão de tentar de novo — não o estado vazio", () => {

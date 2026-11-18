@@ -1,3 +1,4 @@
+import { LoadError } from "@/components/LoadError";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +13,9 @@ import { useAuth } from "@/hooks/useAuth";
  * consulta repetia. Agora vai para o login antes de montar, como o RequireRole.
  */
 const RequireSession = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionError, retrySession } = useAuth();
+
+  if (sessionError) return <LoadError onRetry={retrySession} />;
 
   if (loading) {
     return (

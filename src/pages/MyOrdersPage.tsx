@@ -39,9 +39,19 @@ const STATUS_LABELS: Record<string, { key: string; color: string }> = {
 
 const MyOrdersPage = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loading, sessionError, retrySession } = useAuth();
   const navigate = useNavigate();
   const { data: orders = [], isLoading, isError, refetch } = useCustomerOrders(user?.id ?? null);
+
+  if (sessionError) return <LoadError onRetry={retrySession} />;
+
+  if (loading && !user) {
+    return (
+      <div role="status" className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (

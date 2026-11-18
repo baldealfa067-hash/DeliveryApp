@@ -1,3 +1,4 @@
+import { LoadError } from "@/components/LoadError";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -27,9 +28,19 @@ const APPT_STATUS_LABELS: Record<string, { key: string; color: string }> = {
 
 const MyAppointmentsPage = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loading, sessionError, retrySession } = useAuth();
   const navigate = useNavigate();
   const { data: appointments = [], isLoading } = useCustomerAppointments(user?.id ?? null);
+
+  if (sessionError) return <LoadError onRetry={retrySession} />;
+
+  if (loading && !user) {
+    return (
+      <div role="status" className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (

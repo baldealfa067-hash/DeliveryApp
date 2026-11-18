@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
@@ -29,23 +30,33 @@ let authMock = {
 let driverMock: { data: unknown; isLoading: boolean } = { data: null, isLoading: false };
 
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => authMock }));
-vi.mock("@/hooks/useDrivers", () => ({ useDriverProfile: () => driverMock }));
+vi.mock("@/lib/getPostLoginDestination", () => ({
+  getPostLoginDestination: async () => {
+    if (authMock.isAdmin) return "/admin";
+    if (authMock.roles.includes("fleet")) return "/painel-frota";
+    if (driverMock.data) return "/painel-motorista";
+    if (authMock.isBusiness) return "/painel-loja";
+    return "/inicio";
+  },
+}));
 
 import RequireClientArea from "./RequireClientArea";
 import RequireRole from "./RequireRole";
 
 const montar = (guarda: React.ReactNode) =>
   render(
-    <MemoryRouter initialEntries={["/rota-com-guarda"]}>
+    <QueryClientProvider client={new QueryClient()}><MemoryRouter initialEntries={["/rota-com-guarda"]}>
       <Routes>
         <Route path="/rota-com-guarda" element={guarda} />
+        <Route path="/admin" element={<div>ADMIN</div>} />
+        <Route path="/painel-frota" element={<div>PAINEL FROTA</div>} />
         <Route path="/painel-loja" element={<div>PAINEL LOJA</div>} />
         <Route path="/painel-motorista" element={<div>PAINEL MOTORISTA</div>} />
         <Route path="/login" element={<div>LOGIN</div>} />
         {/* Destino de quem e' recusado num painel: a navegacao aberta. */}
         <Route path="/inicio" element={<div>NAVEGACAO ABERTA</div>} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter></QueryClientProvider>
   );
 
 beforeEach(() => {
@@ -54,21 +65,21 @@ beforeEach(() => {
 });
 
 describe("RequireClientArea", () => {
-  it("deixa passar um cliente", () => {
+  it("encaminha o cliente para a área pública", async () => {
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
-    expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
+    expect(await screen.findByText("NAVEGACAO ABERTA")).toBeTruthy();
   });
 
-  it("manda um restaurante para o seu painel", () => {
+  it("manda um restaurante para o seu painel", async () => {
     authMock = { ...authMock, roles: ["business"], isBusiness: true };
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
-    expect(screen.getByText("PAINEL LOJA")).toBeTruthy();
+    expect(await screen.findByText("PAINEL LOJA")).toBeTruthy();
   });
 
-  it("manda um motorista para o seu painel", () => {
+  it("manda um motorista para o seu painel", async () => {
     driverMock = { data: { id: "d1" }, isLoading: false };
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
-    expect(screen.getByText("PAINEL MOTORISTA")).toBeTruthy();
+    expect(await screen.findByText("PAINEL MOTORISTA")).toBeTruthy();
   });
 
   it("deixa passar visitante sem sessão — a conta só é exigida ao encomendar", () => {
@@ -77,24 +88,17 @@ describe("RequireClientArea", () => {
     expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
   });
 
-  /**
-   * Os papéis acumulam-se em user_roles, e um perfil de motorista é
-   * independente deles. Uma conta de admin que também se registou como
-   * motorista para testar era devolvida ao painel de motorista sempre que
-   * clicava em "Início" — e ficava lá presa. Medido em produção:
-   * emitayschool5@gmail.com, admin + client, com perfil de motorista.
-   */
-  it("deixa passar um admin que também é motorista, em vez de o prender no painel", () => {
+  it("encaminha o administrador para /admin mesmo quando também é motorista", async () => {
     authMock = { ...authMock, roles: ["admin", "client"], isAdmin: true };
     driverMock = { data: { id: "d1" }, isLoading: false };
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
-    expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
+    expect(await screen.findByText("ADMIN")).toBeTruthy();
   });
 
-  it("deixa passar um admin que também tem loja", () => {
-    authMock = { ...authMock, roles: ["admin", "business"], isAdmin: true, isBusiness: true };
+  it("encaminha a frota para o seu painel ao reabrir a aplicação", async () => {
+    authMock = { ...authMock, roles: ["fleet", "client"] };
     montar(<RequireClientArea><div>AREA CLIENTE</div></RequireClientArea>);
-    expect(screen.getByText("AREA CLIENTE")).toBeTruthy();
+    expect(await screen.findByText("PAINEL FROTA")).toBeTruthy();
   });
 
   it("espera pelos papéis antes de decidir, para não mostrar a área errada", () => {
@@ -161,25 +165,27 @@ describe("RequireRole", () => {
 describe("raiz do site", () => {
   const montarRaiz = () =>
     render(
-      <MemoryRouter initialEntries={["/"]}>
+      <QueryClientProvider client={new QueryClient()}><MemoryRouter initialEntries={["/"]}>
         <Routes>
           <Route path="/" element={<RequireClientArea><div>LANDING</div></RequireClientArea>} />
-          <Route path="/painel-loja" element={<div>PAINEL LOJA</div>} />
+          <Route path="/admin" element={<div>ADMIN</div>} />
+        <Route path="/painel-frota" element={<div>PAINEL FROTA</div>} />
+        <Route path="/painel-loja" element={<div>PAINEL LOJA</div>} />
           <Route path="/painel-motorista" element={<div>PAINEL MOTORISTA</div>} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter></QueryClientProvider>
     );
 
-  it("manda um restaurante para o seu painel em vez da pagina de marketing", () => {
+  it("manda um restaurante para o seu painel em vez da pagina de marketing", async () => {
     authMock = { ...authMock, roles: ["business"], isBusiness: true };
     montarRaiz();
-    expect(screen.getByText("PAINEL LOJA")).toBeTruthy();
+    expect(await screen.findByText("PAINEL LOJA")).toBeTruthy();
   });
 
-  it("manda um motorista para o seu painel", () => {
+  it("manda um motorista para o seu painel", async () => {
     driverMock = { data: { id: "d1" }, isLoading: false };
     montarRaiz();
-    expect(screen.getByText("PAINEL MOTORISTA")).toBeTruthy();
+    expect(await screen.findByText("PAINEL MOTORISTA")).toBeTruthy();
   });
 
   it("visitante sem sessao continua a ver a landing", () => {

@@ -32,6 +32,17 @@ describe("getPostLoginDestination", () => {
     mockUserRolesResolve.mockReset();
   });
 
+  it("dá prioridade ao administrador com papéis confirmados", async () => {
+    expect(await getPostLoginDestination("uid-admin", ["admin", "fleet"])).toBe("/admin");
+    expect(mockFleetsMaybeSingle).not.toHaveBeenCalled();
+  });
+
+  it("propaga uma falha de leitura para permitir nova tentativa", async () => {
+    const error = new Error("Sem ligação");
+    mockFleetsMaybeSingle.mockResolvedValueOnce({ data: null, error });
+    await expect(getPostLoginDestination("uid-fleet", ["client"])).rejects.toBe(error);
+  });
+
   it("1. só motorista (drivers existe) → /painel-motorista", async () => {
     mockDriversMaybeSingle.mockResolvedValueOnce({ data: { id: "d1" }, error: null });
     const dest = await getPostLoginDestination("uid-driver");
