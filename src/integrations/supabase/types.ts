@@ -2610,6 +2610,7 @@ export type Database = {
         Args: { p_name: string; p_phone: string; p_vehicle_type?: string }
         Returns: string
       }
+      register_independent_driver: { Args: { p_name: string; p_phone: string }; Returns: string }
       register_as_provider: { Args: never; Returns: undefined }
       remove_driver_from_fleet: {
         Args: { p_driver_id: string }

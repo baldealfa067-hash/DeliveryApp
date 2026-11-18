@@ -158,6 +158,10 @@
     "belezaShort": "Beleza i Estetika"
   },
   "auth": {
+    "independentDriver": "Motorista indipendenti",
+    "independentDriverDesc": "Kria bu perfil pa tarbadja ku bu mota.",
+    "independentDriverPhoneRequired": "Entra ku bu numeru di telefoni ku PIN pa kria perfil di motorista.",
+    "createDriverProfile": "Kria perfil di motorista",
     "enterPhone": "Skirbi bu telfoni.",
     "enterValidPhone": "Skirbi un numeru di telfoni bon.",
     "pin": "PIN",

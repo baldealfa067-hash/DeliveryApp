@@ -163,6 +163,10 @@
     "belezaShort": "Beauty & Aesthetics"
   },
   "auth": {
+    "independentDriver": "Independent driver",
+    "independentDriverDesc": "Create a driver profile to work with your own motorcycle.",
+    "independentDriverPhoneRequired": "Sign in with a phone number and PIN to create a driver profile.",
+    "createDriverProfile": "Create driver profile",
     "enterPhone": "Enter your phone number.",
     "enterValidPhone": "Enter a valid phone number.",
     "pin": "PIN",

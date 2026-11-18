@@ -216,7 +216,7 @@ const Profile = () => {
                 <Store className="h-4 w-4" />
                 Tornar-se Restaurante
               </Button>
-              <Button variant="outline" onClick={() => navigate("/painel-motorista")} className="w-full justify-start gap-2">
+              <Button variant="outline" onClick={() => navigate("/registar-motorista")} className="w-full justify-start gap-2">
                 <Bike className="h-4 w-4" />
                 Torna-te motorista
               </Button>

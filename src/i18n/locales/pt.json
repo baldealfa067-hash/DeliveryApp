@@ -163,6 +163,10 @@
     "belezaShort": "Beleza & Estética"
   },
   "auth": {
+    "independentDriver": "Motorista independente",
+    "independentDriverDesc": "Crie o seu perfil para trabalhar com a sua moto.",
+    "independentDriverPhoneRequired": "Entre com uma conta de telefone e PIN para criar o perfil de motorista.",
+    "createDriverProfile": "Criar perfil de motorista",
     "enterPhone": "Escreve o teu telefone.",
     "enterValidPhone": "Escreve um número de telefone válido.",
     "pin": "PIN",

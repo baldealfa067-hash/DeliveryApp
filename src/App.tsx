@@ -21,6 +21,7 @@ const Explore = lazy(() => import("./pages/Explore"));
 const About = lazy(() => import("./pages/About"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const IndependentDriverRegistration = lazy(() => import("./pages/IndependentDriverRegistration"));
 const Login = lazy(() => import("./pages/Login"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -98,6 +99,7 @@ const App = () => (
                   abria o painel do motorista. O papel `driver` existia desde a Fase 1
                   mas nunca chegou a ser usado aqui. Quem o atribui e' add_driver_to_fleet,
                   ou seja, a frota (§11). */}
+              <Route path="/registar-motorista" element={<IndependentDriverRegistration />} />
               <Route path="/painel-motorista" element={<RequireRole roles={["driver"]} redirectTo="/perfil"><DriverDashboard /></RequireRole>} />
               {/* Sem RequireRole de proposito. O papel `fleet` so' nasce quando
                   create_fleet() corre, e create_fleet() e' chamada a partir deste

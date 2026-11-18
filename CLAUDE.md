@@ -10,7 +10,9 @@ Rules:
 
 ---
 
-# ADITAMENTO 1 — Decisão sobre motoristas individuais (ler antes do documento principal)
+# ADITAMENTO 1 — Decisão anterior sobre motoristas individuais
+
+Atualização de 18 de novembro de 2026: o dono do projeto pediu o cadastro e a criação de perfil para motoristas independentes. O cadastro por frota continua disponível. Esta alteração de cadastro mantém o despacho de entregas associado a frotas até haver regras para independentes.
 
 O documento principal abaixo (secção 11) estabelece que na V1 só frotas podem se registar como operadores logísticos — sem cadastro aberto de motorista individual.
 

@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
-  return { ...actual, useNavigate: () => mockNavigate, useSearchParams: () => [new URLSearchParams(), vi.fn()] };
+  return { ...actual, useNavigate: () => mockNavigate, useSearchParams: actual.useSearchParams };
 });
 
 vi.mock("@/hooks/useAuth", () => ({
@@ -30,30 +30,19 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 import Login from "./Login";
 
-/**
- * Estes testes afirmavam que o ecra' de escolha tinha um cartao "Motorista" e
- * que clica-lo abria o registo independente. O Aditamento 1 do documento
- * mestre reverteu essa funcionalidade: na V1 so' frotas se registam como
- * operadores logisticos, e e' a frota que cadastra os seus motoristas
- * (§11, §12).
- *
- * Passam agora a afirmar o contrario, de proposito. Nao foram apagados: e' a
- * rede que apanha alguem a repor o auto-registo por engano numa fase futura,
- * e deixa escrito no codigo que a remocao foi uma decisao, nao um descuido.
- */
-describe("Login - registo de motorista foi revertido (Aditamento 1)", () => {
+describe("Login — cadastro de motorista independente", () => {
   beforeEach(() => { mockNavigate.mockClear(); });
 
-  it("nao mostra o cartao Motorista no ecra de escolha", () => {
+  it("oferece uma página própria para o motorista independente", () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    expect(screen.queryByText("Motorista")).not.toBeInTheDocument();
-    expect(screen.queryByText("Entregar pedidos e ganhar dinheiro")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Motorista independente/ })).toHaveAttribute("href", "/registar-motorista");
   });
 
-  it("nao ha caminho no ecra de escolha que abra o registo de motorista", () => {
-    render(<MemoryRouter><Login /></MemoryRouter>);
-    expect(screen.queryByText("Conta de Motorista")).not.toBeInTheDocument();
-    expect(screen.queryByText("Cria a tua conta para comecar a entregar")).not.toBeInTheDocument();
+  it("abre o cadastro por telefone e PIN a partir do link do motorista", () => {
+    render(<MemoryRouter initialEntries={["/login?mode=motorista&tab=registar"]}><Login /></MemoryRouter>);
+    expect(screen.getByRole("heading", { name: "Motorista independente" })).toBeInTheDocument();
+    expect(screen.getByRole("tabpanel")).toHaveAttribute("id", expect.stringContaining("signup"));
+    expect(screen.queryByLabelText(/palavra-passe/i)).not.toBeInTheDocument();
   });
 
   it("continua a oferecer Restaurante, que e o unico perfil profissional da V1", () => {

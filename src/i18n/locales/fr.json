@@ -163,6 +163,10 @@
     "belezaShort": "Beauté & Esthétique"
   },
   "auth": {
+    "independentDriver": "Livreur indépendant",
+    "independentDriverDesc": "Créez votre profil pour travailler avec votre moto.",
+    "independentDriverPhoneRequired": "Connectez-vous avec votre numéro de téléphone et votre code PIN pour créer votre profil.",
+    "createDriverProfile": "Créer un profil de livreur",
     "enterPhone": "Saisis ton numéro de téléphone.",
     "enterValidPhone": "Saisis un numéro de téléphone valide.",
     "pin": "PIN",

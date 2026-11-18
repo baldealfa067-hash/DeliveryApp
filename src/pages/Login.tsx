@@ -41,11 +41,7 @@ const Login = () => {
     if (m === "cliente") return "client";
     if (m === "restaurante") return "professional";
     if (m === "frota") return "fleet";
-    // `?mode=motorista` deixou de abrir o registo de motorista. Era a última
-    // porta pública para o auto-registo depois de o cartão sair do ecrã de
-    // escolha — ver o comentário do cartão, mais abaixo. O modo "driver" em si
-    // mantém-se no ficheiro: é o que a frota vai reutilizar na Fase 3/4 para
-    // criar os seus motoristas, e é o ecrã que um motorista já registado vê.
+    if (m === "motorista") return "driver";
     return "choose";
   });
   const [tab, setTab] = useState<"login" | "signup">(
@@ -70,6 +66,11 @@ const Login = () => {
     if (signingUp.current) return;
     if (loading || !rolesLoaded) return;
     if (!user) return;
+
+    if (mode === "driver") {
+      navigate(roles.includes("driver") ? "/painel-motorista" : "/registar-motorista", { replace: true });
+      return;
+    }
 
     // Handle Google OAuth callback — assign the role that was selected before redirect
     if (searchParams.get("fromGoogle") === "true" && !roles.length) {
@@ -109,7 +110,7 @@ const Login = () => {
       if (active) setDestinationError(true);
     });
     return () => { active = false; };
-  }, [user, roles, rolesLoaded, loading, navigate, searchParams, destinationAttempt]);
+  }, [user, roles, rolesLoaded, loading, navigate, searchParams, destinationAttempt, mode]);
 
   // ── Cliente: telefone + PIN ──────────────────────────────────────────────
   // A password vai derivada do telefone e do PIN, portanto o mesmo par
@@ -171,7 +172,7 @@ const Login = () => {
       if (roleErr) console.error("[auth] register_as_client:", roleErr.message);
       toast.success(t("auth.accountCreated"));
       sessionStorage.setItem(JUST_SIGNED_UP_KEY, "1");
-      navigate("/inicio", { replace: true });
+      navigate(mode === "driver" ? "/registar-motorista" : "/inicio", { replace: true });
     } catch (err) {
       console.error("[auth] client signup:", err);
       toast.error(t("auth.registerError"));
@@ -204,20 +205,9 @@ const Login = () => {
     }
     signingUp.current = true;
     try {
-      const isClientFlow = mode === "client";
-      const isDriverFlow = mode === "driver";
       const isFleetFlow = mode === "fleet";
-      const redirectPath = isFleetFlow
-        ? "/painel-frota"
-        : isDriverFlow
-          ? "/painel-motorista"
-          : isClientFlow
-            ? "/inicio"
-            : "/painel-loja/editar";
-
-      // Passar profile_type no metadata para o trigger handle_new_user criar a role
-      // mesmo quando Confirm Email = ON (session === null)
-      const profileTypeForMeta = isClientFlow || isDriverFlow || isFleetFlow ? "client" : profileType;
+      const redirectPath = isFleetFlow ? "/painel-frota" : "/painel-loja/editar";
+      const profileTypeForMeta = isFleetFlow ? "client" : profileType;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -243,9 +233,6 @@ const Login = () => {
             ) => Promise<{ error: { message: string } | null }>
           )("create_fleet", { p_name: name.trim(), p_phone: phone.trim(), p_bairro: null });
           if (fleetErr) toast.error(fleetErr.message);
-        } else if (isClientFlow || isDriverFlow) {
-          const { error: roleErr } = await supabase.rpc("register_as_client");
-          if (roleErr) console.error("Role error:", roleErr);
         } else {
           const { error: roleErr } = await supabase.rpc("register_as_business");
           if (roleErr) console.error("Role error:", roleErr);
@@ -265,12 +252,8 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const isDriverFlow = mode === "driver";
-    const googleMode = isDriverFlow ? "client" : isClientFlow ? "client" : "professional";
-    sessionStorage.setItem("bornaal:google_mode", googleMode);
-    if (!isClientFlow && !isDriverFlow) {
-      sessionStorage.setItem("bornaal:google_profile_type", profileType);
-    }
+    sessionStorage.setItem("bornaal:google_mode", "professional");
+    sessionStorage.setItem("bornaal:google_profile_type", profileType);
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -370,21 +353,19 @@ const Login = () => {
             </CardContent>
           </Card>
 
-          {/* O cartão "Motorista" saiu daqui deliberadamente (Aditamento 1 do
-              documento mestre): na V1 só frotas se registam como operadores
-              logísticos, e é a frota que cadastra os seus motoristas (§11,
-              §12). Não é um esquecimento — o auto-registo chegou a existir,
-              foi publicado e está a ser revertido de propósito.
-
-              O que NÃO saiu, e não deve sair: o modo "driver" deste ficheiro,
-              o DriverDashboard e as RPC de aceitar/recolher/entregar. Esse
-              código continua a ser o fluxo do motorista; muda apenas quem cria
-              a conta. A Fase 3 liga-o à frota em vez de o duplicar
-              (Aditamento 1.4).
-
-              Um motorista já existente continua a entrar: entra como cliente e
-              getPostLoginDestination manda-o para /painel-motorista por ter
-              linha em `drivers`. */}
+          <Link to="/registar-motorista" className="block rounded-xl focus-visible:outline focus-visible:outline-primary">
+            <Card className="hover:border-primary/50 hover:bg-primary/5 transition-colors">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <Bike className="h-6 w-6 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold">{t("auth.independentDriver")}</p>
+                  <p className="text-xs text-muted-foreground">{t("auth.independentDriverDesc")}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
 
           <p className="text-center text-xs text-muted-foreground">
             {t("auth.alreadyAccount")}{" "}
@@ -440,7 +421,7 @@ const Login = () => {
   // Sem email e sem Google: o cliente identifica-se pelo telefone, que é o que
   // ele sabe de cor. O PIN é escolhido por ele, e a credencial derivada dos dois
   // é sempre a mesma — por isso entrar noutro telemóvel é só voltar a escrevê-los.
-  if (isClientFlow) {
+  if (isClientFlow || isDriverFlow) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm space-y-5">
@@ -453,7 +434,7 @@ const Login = () => {
 
           <div className="space-y-1 text-center">
             <img src={logo} alt="iTudoo" className="mx-auto h-10" />
-            <h1 className="text-title">{t("auth.clientLoginTitle")}</h1>
+            <h1 className="text-title">{isDriverFlow ? t("auth.independentDriver") : t("auth.clientLoginTitle")}</h1>
             <p className="text-caption text-muted-foreground">{t("auth.clientLoginPinDesc")}</p>
           </div>
 
@@ -507,7 +488,7 @@ const Login = () => {
                 {campoPin("cli-signup-pin-2", pinConfirm, setPinConfirm, t("auth.confirmPin"))}
                 <p className="text-caption text-muted-foreground">{t("auth.pinHint")}</p>
                 <Button type="submit" disabled={submitting} className="h-12 w-full text-body font-semibold">
-                  {submitting ? t("auth.creatingAccount") : t("auth.createClientAccount")}
+                  {submitting ? t("auth.creatingAccount") : isDriverFlow ? t("auth.signupTab") : t("auth.createClientAccount")}
                 </Button>
               </form>
             </TabsContent>
@@ -542,10 +523,10 @@ const Login = () => {
         <div className="text-center space-y-1">
           <img src={logo} alt="iTudoo" className="h-10 mx-auto" />
           <h1 className="text-xl font-bold">
-            {isFleetFlow ? "Conta de Frota" : isDriverFlow ? "Conta de Motorista" : isClientFlow ? t("auth.clientLoginTitle") : t("auth.professionalLoginTitle")}
+            {isFleetFlow ? "Conta de Frota" : t("auth.professionalLoginTitle")}
           </h1>
           <p className="text-xs text-muted-foreground">
-            {isFleetFlow ? "Registe a frota para gerir motoristas e entregas" : isDriverFlow ? "Cria a tua conta para começar a entregar" : isClientFlow ? t("auth.clientLoginSubtitle") : t("auth.professionalLoginSubtitle")}
+            {isFleetFlow ? "Registe a frota para gerir motoristas e entregas" : t("auth.professionalLoginSubtitle")}
           </p>
         </div>
 
@@ -638,14 +619,10 @@ const Login = () => {
                   ? t("auth.creatingAccount")
                   : isFleetFlow
                     ? "Criar conta de frota"
-                    : isDriverFlow
-                      ? "Criar conta de motorista"
-                    : isClientFlow
-                      ? t("auth.createClientAccount")
-                      : t("auth.createBusinessAccount")}
+                    : t("auth.createBusinessAccount")}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                {isDriverFlow ? "Depois irás para o registo de motorista." : isClientFlow ? t("auth.afterClient") : t("auth.afterBusiness")}
+                {t("auth.afterBusiness")}
               </p>
             </form>
           </TabsContent>
