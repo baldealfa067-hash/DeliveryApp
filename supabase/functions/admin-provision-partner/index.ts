@@ -46,8 +46,18 @@ Deno.serve(async (request) => {
       body: JSON.stringify({ email, data: { name: name.trim() } }),
     });
     if (!invite.ok) {
-      return json({ error: "O Supabase não enviou o convite. Confirme o endereço e a configuração de envio de e-mails." },
-        invite.status === 429 ? 429 : 502);
+      const failure = await invite.json().catch(() => null);
+      const code = failure?.error_code ?? failure?.code;
+      if (code === "email_address_invalid") {
+        return json({ error: "O Supabase rejeitou este endereço. Confirme o e-mail com o parceiro e use um endereço válido." }, 400);
+      }
+      if (code === "email_address_not_authorized") {
+        return json({ error: "O envio para endereços externos requer SMTP personalizado no Supabase." }, 502);
+      }
+      if (invite.status === 429) {
+        return json({ error: "Limite de envio atingido. Tente novamente mais tarde." }, 429);
+      }
+      return json({ error: "O Supabase não enviou o convite. Verifique os logs de autenticação e a configuração de envio." }, 502);
     }
 
     result = await provision();
