@@ -1314,6 +1314,12 @@
     "notes": "Remarques"
   },
   "driverDashboard": {
+    "editZonePrice": "Modifier",
+    "platformBalance": "À payer à la plateforme",
+    "deliveryCommission": "Commission actuelle : {{rate}} % du prix de la livraison",
+    "recentMovements": "Mouvements récents",
+    "commissionEntry": "Commission de livraison",
+    "noFinanceMovements": "Aucun mouvement financier pour le moment.",
     "registerTitle": "Devenir Livreur",
     "registerDesc": "Inscrivez-vous pour faire des livraisons sur iTudoo.",
     "register": "S'inscrire comme Livreur",

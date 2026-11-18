@@ -1,3 +1,4 @@
+import { IndependentDriverFinance, IndependentDriverPrices } from "@/components/IndependentDriverOperations";
 import { useEffect, useState, useRef } from "react";
 import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
 import { AudioPrivado } from "@/components/MediaPrivada";
@@ -535,7 +536,7 @@ const DriverDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="available">
-          <TabsList className="w-full justify-start h-auto p-1 bg-muted/50">
+          <TabsList className="w-full flex-wrap justify-start h-auto p-1 bg-muted/50">
             <TabsTrigger value="available" className="gap-1.5 text-xs">
               <Navigation className="h-3.5 w-3.5" />
               {t("driverDashboard.availableDeliveries")}
@@ -547,7 +548,20 @@ const DriverDashboard = () => {
               <Package className="h-3.5 w-3.5" />
               {t("driverDashboard.myDeliveries")}
             </TabsTrigger>
+            {driver.fleet_id === null && (
+              <>
+                <TabsTrigger value="prices" className="text-xs">{t("fleetDashboard.tabPrices")}</TabsTrigger>
+                <TabsTrigger value="finance" className="text-xs">{t("fleetDashboard.tabFinance")}</TabsTrigger>
+              </>
+            )}
           </TabsList>
+
+          {driver.fleet_id === null && (
+            <>
+              <TabsContent value="prices"><IndependentDriverPrices driverId={driver.id} /></TabsContent>
+              <TabsContent value="finance"><IndependentDriverFinance driverId={driver.id} /></TabsContent>
+            </>
+          )}
 
           <TabsContent value="available">
             {availableDeliveries.length === 0 ? (

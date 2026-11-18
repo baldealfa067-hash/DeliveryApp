@@ -1314,6 +1314,12 @@
     "notes": "Observações"
   },
   "driverDashboard": {
+    "editZonePrice": "Editar",
+    "platformBalance": "A pagar à plataforma",
+    "deliveryCommission": "Comissão atual: {{rate}}% do preço da entrega",
+    "recentMovements": "Movimentos recentes",
+    "commissionEntry": "Comissão de entrega",
+    "noFinanceMovements": "Ainda não há movimentos financeiros.",
     "registerTitle": "Torne-se Motorista",
     "registerDesc": "Registe-se para fazer entregas no iTudoo.",
     "register": "Registar como Motorista",

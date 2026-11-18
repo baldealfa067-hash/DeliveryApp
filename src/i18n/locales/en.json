@@ -1314,6 +1314,12 @@
     "notes": "Notes"
   },
   "driverDashboard": {
+    "editZonePrice": "Edit",
+    "platformBalance": "Due to the platform",
+    "deliveryCommission": "Current commission: {{rate}}% of the delivery fee",
+    "recentMovements": "Recent transactions",
+    "commissionEntry": "Delivery commission",
+    "noFinanceMovements": "There are no financial transactions yet.",
     "registerTitle": "Become a Driver",
     "registerDesc": "Register to make deliveries on iTudoo.",
     "register": "Register as Driver",

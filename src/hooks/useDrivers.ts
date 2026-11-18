@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Driver {
   id: string;
   user_id: string;
+  fleet_id: string | null;
   name: string;
   phone: string;
   vehicle_type: string;

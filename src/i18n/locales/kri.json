@@ -767,6 +767,12 @@
     "appointmentsManagement": "Gestason di Markasons"
   },
   "driverDashboard": {
+    "editZonePrice": "Edita",
+    "platformBalance": "Pa paga plataforma",
+    "deliveryCommission": "Komison atual: {{rate}}% di presu di entrega",
+    "recentMovements": "Movimentus resenti",
+    "commissionEntry": "Komison di entrega",
+    "noFinanceMovements": "Ka ten movimentu di dinheru inda.",
     "registerTitle": "Torna Motorista",
     "registerDesc": "Regista pa fazi entregas na iTudoo.",
     "register": "Regista komu Motorista",

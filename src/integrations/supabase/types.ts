@@ -765,6 +765,12 @@ export type Database = {
           },
         ]
       }
+      driver_zone_prices: {
+        Row: { driver_id: string; bairro: string; preco: number };
+        Insert: { driver_id: string; bairro: string; preco: number };
+        Update: { driver_id?: string; bairro?: string; preco?: number };
+        Relationships: [];
+      };
       drivers: {
         Row: {
           bornaal_id: string | null
@@ -2427,6 +2433,10 @@ export type Database = {
           vehicle_type: string
         }[]
       }
+      get_independent_driver_finance: {
+        Args: never;
+        Returns: { taxa_actual: number; comissao_gerada: number; saldo_plataforma: number }[];
+      };
       get_fleet_financials: { Args: never; Returns: Json }
       get_fleet_metrics: {
         Args: never
