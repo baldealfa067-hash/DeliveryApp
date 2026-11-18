@@ -129,17 +129,24 @@ Deno.serve(async (req: Request) => {
   const telefone = normalizePhone(motorista.phone ?? "");
   if (telefone.length < 7) return json({ error: "Motorista sem telefone válido" }, 400);
 
-  // ── 3. Gerar e aplicar ───────────────────────────────────────────────────
+  const accountUrl = `${SUPABASE_URL}/auth/v1/admin/users/${motorista.user_id}`;
+  const adminHeaders = {
+    Authorization: `Bearer ${SERVICE_ROLE}`,
+    apikey: SERVICE_ROLE,
+    "Content-Type": "application/json",
+  };
+  const accountResponse = await fetch(accountUrl, { headers: adminHeaders });
+  if (!accountResponse.ok) return json({ error: "Não foi possível confirmar o tipo de conta" }, 502);
+  const account = await accountResponse.json();
+  if (account.email?.toLowerCase() !== `c${telefone}@deliveryapp.gw`) {
+    return json({ error: "Este motorista deve repor a palavra-passe por e-mail" }, 409);
+  }
+
   const pin = gerarPin();
   const password = await derivePassword(telefone, pin);
-
-  const rUpd = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${motorista.user_id}`, {
+  const rUpd = await fetch(accountUrl, {
     method: "PUT",
-    headers: {
-      Authorization: `Bearer ${SERVICE_ROLE}`,
-      apikey: SERVICE_ROLE,
-      "Content-Type": "application/json",
-    },
+    headers: adminHeaders,
     body: JSON.stringify({ password }),
   });
 

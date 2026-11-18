@@ -673,9 +673,9 @@
   "admin": {
     "addPartner": "Add partner",
     "partnerType": "Partner type",
-    "partnerNeedsPin": "This number is new. Set a PIN for the first sign-in.",
-    "partnerAccountCreated": "Account created. Share the PIN privately.",
-    "partnerActivated": "Access enabled. The account keeps its current PIN.",
+    "partnerEmailHint": "The phone number is for contact. The partner gets an email link to set their password.",
+    "partnerInviteSent": "Invitation sent by email.",
+    "partnerEmailActivated": "Partner activated. They can sign in with their existing email and password.",
     "partnerCreateError": "Unable to add the partner.",
     "notifFleets": "Fleets",
     "notifDrivers": "Drivers",

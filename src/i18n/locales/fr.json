@@ -673,9 +673,9 @@
   "admin": {
     "addPartner": "Ajouter un partenaire",
     "partnerType": "Type de partenaire",
-    "partnerNeedsPin": "Ce numéro est nouveau. Définissez un code PIN pour la première connexion.",
-    "partnerAccountCreated": "Compte créé. Communiquez le code PIN en privé.",
-    "partnerActivated": "Accès activé. Le compte conserve son code PIN.",
+    "partnerEmailHint": "Le téléphone sert de contact. Le partenaire reçoit un lien par e-mail pour définir son mot de passe.",
+    "partnerInviteSent": "Invitation envoyée par e-mail.",
+    "partnerEmailActivated": "Partenaire activé. Il peut se connecter avec son e-mail et son mot de passe.",
     "partnerCreateError": "Impossible d’ajouter le partenaire.",
     "notifFleets": "Flottes",
     "notifDrivers": "Livreurs",

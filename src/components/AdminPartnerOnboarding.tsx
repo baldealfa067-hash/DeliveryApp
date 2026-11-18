@@ -10,20 +10,19 @@ import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/PhoneInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { derivePassword, isValidPhone, isValidPin, normalizePhone } from "@/lib/clientAuth";
+import { isValidPhone, normalizePhone } from "@/lib/clientAuth";
 
 type PartnerRole = "business" | "fleet" | "driver";
-type ProvisionResult = { ok?: boolean; created?: boolean; needsPin?: boolean };
+type ProvisionResult = { ok?: boolean; invited?: boolean };
 
 export const AdminPartnerOnboarding = ({ adminId, onSaved }: { adminId: string; onSaved: () => void }) => {
   const { t } = useTranslation();
   const [role, setRole] = useState<PartnerRole>("business");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [pin, setPin] = useState("");
+  const [email, setEmail] = useState("");
   const [fleetId, setFleetId] = useState("independent");
   const [submitting, setSubmitting] = useState(false);
-  const [needsPin, setNeedsPin] = useState(false);
   const fleets = useQuery({
     queryKey: ["admin-partner-fleets", adminId],
     enabled: role === "driver",
@@ -36,13 +35,12 @@ export const AdminPartnerOnboarding = ({ adminId, onSaved }: { adminId: string; 
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (submitting || !name.trim() || !isValidPhone(phone) || (!!pin && !isValidPin(pin))) return;
+    if (submitting || !name.trim() || !isValidPhone(phone) || !email.trim()) return;
     setSubmitting(true);
     try {
       const number = normalizePhone(phone);
-      const password = pin ? await derivePassword(number, pin) : undefined;
       const { data, error } = await supabase.functions.invoke<ProvisionResult>("admin-provision-partner", {
-        body: { role, name: name.trim(), phone: number, password,
+        body: { role, name: name.trim(), phone: number, email: email.trim(),
           fleetId: role === "driver" && fleetId !== "independent" ? fleetId : null },
       });
       if (error) {
@@ -51,16 +49,11 @@ export const AdminPartnerOnboarding = ({ adminId, onSaved }: { adminId: string; 
         toast.error(payload?.error || t("admin.partnerCreateError"));
         return;
       }
-      if (data?.needsPin) {
-        setNeedsPin(true);
-        return;
-      }
       if (!data?.ok) throw new Error("Missing confirmation");
-      toast.success(t(data.created ? "admin.partnerAccountCreated" : "admin.partnerActivated"));
+      toast.success(t(data.invited ? "admin.partnerInviteSent" : "admin.partnerEmailActivated"));
       setName("");
       setPhone("");
-      setPin("");
-      setNeedsPin(false);
+      setEmail("");
       void fleets.refetch();
       onSaved();
     } catch {
@@ -92,11 +85,13 @@ export const AdminPartnerOnboarding = ({ adminId, onSaved }: { adminId: string; 
             </div>
             <div className="space-y-1">
               <Label htmlFor="partner-phone">{t("common.phone")}</Label>
-              <PhoneInput id="partner-phone" value={phone} onChange={(e) => {
-                setPhone(e.target.value);
-                setNeedsPin(false);
-                setPin("");
-              }} />
+              <PhoneInput id="partner-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="partner-email">{t("auth.email")}</Label>
+              <Input id="partner-email" type="email" required maxLength={254} value={email}
+                onChange={(e) => setEmail(e.target.value)} />
+              <p className="text-sm text-muted-foreground">{t("admin.partnerEmailHint")}</p>
             </div>
             {role === "driver" && (
               <div className="space-y-1">
@@ -113,15 +108,7 @@ export const AdminPartnerOnboarding = ({ adminId, onSaved }: { adminId: string; 
                 )}
               </div>
             )}
-            {needsPin && (
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">{t("admin.partnerNeedsPin")}</p>
-                <Label htmlFor="partner-pin">{t("auth.pin")}</Label>
-                <Input id="partner-pin" type="password" inputMode="numeric" autoComplete="new-password"
-                  maxLength={4} required value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))} />
-              </div>
-            )}
-            <Button type="submit" className="min-h-11" disabled={submitting || !name.trim() || !isValidPhone(phone) || (needsPin && !isValidPin(pin))}>
+            <Button type="submit" className="min-h-11" disabled={submitting || !name.trim() || !isValidPhone(phone) || !email.trim()}>
               {submitting ? t("common.saving") : t("admin.addPartner")}
             </Button>
           </fieldset>

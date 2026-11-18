@@ -376,9 +376,9 @@
   "admin": {
     "addPartner": "Djunta parseru",
     "partnerType": "Tipu di parseru",
-    "partnerNeedsPin": "Es numeru i nobu. Skodji un PIN pa purmeru entrada.",
-    "partnerAccountCreated": "Konta kriadu. Da PIN na privadu.",
-    "partnerActivated": "Asesu ativadu. Konta ta fika ku si PIN.",
+    "partnerEmailHint": "Telfoni i pa kontatu. Parseru ta risibi un link na e-mail pa skodji si palavra-pasi.",
+    "partnerInviteSent": "Konviti mandadu pa e-mail.",
+    "partnerEmailActivated": "Parseru ativadu. I pudi entra ku si e-mail i palavra-pasi.",
     "partnerCreateError": "I ka pudi djunta parseru.",
     "notifFleets": "Frotas",
     "notifDrivers": "Motoristas",

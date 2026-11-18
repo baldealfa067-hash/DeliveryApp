@@ -2011,6 +2011,10 @@ export type Database = {
         Args: { p_name?: string; p_phone: string; p_vehicle_type?: string }
         Returns: string
       }
+      admin_provision_partner_by_email: {
+        Args: { p_email: string; p_phone: string; p_name: string; p_role: string; p_fleet_id?: string }
+        Returns: string
+      }
       admin_provision_partner: {
         Args: { p_phone: string; p_name: string; p_role: string; p_fleet_id?: string | null };
         Returns: string | null;
