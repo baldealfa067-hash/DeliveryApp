@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Bike, Plus, Power, Trash2, MapPin, KeyRound } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Bike, Plus, Power, Trash2, MapPin, KeyRound, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,9 @@ const Metric = ({ label, value }: { label: string; value: string | number }) => 
 
 const FleetDashboard = () => {
   const { t } = useTranslation();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
   const { data: financas } = useFleetFinancials();
   const { data: metrics, isLoading } = useFleetMetrics();
   const { data: drivers = [] } = useFleetDrivers();
@@ -133,6 +135,35 @@ const FleetDashboard = () => {
     );
   };
 
+  const onLogout = async () => {
+    setSigningOut(true);
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      navigate("/login?mode=frota", { replace: true });
+    } catch (error) {
+      fail(error);
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  const backToSite = (
+    <Button asChild variant="ghost" size="icon" className="min-h-11 min-w-11 shrink-0">
+      <Link to="/inicio" aria-label={t("common.viewSite")} title={t("common.viewSite")}>
+        <ArrowLeft className="h-5 w-5" />
+      </Link>
+    </Button>
+  );
+
+  const logoutButton = (
+    <Button type="button" variant="outline" size="sm" onClick={onLogout} disabled={signingOut}
+      className="ml-auto min-h-11 shrink-0 gap-2">
+      <LogOut className="h-4 w-4" />
+      {t("common.logout")}
+    </Button>
+  );
+
   if (authLoading || isLoading) {
     return <div className="p-6 text-sm text-muted-foreground">{t("common.loading")}</div>;
   }
@@ -156,10 +187,9 @@ const FleetDashboard = () => {
     return (
       <div className="max-w-md mx-auto p-4 space-y-4">
         <div className="flex items-center gap-3">
-          <Link to="/perfil" className="p-1 -ml-1 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+          {backToSite}
           <h1 className="text-xl font-bold">{t("fleetDashboard.registerTitle")}</h1>
+          {logoutButton}
         </div>
         <Card>
           <CardContent className="p-4 space-y-3">
@@ -201,13 +231,12 @@ const FleetDashboard = () => {
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
       <div className="flex items-center gap-3">
-        <Link to="/perfil" className="p-1 -ml-1 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
+        {backToSite}
         <div className="min-w-0">
           <h1 className="text-xl font-bold truncate">{metrics.fleet_name}</h1>
           <p className="text-xs text-muted-foreground">{t("fleetDashboard.title")}</p>
         </div>
+        {logoutButton}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

@@ -19,7 +19,7 @@ type AuthState = {
   retrySession: () => void;
   loading: boolean;
   retryRoles: () => void;
-  signOut: () => Promise<void>;
+  signOut: () => ReturnType<typeof supabase.auth.signOut>;
 };
 
 export const AuthContext = createContext<AuthState | null>(null);
@@ -144,9 +144,7 @@ export const useAuthState = (enabled: boolean): AuthState => {
 
   const retryRoles = useCallback(() => setRolesAttempt((a) => a + 1), []);
 
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-  }, []);
+  const signOut = useCallback(() => supabase.auth.signOut(), []);
 
   // `loading` mantém a semântica do hook antigo: só cai a false quando a
   // sessão E os papéis estão resolvidos (sucesso ou erro). AdminDashboard,
