@@ -566,6 +566,21 @@ const BusinessDetail = () => {
         )}
       </div>
 
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline" className="h-11 bg-card">
+          <a href={`tel:${phone.replace(/\s/g, "")}`} onClick={trackCall}>
+            <Phone aria-hidden="true" />
+            {t("common.call")}
+          </a>
+        </Button>
+        {!isOwnProfile && (
+          <Button type="button" variant="destructive" className="h-11" onClick={openReport}>
+            <AlertCircle aria-hidden="true" />
+            {t("businessDetail.report")}
+          </Button>
+        )}
+      </div>
+
       <details className="group mb-5 rounded-xl border bg-card">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
           {t("businessDetail.about")}
@@ -869,32 +884,6 @@ const BusinessDetail = () => {
           </CardContent>
         </Card>
       )}
-
-      <div className="mb-8 space-y-2">
-        {/* Ligar e' accao secundaria de quem ja' escolheu o restaurante, nao a
-            accao principal de quem esta' a escolher. outline e nao secondary:
-            --secondary e' ambar, cor que o sistema (§3) reserva para
-            "pendente/a espera". */}
-        <a href={`tel:${phone.replace(/\s/g, "")}`} className="block" onClick={() => trackCall()}>
-          <Button variant="outline" className="h-12 w-full gap-2 bg-card">
-            <Phone className="h-5 w-5" />
-            {t("common.call")}
-          </Button>
-        </a>
-
-        {/* Denunciar e' uma accao rara: link discreto, nao um botao com o mesmo
-            peso visual de Ligar. */}
-        {!isOwnProfile && (
-          <button
-            type="button"
-            onClick={openReport}
-            className="mx-auto mt-4 flex items-center gap-1.5 rounded-md px-3 py-2 text-caption text-muted-foreground underline underline-offset-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <AlertCircle className="h-4 w-4" aria-hidden="true" />
-            {t("businessDetail.report")}
-          </button>
-        )}
-      </div>
 
       <section>
         <h2 className="font-semibold mb-3">{t("businessDetail.reviewsCount", { count: reviews.length })}</h2>
