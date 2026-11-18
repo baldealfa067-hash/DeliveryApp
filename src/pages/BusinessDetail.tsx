@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2 } from "lucide-react";
+import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "@/components/StarRating";
@@ -455,9 +455,6 @@ const BusinessDetail = () => {
     }
   };
 
-  const groupedItems = (catId: string | null) => menuItems.filter((i) => i.category_id === catId);
-  const uncategorized = groupedItems(null);
-
   const openReport = () => {
     setReportReason("");
     setReportDescription("");
@@ -503,7 +500,7 @@ const BusinessDetail = () => {
   // altura da barra (3.5rem) + 1rem de margem, para nada ficar escondido por
   // baixo dela no fim do scroll sem depender do padding do Layout.
   return (
-    <div className={cn("max-w-lg mx-auto px-4 pt-6", showCartBar && "pb-[8.5rem]")}>
+    <div className={cn("max-w-6xl mx-auto px-4 pt-4 sm:px-6", showCartBar && "pb-[8.5rem]")}>
       {/* Fase 2.5 — dizer que está fechado ANTES de a pessoa escolher a comida.
           Aparece no topo, não junto ao botão: descobrir que está fechado depois
           de encher o carrinho é a pior altura para o saber (§52). */}
@@ -513,7 +510,7 @@ const BusinessDetail = () => {
           máscara verde quando não há foto — para os dois ecrãs se reconhecerem
           um ao outro. É aqui e no item de menu que a fotografia se justifica (§9). */}
       {photoUrl ? (
-        <div className="relative mb-4 aspect-video w-full overflow-hidden rounded-lg bg-muted">
+        <div className="relative mb-4 h-36 w-full overflow-hidden sm:h-48 rounded-lg bg-muted">
           <img
             src={photoUrl}
             alt=""
@@ -569,75 +566,51 @@ const BusinessDetail = () => {
         )}
       </div>
 
-      {/* Informação prática agrupada num bloco só, em vez de linhas soltas. */}
-      <div className="mb-6 rounded-lg bg-muted p-4 space-y-3">
-        <div className="flex items-center gap-3 text-body">
-          <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="min-w-0 break-words">{location}</span>
-        </div>
-        <div className="flex items-center gap-3 text-body">
-          <Phone className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <a href={`tel:${phone.replace(/\s/g, "")}`} className="min-w-0 break-words" onClick={() => trackCall()}>
-            {phone}
-          </a>
-        </div>
-        {consumptionOptions.length > 0 && (
-          <div className="flex items-start gap-3">
-            <UtensilsCrossed className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <div className="flex flex-wrap gap-1.5">
-              {consumptionOptions.map((o) => (
-                <span key={o} className="rounded-full bg-card px-2.5 py-1 text-caption text-foreground">
-                  {t(CONSUMPTION_LABEL_KEYS[o] ?? o)}
-                </span>
-              ))}
+      <details className="group mb-5 rounded-xl border bg-card">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          {t("businessDetail.about")}
+          <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="rounded-lg bg-muted p-3 space-y-3">
+          <div className="flex items-center gap-3 text-body">
+            <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="min-w-0 break-words">{location}</span>
+          </div>
+          <div className="flex items-center gap-3 text-body">
+            <Phone className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <a href={`tel:${phone.replace(/\s/g, "")}`} className="min-w-0 break-words" onClick={() => trackCall()}>
+              {phone}
+            </a>
+          </div>
+          {consumptionOptions.length > 0 && (
+            <div className="flex items-start gap-3">
+              <UtensilsCrossed className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div className="flex flex-wrap gap-1.5">
+                {consumptionOptions.map((o) => (
+                  <span key={o} className="rounded-full bg-card px-2.5 py-1 text-caption text-foreground">
+                    {t(CONSUMPTION_LABEL_KEYS[o] ?? o)}
+                  </span>
+                ))}
+              </div>
             </div>
+          )}
+        </div>
+
+        {description && (
+          <div className="p-3">
+            <p className="text-sm text-muted-foreground">{description}</p>
           </div>
         )}
-      </div>
 
-      {description && (
-        <div className="mb-6">
-          <h2 className="font-semibold mb-1">{t("businessDetail.about")}</h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      )}
+      </details>
 
       {menuItems.length > 0 && (
-        <div className="mb-6">
-          <h2 className="font-semibold mb-3 flex items-center gap-2">
-            <UtensilsCrossed className="h-5 w-5 text-primary" /> {t("businessDetail.menu")}
-          </h2>
-          <div className="flex flex-col gap-4">
-            {menuCategories.map((cat) => {
-              const items = groupedItems(cat.id);
-              if (!items.length) return null;
-              return (
-                <div key={cat.id}>
-                  <h3 className="mb-2 border-b pb-1 text-caption font-semibold text-primary">{cat.name}</h3>
-                  <div className="flex flex-col gap-3">
-                    {items.map((item) => (
-                      <MenuItemRow key={item.id} item={item} category={cat.name} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-            {uncategorized.length > 0 && (
-              <div>
-                <h3 className="mb-2 border-b pb-1 text-caption font-semibold text-primary">{t("businessDetail.others")}</h3>
-                <div className="flex flex-col gap-3">
-                  {uncategorized.map((item) => (
-                    <MenuItemRow key={item.id} item={item} category={t("businessDetail.others")} qty={cart[item.id] ?? 0} onAdd={() => addToCart(item.id)} onRemove={() => removeFromCart(item.id)} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <RestaurantMenu key={id} items={menuItems} categories={menuCategories} cart={cart}
+          onAdd={addToCart} onRemove={removeFromCart} />
       )}
 
       {cartItems.length > 0 && (
-        <Card ref={cartRef} className="mb-6 border-primary/40 scroll-mt-20">
+        <Card ref={cartRef} className="mx-auto mb-6 max-w-2xl scroll-mt-20 border-primary/40">
           <CardContent className="p-4">
             <h2 className="font-semibold mb-2 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-primary" /> {t("businessDetail.orderTitle", { count: cartCount })}
@@ -1176,61 +1149,126 @@ const BusinessDetail = () => {
   );
 };
 
-/** Cartão de produto: fundo branco, imagem arredondada, nome + categoria +
- *  preço, e o "+" laranja circular no canto (marca iTudoo). */
-const MenuItemRow = ({ item, category, qty, onAdd, onRemove }: { item: MenuItem; category: string; qty: number; onAdd: () => void; onRemove: () => void }) => {
+const searchKey = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+
+const RestaurantMenu = ({ items, categories, cart, onAdd, onRemove }: {
+  items: MenuItem[];
+  categories: MenuCategory[];
+  cart: Record<string, number>;
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+}) => {
   const { t } = useTranslation();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
+  const groups = new Map<string, MenuItem[]>(categories.map(({ id }) => [id, []]));
+  const others: MenuItem[] = [];
+  for (const item of items) {
+    const group = item.category_id ? groups.get(item.category_id) : undefined;
+    (group ?? others).push(item);
+  }
+  const sections = [
+    ...categories.map(({ id, name }) => ({ id, name, items: groups.get(id) ?? [] })),
+    { id: "other", name: t("businessDetail.others"), items: others },
+  ].filter(section => section.items.length > 0);
+  const term = searchKey(query);
+  const results = sections
+    .filter(section => category === "all" || section.id === category)
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => searchKey(item.name).includes(term)),
+    }))
+    .filter(section => section.items.length > 0);
+
   return (
-  <div className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-card">
-    {item.photo_url ? (
-      <ImagePreviewModal src={item.photo_url} alt={item.name} />
-    ) : (
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden="true">
-        <UtensilsCrossed className="h-5 w-5" />
-      </div>
-    )}
-    <div className="min-w-0 flex-1">
-      <div className="text-body font-semibold">{item.name}</div>
-      <div className="truncate text-caption text-muted-foreground">{category}</div>
-      <div className="text-price">{formatCFA(item.price)}</div>
-      {/* §83, não surpreender: o cliente vê que acabou antes de tentar, em vez
-          de levar com o erro do servidor depois de encher o carrinho. A recusa
-          continua a existir no servidor — isto é só cortesia de interface. */}
-      {!item.is_orderable ? (
-        <div className="text-xs font-medium text-destructive">{t("businessDetail.soldOut")}</div>
-      ) : item.track_stock && item.stock_qty !== null && item.stock_qty <= 5 ? (
-        <div className="text-xs text-muted-foreground">
-          {t("businessDetail.stockLeft", { count: item.stock_qty })}
+    <section className="mb-6" aria-labelledby="restaurant-menu">
+      <h2 id="restaurant-menu" className="mb-3 flex items-center gap-2 text-lg font-bold">
+        <UtensilsCrossed className="h-5 w-5 text-primary" aria-hidden="true" />
+        {t("businessDetail.menu")}
+      </h2>
+      <div className="sticky top-14 z-20 -mx-1 mb-4 grid gap-2 rounded-b-xl bg-background/95 px-1 py-2 backdrop-blur sm:grid-cols-[1fr_14rem]">
+        <div className="relative min-w-0">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input type="search" value={query} onChange={event => setQuery(event.target.value)}
+            placeholder={t("businessDetail.searchMenu")} aria-label={t("businessDetail.searchMenu")}
+            className="h-11 bg-card pl-9 text-base" />
         </div>
-      ) : null}
-    </div>
-    {/* 44px: e' o controlo mais usado da pagina e o minimo do plano (§5.2).
-        Estava a 32px. */}
-    {!item.is_orderable ? (
-      <Button variant="outline" className="h-11 shrink-0 px-4" disabled>
-        {t("businessDetail.soldOut")}
-      </Button>
-    ) : qty === 0 ? (
-      <Button size="icon" className="h-11 w-11 shrink-0 rounded-full" onClick={onAdd} aria-label={`${t("common.add")} ${item.name}`}>
-        <Plus className="h-5 w-5" />
-      </Button>
-    ) : (
-      <div className="flex shrink-0 items-center gap-1">
-        <Button size="icon" variant="outline" className="h-11 w-11 rounded-full" onClick={onRemove}>
-          <Minus className="h-4 w-4" />
-        </Button>
-        <span className="w-7 text-center text-body font-semibold">{qty}</span>
-        <Button
-          size="icon"
-          className="h-11 w-11 rounded-full"
-          onClick={onAdd}
-          disabled={item.track_stock && item.stock_qty !== null && qty >= item.stock_qty}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger className="h-11 bg-card" aria-label={t("common.allCategories")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common.allCategories")}</SelectItem>
+            {sections.map(section => <SelectItem key={section.id} value={section.id}>{section.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
-    )}
-  </div>
+      {results.length === 0 && (
+        <p role="status" className="rounded-xl border bg-card p-5 text-center text-sm text-muted-foreground">
+          {t("common.noResults")}
+        </p>
+      )}
+      <div className="space-y-5">
+        {results.map(section => (
+          <section key={section.id} aria-labelledby={`menu-category-${section.id}`}>
+            <h3 id={`menu-category-${section.id}`} className="mb-2 text-sm font-semibold">{section.name}</h3>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {section.items.map(item => (
+                <MenuItemCard key={item.id} item={item} qty={cart[item.id] ?? 0}
+                  onAdd={() => onAdd(item.id)} onRemove={() => onRemove(item.id)} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const MenuItemCard = ({ item, qty, onAdd, onRemove }: {
+  item: MenuItem; qty: number; onAdd: () => void; onRemove: () => void;
+}) => {
+  const { t } = useTranslation();
+  const stock = item.track_stock ? item.stock_qty : null;
+  const soldOut = !item.is_orderable || stock === 0;
+  return (
+    <article className="flex min-w-0 flex-col overflow-hidden rounded-xl border bg-card shadow-card">
+      {item.photo_url ? (
+        <ImagePreviewModal src={item.photo_url} alt={item.name} card />
+      ) : (
+        <div className="flex aspect-[2/1] items-center justify-center bg-muted text-muted-foreground" aria-hidden="true">
+          <UtensilsCrossed className="h-6 w-6" />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col gap-1 p-2 sm:p-3">
+        <h4 className="break-words text-sm font-semibold leading-tight sm:text-base">{item.name}</h4>
+        <p className="text-sm font-bold">{formatCFA(item.price)}</p>
+        {soldOut ? (
+          <p className="mt-auto pt-1 text-xs font-medium text-destructive">{t("businessDetail.soldOut")}</p>
+        ) : (
+          <>
+            {stock !== null && stock <= 5 && (
+              <p className="text-xs text-muted-foreground">{t("businessDetail.stockLeft", { count: stock })}</p>
+            )}
+            <div className="mt-auto flex items-center justify-end gap-0.5 pt-1">
+              {qty > 0 && (
+                <>
+                  <Button size="icon" variant="outline" className="h-11 w-11 shrink-0 rounded-full"
+                    onClick={onRemove} aria-label={`${t("common.remove")} ${item.name}`}>
+                    <Minus className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                  <span className="min-w-4 flex-1 text-center text-sm font-semibold tabular-nums">{qty}</span>
+                </>
+              )}
+              <Button size="icon" className="h-11 w-11 shrink-0 rounded-full" onClick={onAdd}
+                aria-label={`${t("common.add")} ${item.name}`} disabled={stock !== null && qty >= stock}>
+                <Plus className="h-5 w-5" aria-hidden="true" />
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </article>
   );
 };
 

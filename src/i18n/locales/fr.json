@@ -505,6 +505,7 @@
     "orangeMoneyNeedsNumber": "Saisissez le numéro de téléphone, ou choisissez une autre façon de recevoir."
   },
   "businessDetail": {
+    "searchMenu": "Rechercher un plat",
     "viewCart": "Voir le panier",
     "loading": "Chargement...",
     "notFound": "Établissement introuvable.",
