@@ -365,6 +365,12 @@
     "rateProviderAction": "Avalia prestaduri"
   },
   "admin": {
+    "notifFleets": "Frotas",
+    "notifDrivers": "Motoristas",
+    "notifNoRecipients": "Ka ten destinatariu na grupus seledus.",
+    "notifSendError": "I ka pudi konfirma enviu. Odja istoriku antis di tenta di nobu.",
+    "notifConfirmTitle": "Konfirma enviu",
+    "notifConfirmDescription": "Manda «{{title}}» pa {{groups}}?",
     "restaurants": "Restaurantis",
     "foodOrders": "Pedidus di kumida",
     "shipments": "Envius di dokumentus ku objetus",

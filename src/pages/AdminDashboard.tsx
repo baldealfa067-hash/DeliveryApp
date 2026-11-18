@@ -75,6 +75,20 @@ type Category = { id: string; name: string; name_en?: string | null; name_fr?: s
 type Bairro = { id: string; name: string };
 type ActivityType = "vista" | "whatsapp" | "call";
 type ActivitySeries = Record<ActivityType, number[]>;
+const NOTIFICATION_AUDIENCES = {
+  client: "admin.notifClients",
+  business: "admin.restaurants",
+  fleet: "admin.notifFleets",
+  driver: "admin.notifDrivers",
+} as const;
+
+const NOTIFICATION_AUDIENCE_LABELS: Record<string, string> = {
+  ...NOTIFICATION_AUDIENCES,
+  provider: "admin.notifProviders",
+  beleza: "admin.notifBeleza",
+  admin: "admin.administrator",
+};
+
 type AdminNotification = { id: string; title: string; body: string; target_groups: string[]; sent_by: string; recipients_count: number; created_at: string };
 
 type MenuKey =
@@ -212,6 +226,8 @@ const AdminDashboard = () => {
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
   const [notifGroups, setNotifGroups] = useState<string[]>([]);
+  const [notifConfirm, setNotifConfirm] = useState(false);
+  const [notifHistoryError, setNotifHistoryError] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [adminNotifications, setAdminNotifications] = useState<AdminNotification[]>([]);
   const { data: allCommissions = [] } = useAllCommissions();
@@ -246,7 +262,7 @@ const AdminDashboard = () => {
       { data: ql },
       { data: bc },
       { data: bl },
-      { data: an },
+      { data: an, error: historyError },
     ] = await Promise.all([
       supabase.from("profiles").select("id, name, category, phone, location, price_type, starting_price, photo_url, profile_type, is_verified, verification_status").order("name"),
       supabase.from("reviews").select("id, provider_id, reviewer_name, rating, comment, created_at, status").order("created_at", { ascending: false }),
@@ -298,7 +314,8 @@ const AdminDashboard = () => {
     setBairros((b ?? []) as Bairro[]);
     setBusinessCategories((bc ?? []) as Category[]);
     setBeautyCategories((bl ?? []) as Category[]);
-    setAdminNotifications((an ?? []) as AdminNotification[]);
+    setNotifHistoryError(!!historyError);
+    if (!historyError) setAdminNotifications((an ?? []) as AdminNotification[]);
     setActivity(buildActivityMap((act ?? []) as { provider_id: string; activity_type: string; created_at: string }[]));
     setPortfolioCount(pfMap);
     setQuality(qlMap);
@@ -484,27 +501,35 @@ const AdminDashboard = () => {
   };
 
   const sendBulkNotification = async () => {
-    if (!notifTitle.trim() || !notifBody.trim()) {
-      toast.error(t("admin.notifRequiredFields"));
-      return;
-    }
-    if (notifGroups.length === 0) {
-      toast.error(t("admin.notifRequiredGroup"));
-      return;
-    }
+    if (notifSending || !notifTitle.trim() || !notifBody.trim() || !notifGroups.length) return;
+
     setNotifSending(true);
-    const { data, error } = await supabase.rpc("send_bulk_notification", {
-      p_title: notifTitle.trim(),
-      p_body: notifBody.trim(),
-      p_target_groups: notifGroups,
-    });
-    setNotifSending(false);
-    if (error) return toast.error(error.message);
-    toast.success(t("admin.notifSent", { count: data ?? 0 }));
-    setNotifTitle("");
-    setNotifBody("");
-    setNotifGroups([]);
-    loadAll();
+    try {
+      const { data, error } = await supabase.rpc("send_bulk_notification", {
+        p_title: notifTitle.trim(),
+        p_body: notifBody.trim(),
+        p_target_groups: notifGroups,
+      });
+
+      if (error) throw error;
+      setNotifConfirm(false);
+
+      if (!data) {
+        toast.info(t("admin.notifNoRecipients"));
+        return;
+      }
+
+      toast.success(t("admin.notifSent", { count: data }));
+      setNotifTitle("");
+      setNotifBody("");
+      setNotifGroups([]);
+      void loadAll();
+    } catch {
+      setNotifConfirm(false);
+      toast.error(t("admin.notifSendError"));
+    } finally {
+      setNotifSending(false);
+    }
   };
 
   const providerName = (pid: string) => providers.find((p) => p.id === pid)?.name ?? t("admin.client");
@@ -1113,8 +1138,9 @@ const AdminDashboard = () => {
               <Card>
                 <CardContent className="p-4 flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">{t("admin.notifTitle")}</label>
+                    <Label htmlFor="notification-title">{t("admin.notifTitle")}</Label>
                     <input
+                      id="notification-title"
                       type="text"
                       value={notifTitle}
                       onChange={(e) => setNotifTitle(e.target.value)}
@@ -1125,8 +1151,9 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">{t("admin.notifMessage")}</label>
+                    <Label htmlFor="notification-message">{t("admin.notifMessage")}</Label>
                     <textarea
+                      id="notification-message"
                       value={notifBody}
                       onChange={(e) => setNotifBody(e.target.value)}
                       placeholder={t("admin.notifMessagePlaceholder")}
@@ -1135,36 +1162,27 @@ const AdminDashboard = () => {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">{t("admin.notifTarget")}</label>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        { value: "provider", label: t("admin.notifProviders") },
-                        { value: "business", label: t("admin.notifBusinesses") },
-                        { value: "beleza", label: t("admin.notifBeleza") },
-                        { value: "client", label: t("admin.notifClients") },
-                      ].map((g) => (
-                        <label key={g.value} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <fieldset disabled={notifSending} className="space-y-2">
+                    <legend className="text-sm font-medium">{t("admin.notifTarget")}</legend>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {Object.entries(NOTIFICATION_AUDIENCES).map(([value, label]) => (
+                        <label key={value} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm">
                           <input
                             type="checkbox"
-                            checked={notifGroups.includes(g.value)}
+                            checked={notifGroups.includes(value)}
                             onChange={(e) => {
-                              if (e.target.checked) {
-                                setNotifGroups((prev) => [...prev, g.value]);
-                              } else {
-                                setNotifGroups((prev) => prev.filter((x) => x !== g.value));
-                              }
+                              const checked = e.target.checked;
+                              setNotifGroups((prev) => checked ? [...prev, value] : prev.filter((group) => group !== value));
                             }}
-                            className="rounded"
                           />
-                          {g.label}
+                          {t(label)}
                         </label>
                       ))}
                     </div>
-                  </div>
+                  </fieldset>
 
                   <Button
-                    onClick={sendBulkNotification}
+                    onClick={() => setNotifConfirm(true)}
                     disabled={notifSending || !notifTitle.trim() || !notifBody.trim() || notifGroups.length === 0}
                     className="gap-2 self-start"
                   >
@@ -1176,7 +1194,9 @@ const AdminDashboard = () => {
 
               <div>
                 <h2 className="text-lg font-semibold mb-3">{t("admin.notifHistory")}</h2>
-                {adminNotifications.length === 0 ? (
+                {notifHistoryError ? (
+                  <LoadError onRetry={() => void loadAll()} />
+                ) : adminNotifications.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">{t("admin.notifNoHistory")}</p>
                 ) : (
                   <div className="flex flex-col gap-2">
@@ -1192,13 +1212,9 @@ const AdminDashboard = () => {
                                 <span>·</span>
                                 <span>{n.recipients_count} {t("admin.notifRecipients")}</span>
                                 <span>·</span>
-                                <span>{n.target_groups.map((g) => {
-                                  if (g === "provider") return t("admin.notifProviders");
-                                  if (g === "business") return t("admin.notifBusinesses");
-                                  if (g === "beleza") return t("admin.notifBeleza");
-                                  if (g === "client") return t("admin.notifClients");
-                                  return g;
-                                }).join(", ")}</span>
+                                <span>{n.target_groups.map((group) =>
+                                  NOTIFICATION_AUDIENCE_LABELS[group] ? t(NOTIFICATION_AUDIENCE_LABELS[group]) : group
+                                ).join(", ")}</span>
                               </div>
                             </div>
                           </div>
@@ -1210,6 +1226,19 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          <ConfirmDialog
+            open={notifConfirm}
+            onOpenChange={setNotifConfirm}
+            title={t("admin.notifConfirmTitle")}
+            description={t("admin.notifConfirmDescription", {
+              title: notifTitle.trim(),
+              groups: notifGroups.map((group) => t(NOTIFICATION_AUDIENCE_LABELS[group])).join(", "),
+            })}
+            confirmLabel={t("admin.notifSend")}
+            busy={notifSending}
+            onConfirm={() => void sendBulkNotification()}
+          />
 
           {menu === "commissions" && (
             <div className="flex flex-col gap-4">

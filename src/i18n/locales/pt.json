@@ -662,6 +662,12 @@
     "anonymousReviewNote": "Sem conta? A sua avaliação é anónima e será publicada após aprovação."
   },
   "admin": {
+    "notifFleets": "Frotas",
+    "notifDrivers": "Motoristas",
+    "notifNoRecipients": "Não há destinatários nos grupos selecionados.",
+    "notifSendError": "Não foi possível confirmar o envio. Verifique o histórico antes de tentar novamente.",
+    "notifConfirmTitle": "Confirmar envio",
+    "notifConfirmDescription": "Enviar «{{title}}» para {{groups}}?",
     "restaurants": "Restaurantes",
     "foodOrders": "Pedidos de comida",
     "shipments": "Envios de documentos e objetos",

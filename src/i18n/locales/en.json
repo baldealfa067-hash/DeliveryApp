@@ -662,6 +662,12 @@
     "anonymousReviewNote": "No account? Your review is anonymous and will be published after approval."
   },
   "admin": {
+    "notifFleets": "Fleets",
+    "notifDrivers": "Drivers",
+    "notifNoRecipients": "There are no recipients in the selected groups.",
+    "notifSendError": "The send could not be confirmed. Check the history before trying again.",
+    "notifConfirmTitle": "Confirm send",
+    "notifConfirmDescription": "Send “{{title}}” to {{groups}}?",
     "restaurants": "Restaurants",
     "foodOrders": "Food orders",
     "shipments": "Document and parcel shipments",
