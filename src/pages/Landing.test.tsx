@@ -28,12 +28,12 @@ beforeEach(() => {
 describe("Landing", () => {
   it("no browser mostra a landing de marketing, com Entrar e Criar conta", () => {
     montar();
-    // O título do hero é a tagline do iTudoo, não a frase do Bornaal.
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("landing.tagline");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("landing.foodHeadlinelanding.sendHeadline");
+    expect(screen.getByRole("link", { name: "landing.createShipment" })).toHaveAttribute("href", "/enviar");
     expect(screen.getByText("landing.howTitle")).toBeTruthy();
     expect(screen.getByText("landing.whyTitle")).toBeTruthy();
     expect(screen.getByText("landing.appTitle")).toBeTruthy();
-    expect(screen.getByText("landing.signIn").closest("a")?.getAttribute("href")).toBe("/login?mode=cliente");
+    expect(screen.getByText("landing.signIn").closest("a")?.getAttribute("href")).toBe("/login");
   });
 
   it("na app instalada salta a landing e mostra o ecrã simples", () => {
@@ -53,10 +53,10 @@ describe("Landing", () => {
     }
   });
 
-  it("o hero escuro usa o logótipo BRANCO e o ecrã claro o PRETO", () => {
+  it("o hero e o ecrã da app usam o logótipo preto", () => {
     montar();
     const doHero = screen.getAllByAltText("iTudoo")[0].getAttribute("src") ?? "";
-    expect(doHero).toContain("branco");
+    expect(doHero).toContain("preto");
     standalone = true;
     const { container } = montar();
     const doEcraSimples = container.querySelector("img")?.getAttribute("src") ?? "";

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useInstallApp } from "@/hooks/useInstallApp";
 import { ComoFunciona } from "@/components/landing/ComoFunciona";
-import logoBranco from "@/assets/itudoo-logo-branco.png";
+import heroArtwork from "@/assets/landing-delivery.webp";
+import "./marketing-landing.css";
 import logoPreto from "@/assets/itudoo-logo-preto.png";
 
 /**
@@ -29,40 +30,43 @@ const MarketingLanding = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero: fundo PRETO, por isso o logótipo BRANCO. */}
-      <section className="bg-ink text-ink-foreground">
-        <div className="mx-auto max-w-5xl px-4 pb-16 pt-4 md:pb-24">
-          <header className="flex h-14 items-center justify-between">
-            <img src={logoBranco} alt="iTudoo" className="h-10 w-auto" />
+      <section className="overflow-hidden bg-[#fff7ee] text-[#171410]" aria-labelledby="landing-title">
+        <div className="mx-auto max-w-[90rem] px-5 sm:px-8 lg:px-12">
+          <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[#e8d9ca] py-3.5 sm:flex-nowrap sm:gap-x-5">
+            <img src={logoPreto} alt="iTudoo" className="mr-auto h-8 w-auto sm:h-10" />
             <LanguageSelector />
+            <Link to="/login" className="rounded-md px-2 py-2 text-sm font-semibold hover:underline">
+              {t("landing.signIn")}
+            </Link>
+            <Button asChild size="sm" className="bg-[#ff7900] text-[#171410] hover:bg-[#f16e00]">
+              <Link to="/login?mode=cliente&tab=registar">{t("landing.createAccount")}</Link>
+            </Button>
           </header>
 
-          <div className="mx-auto mt-12 max-w-2xl text-center md:mt-20">
-            {/* A tagline do iTudoo. "Tudo o que precisas, num só lugar" era a
-                frase do Bornaal, palavra por palavra (2026-09-25). */}
-            <h1 className="text-4xl font-bold leading-tight md:text-6xl">{t("landing.tagline")}</h1>
-            <p className="mt-5 text-lg text-ink-foreground/80 md:text-xl">{t("landing.heroSubtitle")}</p>
-
-            <div className="mx-auto mt-10 flex max-w-sm flex-col gap-3">
-              <Button asChild size="lg" className="h-14 text-base">
-                <Link to="/login?mode=cliente">{t("landing.signIn")}</Link>
-              </Button>
-              {/* Contorno claro: o `outline` normal tem borda cinzenta, que se
-                  perde contra o preto. */}
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-14 border-ink-foreground/60 text-base text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
-              >
-                <Link to="/login?tab=registar">{t("landing.createAccount")}</Link>
-              </Button>
-              <Link
-                to="/inicio"
-                className="mt-2 py-2 text-sm font-medium text-ink-foreground/80 underline underline-offset-4 hover:text-ink-foreground"
-              >
-                {t("landing.browse")}
-              </Link>
+          <div className="grid items-center gap-7 pt-10 sm:pt-14 lg:grid-cols-[5fr_7fr] lg:gap-5 lg:pt-5">
+            <div className="landing-hero-copy relative z-10 pb-2 lg:py-14">
+              <h1 id="landing-title" className="text-[clamp(2.4rem,4.1vw,4.25rem)] font-bold leading-[1.05] tracking-[-0.045em]">
+                {t("landing.foodHeadline")}
+                <br />
+                {t("landing.sendHeadline")}
+              </h1>
+              <p className="mt-5 max-w-lg text-lg leading-relaxed text-[#514438] sm:text-xl">
+                {t("landing.deliveryIntro")}
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Button asChild size="lg" className="h-12 bg-[#ff7900] text-[#171410] hover:bg-[#f16e00] motion-safe:transition-transform motion-safe:hover:-translate-y-0.5">
+                  <Link to="/inicio">{t("landing.browse")}</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-12 border-[#332a21] bg-transparent hover:bg-[#f7e8d9] motion-safe:transition-transform motion-safe:hover:-translate-y-0.5">
+                  <Link to="/enviar">{t("landing.createShipment")}</Link>
+                </Button>
+              </div>
+            </div>
+            <div className="landing-hero-art relative mx-auto aspect-[4/3] w-full max-w-3xl" aria-hidden="true">
+              <img src={heroArtwork} alt="" width={1200} height={900}
+                className="landing-hero-phone absolute inset-0 size-full object-cover" />
+              <img src={heroArtwork} alt="" width={1200} height={900}
+                className="landing-hero-courier absolute inset-0 size-full object-cover" />
             </div>
           </div>
         </div>

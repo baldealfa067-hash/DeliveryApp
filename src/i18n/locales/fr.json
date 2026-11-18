@@ -978,6 +978,10 @@
     "publishEmptyButton": "Publier une demande"
   },
   "landing": {
+    "foodHeadline": "Commande à manger.",
+    "sendHeadline": "Envoie ce qu’il te faut.",
+    "deliveryIntro": "Commande chez tes restaurants préférés ou envoie des documents et des objets à Bissau.",
+    "createShipment": "Créer un envoi",
     "tagline": "Tout ce dont vous avez besoin. Plus près.",
     "signIn": "Se connecter",
     "createAccount": "Créer un compte",

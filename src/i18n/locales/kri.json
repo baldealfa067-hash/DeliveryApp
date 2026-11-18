@@ -294,6 +294,10 @@
     "myOrders": "Nha Pedidus"
   },
   "landing": {
+    "foodHeadline": "Pidi kumida.",
+    "sendHeadline": "Manda kil ku bu misti.",
+    "deliveryIntro": "Pidi kumida na bu restoran faburitu o manda dokumentus i objetos na Bissau.",
+    "createShipment": "Kria enviu",
     "tagline": "Tudu ku bu mistí. Mas pertu.",
     "signIn": "Entra",
     "createAccount": "Kria konta",

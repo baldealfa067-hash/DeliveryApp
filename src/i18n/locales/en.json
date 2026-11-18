@@ -978,6 +978,10 @@
     "publishEmptyButton": "Publish a request"
   },
   "landing": {
+    "foodHeadline": "Order food.",
+    "sendHeadline": "Send what you need.",
+    "deliveryIntro": "Order from your favourite restaurants or send documents and packages in Bissau.",
+    "createShipment": "Create a shipment",
     "tagline": "Everything you need. Closer.",
     "signIn": "Log in",
     "createAccount": "Create account",
