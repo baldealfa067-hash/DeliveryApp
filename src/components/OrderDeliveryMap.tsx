@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BISSAU_CENTER } from "@/hooks/useGeolocation";
 import { Button } from "@/components/ui/button";
 import "leaflet/dist/leaflet.css";
+import { DeliveryRouteLegend, DeliveryRouteLine, mapPoint, useDeliveryRoute } from "./DeliveryRouteLine";
 
 type Point = { id: string; label: string; coords: [number, number]; color: string };
 
@@ -35,7 +36,7 @@ function Recenter({ points, label }: { points: Point[]; label: string }) {
   );
 }
 
-export default function OrderDeliveryMap({ orderId }: { orderId: string }) {
+export default function OrderDeliveryMap({ orderId, toCustomer, isShipment }: { orderId: string; toCustomer: boolean; isShipment: boolean }) {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["customer-delivery-map", orderId],
@@ -50,12 +51,18 @@ export default function OrderDeliveryMap({ orderId }: { orderId: string }) {
   const points: Point[] = [];
   const add = (id: string, lat: number | null | undefined, lng: number | null | undefined, color: string) => {
     if (lat != null && lng != null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
-      points.push({ id, coords: [lat, lng], label: t(`orderTracking.map.${id}`), color });
+      points.push({ id, coords: [lat, lng], label: t(`orderTracking.map.${id === "pickup" && !isShipment ? "restaurant" : id === "destination" ? "customer" : id}`), color });
     }
   };
   add("pickup", data?.pickup_lat, data?.pickup_lng, "#334155");
   add("destination", data?.destination_lat, data?.destination_lng, "#225d47");
   if (!isError) add("driver", data?.driver_lat, data?.driver_lng, "#c64d00");
+
+  const currentDriver = points.find(point => point.id === "driver")?.coords ?? null;
+  const target = toCustomer
+    ? mapPoint(data?.destination_lat, data?.destination_lng)
+    : mapPoint(data?.pickup_lat, data?.pickup_lng);
+  const route = useDeliveryRoute(currentDriver, target);
 
   return (
     <section aria-label={t("orderTracking.map.title")} className="isolate overflow-hidden rounded-2xl border bg-card">
@@ -65,10 +72,11 @@ export default function OrderDeliveryMap({ orderId }: { orderId: string }) {
             <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
             <Recenter points={points} label={t("orderTracking.map.recenter")} />
+            <DeliveryRouteLine {...route} />
             {points.map(point => (
               <CircleMarker key={point.id} center={point.coords} radius={point.id === "driver" ? 10 : 7}
                 pathOptions={{ color: "white", weight: 3, fillColor: point.color, fillOpacity: 1 }}>
-                <Tooltip>{point.label}</Tooltip>
+                <Tooltip permanent direction={point.id === "driver" ? "bottom" : point.id === "pickup" ? "right" : "left"}>{point.label}</Tooltip>
               </CircleMarker>
             ))}
           </MapContainer>
@@ -80,6 +88,7 @@ export default function OrderDeliveryMap({ orderId }: { orderId: string }) {
               </li>
             ))}
           </ul>
+          {route.positions && <div className="px-3 pb-2"><DeliveryRouteLegend byRoad={route.byRoad} /></div>}
         </>
       ) : (
         <p className="flex min-h-24 items-center gap-3 px-4 py-3 text-sm text-muted-foreground">

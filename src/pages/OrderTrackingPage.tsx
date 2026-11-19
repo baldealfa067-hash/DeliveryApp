@@ -221,7 +221,7 @@ const OrderTrackingPage = () => {
       {hasDelivery && !terminado && (
         <div className="mb-3">
           <Suspense fallback={<div className="h-24 animate-pulse rounded-2xl bg-muted" />}>
-            <OrderDeliveryMap key={order.id} orderId={order.id} />
+            <OrderDeliveryMap key={order.id} orderId={order.id} isShipment={envio} toCustomer={deliveryStage >= 2} />
           </Suspense>
         </div>
       )}

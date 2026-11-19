@@ -1210,6 +1210,11 @@
   },
   "orderTracking": {
     "map": {
+      "restaurant": "Restaurant",
+      "customer": "Customer",
+      "noPoint": "No location",
+      "roadRoute": "Road route",
+      "directRoute": "Straight line · road route unavailable",
       "title": "Order map",
       "pickup": "Pickup",
       "destination": "Destination",

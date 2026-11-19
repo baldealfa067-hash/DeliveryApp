@@ -1,5 +1,5 @@
 import { IndependentDriverFinance, IndependentDriverPrices } from "@/components/IndependentDriverOperations";
-import { useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
 import { AudioPrivado } from "@/components/MediaPrivada";
 import { useNavigate } from "react-router-dom";
@@ -57,8 +57,7 @@ import { PanelHeader } from "@/components/PanelHeader";
 import logo from "@/assets/itudoo-logo-preto.png";
 import { DeliveryPayload } from "@/components/DeliveryPayload";
 import { formatCFA } from "@/lib/format";
-// DriverMap disabled by product decision — voice directions replace map in Bissau context
-// import DriverMap from "@/components/DriverMap";
+const DriverMap = lazy(() => import("@/components/DriverMap"));
 
 /**
  * Qual das duas gravações responde a "onde vou buscar isto?".
@@ -116,8 +115,13 @@ const DriverDashboard = () => {
   const atualizarPosicaoRef = useRef(updateDriverLocation.mutate);
   atualizarPosicaoRef.current = updateDriverLocation.mutate;
 
+  const hasActiveDelivery = myDeliveries.some(d => ["aceite", "recolhido"].includes(d.status));
+  const needsLocation = Boolean(driver?.is_available || hasActiveDelivery);
   useEffect(() => {
-    if (!driver?.is_available) return;
+    if (!needsLocation) {
+      setDriverPosition(null);
+      return;
+    }
     const watchId = navigator.geolocation?.watchPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -151,7 +155,7 @@ const DriverDashboard = () => {
     return () => {
       if (watchId !== undefined) navigator.geolocation?.clearWatch(watchId);
     };
-  }, [driver?.is_available]);
+  }, [needsLocation]);
 
   if (!loading && !user) {
     return (
@@ -387,6 +391,12 @@ const DriverDashboard = () => {
               )}
             </CardContent>
           </Card>
+        )}
+
+        {activeDelivery && (
+          <Suspense fallback={null}>
+            <DriverMap key={activeDelivery.id} driverPosition={driverPosition} activeDelivery={activeDelivery} />
+          </Suspense>
         )}
 
         {/* Active delivery banner — always visible when driver has an active delivery */}

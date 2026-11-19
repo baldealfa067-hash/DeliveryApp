@@ -633,6 +633,11 @@
   },
   "orderTracking": {
     "map": {
+      "restaurant": "Restoranti",
+      "customer": "Klienti",
+      "noPoint": "Sin lokalizason",
+      "roadRoute": "Kaminhu na ruas",
+      "directRoute": "Linha direta · kaminhu na ruas ka sta dispunivel",
       "title": "Mapa di pididu",
       "pickup": "Rekolha",
       "destination": "Destinu",
