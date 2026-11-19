@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
@@ -8,6 +8,7 @@ import {
   Loader2,
   MessageSquare,
   Phone,
+  ClipboardCheck, Store, Bike, House,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadError } from "@/components/LoadError";
@@ -30,6 +31,15 @@ import { formatCFA } from "@/lib/format";
 import { clientePodeCancelar } from "@/lib/orderTransitions";
 import { ultimoPassoAntesDeCancelar } from "@/lib/orderTimeline";
 import { OrderTotals } from "@/components/OrderTotals";
+
+const OrderDeliveryMap = lazy(() => import("@/components/OrderDeliveryMap"));
+
+const DELIVERY_MILESTONES = [
+  { label: "requested", icon: ClipboardCheck },
+  { label: "assigned", icon: Store },
+  { label: "enRoute", icon: Bike },
+  { label: "delivered", icon: House },
+] as const;
 
 const DELIVERY_STATUS_FLOW = [
   "novo",
@@ -167,6 +177,11 @@ const OrderTrackingPage = () => {
   const podeCancelar = clientePodeCancelar(order.status, envio);
   const terminado = order.status === "concluido" || order.status === "cancelado";
 
+  const hasDelivery = envio || order.consumption_option === "entrega";
+  const deliveryStage = order.status === "concluido" ? 3
+    : ["pedido_recolhido", "a_caminho"].includes(order.status) ? 2
+    : order.status === "motorista_encontrado" ? 1 : 0;
+
   const cancelar = () =>
     updateStatus.mutate(
       { orderId: order.id, newStatus: "cancelado", note: "Cancelado pelo cliente" },
@@ -203,6 +218,44 @@ const OrderTrackingPage = () => {
         </div>
       </div>
 
+      {hasDelivery && !terminado && (
+        <div className="mb-3">
+          <Suspense fallback={<div className="h-24 animate-pulse rounded-2xl bg-muted" />}>
+            <OrderDeliveryMap key={order.id} orderId={order.id} />
+          </Suspense>
+        </div>
+      )}
+
+      <Card className="mb-4 rounded-2xl border-primary/20 shadow-card">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{STATUS_ICONS[order.status] ?? "📋"}</span>
+            <div>
+              <p className="text-xl font-bold tracking-tight">{t(`orderStatus.${order.status.replace(/\./g, "_")}`, order.status)}</p>
+              {order.preparation_time && order.status === "em_preparacao" && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  ⏱️ {t("orderTracking.estimatedTime", { time: order.preparation_time })}
+                </p>
+              )}
+            </div>
+          </div>
+          {hasDelivery && !cancelado && (
+            <ol aria-label={t("orderTracking.progress")} className="mt-5 grid grid-cols-4 gap-1">
+              {DELIVERY_MILESTONES.map(({ label, icon: Icon }, index) => (
+                <li key={label} aria-current={index === deliveryStage ? "step" : undefined}
+                  className="flex min-w-0 flex-col items-center gap-2 text-center text-[11px] font-medium leading-tight">
+                  <span className={`flex size-9 items-center justify-center rounded-full ${index <= deliveryStage
+                    ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                    <Icon className="size-4" aria-hidden="true" />
+                  </span>
+                  {t(`orderTracking.map.${label}`)}
+                </li>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Um envio não é um pedido de restaurante, e tem de se ver à primeira:
           sem isto o ecrã era o de um pedido de comida com a comida a zero. */}
       {envio && (
@@ -216,23 +269,6 @@ const OrderTrackingPage = () => {
           </div>
         </div>
       )}
-
-      {/* Status Banner */}
-      <Card className="mb-4 border-primary/20">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{STATUS_ICONS[order.status] ?? "📋"}</span>
-            <div>
-              <p className="text-sm font-bold">{t(`orderStatus.${order.status.replace(/\./g, "_")}`, order.status)}</p>
-              {order.preparation_time && order.status === "em_preparacao" && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  ⏱️ {t("orderTracking.estimatedTime", { time: order.preparation_time })}
-                </p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Até quando se cancela (2026-09-26). A regra já existia no servidor desde
           a Fase 1 (restaurante) e a 7.1 (envio), mas nenhum ecrã a oferecia: o

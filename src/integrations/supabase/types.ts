@@ -2337,6 +2337,17 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_customer_delivery_map: {
+        Args: { p_order_id: string }
+        Returns: {
+          pickup_lat: number | null
+          pickup_lng: number | null
+          destination_lat: number | null
+          destination_lng: number | null
+          driver_lat: number | null
+          driver_lng: number | null
+        }[]
+      }
       get_customer_orders: {
         Args: { p_customer_id: string }
         Returns: {

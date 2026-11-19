@@ -505,6 +505,12 @@
     "orangeMoneyNeedsNumber": "Enter the phone number, or choose another way to receive."
   },
   "businessDetail": {
+    "deliveryMap": "Delivery map",
+    "mapPointSelected": "Pin placed",
+    "mapPinHint": "Tap the map to mark the delivery location.",
+    "mapUseMyLocation": "Use my location",
+    "mapClearPoint": "Remove pin",
+    "mapGpsError": "Could not detect your location. You can place a pin on the map.",
     "searchMenu": "Search dishes",
     "viewCart": "View cart",
     "loading": "Loading...",
@@ -1203,6 +1209,19 @@
     "sendLabel": "Document or parcel delivery"
   },
   "orderTracking": {
+    "map": {
+      "title": "Order map",
+      "pickup": "Pickup",
+      "destination": "Destination",
+      "driver": "Driver",
+      "recenter": "Recenter map",
+      "unavailable": "The map is currently unavailable.",
+      "noLocation": "A location is not available for this order yet.",
+      "requested": "Received",
+      "assigned": "Driver assigned",
+      "enRoute": "On the way",
+      "delivered": "Delivered"
+    },
     "title": "Order",
     "notFound": "Order not found.",
     "orderDetails": "Order Details",

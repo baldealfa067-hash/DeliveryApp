@@ -632,6 +632,19 @@
     "sendLabel": "Envio di dokumentu o objetu"
   },
   "orderTracking": {
+    "map": {
+      "title": "Mapa di pididu",
+      "pickup": "Rekolha",
+      "destination": "Destinu",
+      "driver": "Motorista",
+      "recenter": "Sentra mapa",
+      "unavailable": "Mapa ka sta dispunivel gosi.",
+      "noLocation": "Ainda ka ten lokalizason pa es pididu.",
+      "requested": "Risibidu",
+      "assigned": "Motorista atribuídu",
+      "enRoute": "Na kaminhu",
+      "delivered": "Entregadu"
+    },
     "title": "Pedidu",
     "notFound": "Pedidu na kuskutra.",
     "orderDetails": "Detalis di Pedidu",
@@ -951,6 +964,12 @@
     "viewPublic": "Djubi pajina publiku di stabelesimentu"
   },
   "businessDetail": {
+    "deliveryMap": "Mapa di entrega",
+    "mapPointSelected": "Puntu markadu",
+    "mapPinHint": "Toka na mapa pa marka lugar di entrega.",
+    "mapUseMyLocation": "Usa nha lokalizason",
+    "mapClearPoint": "Tira puntu",
+    "mapGpsError": "Ka pudi atxa bu lokalizason. Bu pudi marka puntu na mapa.",
     "searchMenu": "Buska kumida",
     "consumption": {
       "eatIn": "Kume na lugar",

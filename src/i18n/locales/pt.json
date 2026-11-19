@@ -505,6 +505,12 @@
     "orangeMoneyNeedsNumber": "Escreva o número de telefone, ou escolha outra forma de receber."
   },
   "businessDetail": {
+    "deliveryMap": "Mapa de entrega",
+    "mapPointSelected": "Ponto marcado",
+    "mapPinHint": "Toca no mapa para marcar o local de entrega.",
+    "mapUseMyLocation": "Usar a minha localização",
+    "mapClearPoint": "Remover ponto",
+    "mapGpsError": "Não foi possível detetar a localização. Podes marcar o ponto no mapa.",
     "searchMenu": "Pesquisar pratos",
     "viewCart": "Ver carrinho",
     "loading": "A carregar...",
@@ -1203,6 +1209,19 @@
     "sendLabel": "Envio de documento ou objeto"
   },
   "orderTracking": {
+    "map": {
+      "title": "Mapa do pedido",
+      "pickup": "Recolha",
+      "destination": "Destino",
+      "driver": "Motorista",
+      "recenter": "Centrar mapa",
+      "unavailable": "Mapa indisponível de momento.",
+      "noLocation": "Ainda não há uma localização disponível para este pedido.",
+      "requested": "Recebido",
+      "assigned": "Motorista atribuído",
+      "enRoute": "A caminho",
+      "delivered": "Entregue"
+    },
     "title": "Pedido",
     "notFound": "Pedido não encontrado.",
     "orderDetails": "Detalhes do Pedido",

@@ -505,6 +505,12 @@
     "orangeMoneyNeedsNumber": "Saisissez le numéro de téléphone, ou choisissez une autre façon de recevoir."
   },
   "businessDetail": {
+    "deliveryMap": "Carte de livraison",
+    "mapPointSelected": "Point marqué",
+    "mapPinHint": "Touche la carte pour indiquer le lieu de livraison.",
+    "mapUseMyLocation": "Utiliser ma position",
+    "mapClearPoint": "Retirer le point",
+    "mapGpsError": "Position introuvable. Tu peux indiquer le point sur la carte.",
     "searchMenu": "Rechercher un plat",
     "viewCart": "Voir le panier",
     "loading": "Chargement...",
@@ -1203,6 +1209,19 @@
     "sendLabel": "Envoi de document ou d'objet"
   },
   "orderTracking": {
+    "map": {
+      "title": "Carte de la commande",
+      "pickup": "Collecte",
+      "destination": "Destination",
+      "driver": "Livreur",
+      "recenter": "Recentrer la carte",
+      "unavailable": "Carte momentanément indisponible.",
+      "noLocation": "Aucune position disponible pour cette commande pour le moment.",
+      "requested": "Reçue",
+      "assigned": "Livreur attribué",
+      "enRoute": "En route",
+      "delivered": "Livrée"
+    },
     "title": "Commande",
     "notFound": "Commande introuvable.",
     "orderDetails": "Détails de la commande",

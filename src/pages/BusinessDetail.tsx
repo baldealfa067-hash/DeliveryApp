@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { AlertCircle, MapPin, Phone, BadgeCheck, CheckCircle2, ShieldAlert, Store, UtensilsCrossed, Plus, Minus, ShoppingCart, Loader2, Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,13 +29,15 @@ import { useBairros } from "@/hooks/useBairros";
 import { useDeliveryPrice } from "@/hooks/useFleet";
 import { useRequireClientAuth } from "@/hooks/useRequireClientAuth";
 import { ClientSignupDialog } from "@/components/ClientSignupDialog";
-import { BISSAU_CENTER, type GeoPosition } from "@/hooks/useGeolocation";
+import { type GeoPosition } from "@/hooks/useGeolocation";
 import { VoiceRecorderField } from "@/components/VoiceRecorderField";
 import { Copy, Upload, Banknote, CreditCard, Check } from "lucide-react";
 import { PUBLIC_PROFILE_COLUMNS } from "@/lib/profileColumns";
 import { contactFromUser } from "@/lib/clientAuth";
 import { COMPROVATIVOS_BUCKET, caminhoComprovativo } from "@/lib/comprovativos";
 import { BUCKET_PRIVADO, caminhoPrivado, tipoSemParametros } from "@/lib/armazenamentoPrivado";
+
+const DeliveryLocationMap = lazy(() => import("@/components/DeliveryLocationMap"));
 
 type ReportReasonKey = "food" | "charge" | "behaviour" | "fake" | "hygiene" | "other";
 const REPORT_REASONS: { key: ReportReasonKey; labelKey: string }[] = [
@@ -125,6 +127,8 @@ const BusinessDetail = () => {
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [sending, setSending] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<GeoPosition | null>(null);
+  const [deliveryMapOpen, setDeliveryMapOpen] = useState(false);
+  const [locatingDelivery, setLocatingDelivery] = useState(false);
   const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
   // Muda para remontar o campo de voz depois de um pedido enviado: o gravador
   // vive dentro do campo, e sem isto a gravacao anterior ficava a mostra.
@@ -249,16 +253,27 @@ const BusinessDetail = () => {
     }
   }, [confirmarAposLogin, paymentInfoLoaded, paymentInfo, t]);
 
-  // Silent GPS capture for delivery orders (no map shown)
-  useEffect(() => {
-    if (consumptionOption !== "entrega" || customerLocation) return;
-    if (!("geolocation" in navigator)) return;
+  const detectDeliveryLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error(t("businessDetail.mapGpsError"));
+      return;
+    }
+    const previous = customerLocation;
+    setLocatingDelivery(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCustomerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000 }
+      ({ coords }) => {
+        setCustomerLocation(current => current === previous
+          ? { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy }
+          : current);
+        setLocatingDelivery(false);
+      },
+      () => {
+        setLocatingDelivery(false);
+        toast.error(t("businessDetail.mapGpsError"));
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
     );
-  }, [consumptionOption]);
+  };
 
 
 
@@ -701,7 +716,37 @@ const BusinessDetail = () => {
                     className="mt-1.5"
                   />
                 </div>
-                {/* Voice note for delivery directions — product decision: voice replaces map in Bissau context */}
+                <div className="mb-3 space-y-2">
+                  <Button type="button" variant="outline" aria-expanded={deliveryMapOpen}
+                    onClick={() => setDeliveryMapOpen(open => !open)}>
+                    <MapPin aria-hidden="true" />
+                    {t("businessDetail.deliveryMap")}
+                  </Button>
+                  {customerLocation && (
+                    <span className="block text-sm text-muted-foreground sm:inline sm:pl-2">
+                      {t("businessDetail.mapPointSelected")}
+                    </span>
+                  )}
+                  {deliveryMapOpen && (
+                    <div className="isolate space-y-2">
+                      <p className="text-sm text-muted-foreground">{t("businessDetail.mapPinHint")}</p>
+                      <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-muted" />}>
+                        <DeliveryLocationMap position={customerLocation} onSelect={setCustomerLocation} />
+                      </Suspense>
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" disabled={locatingDelivery} onClick={detectDeliveryLocation}>
+                          {locatingDelivery && <Loader2 className="animate-spin" aria-hidden="true" />}
+                          {t("businessDetail.mapUseMyLocation")}
+                        </Button>
+                        {customerLocation && (
+                          <Button type="button" variant="ghost" disabled={locatingDelivery} onClick={() => setCustomerLocation(null)}>
+                            {t("businessDetail.mapClearPoint")}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="mb-3">
                   <VoiceRecorderField
                     key={voiceFieldKey}
