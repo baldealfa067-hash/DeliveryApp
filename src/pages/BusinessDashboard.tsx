@@ -47,6 +47,8 @@ type DashboardProfile = {
   category: string;
   photo_url: string | null;
   verification_status: string;
+  lat: number | null;
+  lng: number | null;
 };
 
 const BusinessDashboard = () => {
@@ -125,7 +127,7 @@ const BusinessDashboard = () => {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, name, category, photo_url, verification_status")
+        .select("id, name, category, photo_url, verification_status, lat, lng")
         .eq("user_id", user.id)
         .maybeSingle();
       if (data) {

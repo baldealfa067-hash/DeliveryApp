@@ -1,4 +1,12 @@
 {
+  "deliveryContactImage": {
+    "monthlyGross": "Ganho brutu di es mes",
+    "fleetLogo": "Karega logotipu di frota",
+    "driverPhoto": "Karega foto di perfil",
+    "invalidFile": "Skodje JPEG, PNG o WebP te 5 MB.",
+    "saved": "Imajen sta guardadu.",
+    "failed": "Imajen ka guarda. Tenta di novu."
+  },
   "common": {
     "seeAll": "Olha tudu",
     "minutesShort": "{{minutes}} min",

@@ -1,3 +1,4 @@
+import { DeliveryContactImageUpload } from "@/components/DeliveryContactImage";
 import { IndependentDriverFinance, IndependentDriverPrices } from "@/components/IndependentDriverOperations";
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
@@ -307,6 +308,8 @@ const DriverDashboard = () => {
           </Button>
         </div>
 
+        {driver.fleet_id === null && <DeliveryContactImageUpload kind="driver" id={driver.id} />}
+
         {/* Stats — today */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <Card>
@@ -512,7 +515,7 @@ const DriverDashboard = () => {
           {driver.fleet_id === null && (
             <>
               <TabsContent value="prices"><IndependentDriverPrices driverId={driver.id} /></TabsContent>
-              <TabsContent value="finance"><IndependentDriverFinance driverId={driver.id} /></TabsContent>
+              <TabsContent value="finance"><IndependentDriverFinance driverId={driver.id} monthEarnings={deliveryStats?.month_earnings} /></TabsContent>
             </>
           )}
 

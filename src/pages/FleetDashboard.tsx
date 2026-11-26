@@ -1,3 +1,4 @@
+import { DeliveryContactImageUpload } from "@/components/DeliveryContactImage";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -166,6 +167,8 @@ const FleetDashboard = () => {
         </div>
         {logoutButton}
       </div>
+
+      <DeliveryContactImageUpload kind="fleet" id={metrics.fleet_id} />
 
       <div className="grid grid-cols-2 gap-3">
         <Metric label={t("fleetDashboard.deliveries")} value={metrics.entregas} />

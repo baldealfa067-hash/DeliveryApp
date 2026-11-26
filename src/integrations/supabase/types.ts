@@ -2355,6 +2355,7 @@ export type Database = {
         Args: { p_delivery_id: string; p_stage: string; p_photo: string }
         Returns: undefined
       }
+      get_delivery_contact_image: { Args: { p_order_id: string }; Returns: string | null }
       get_customer_delivery_map: {
         Args: { p_order_id: string }
         Returns: {

@@ -12,6 +12,7 @@ vi.mock("@/hooks/useAuth", () => ({
 vi.mock("@/hooks/useFleetFinancials", () => ({ useFleetFinancials: () => ({}) }));
 vi.mock("@/components/FleetDriverDetail", () => ({ FleetDriverDetail: () => null }));
 vi.mock("@/components/FleetCashClosing", () => ({ FleetCashClosing: () => null }));
+vi.mock("@/components/DeliveryContactImage", () => ({ DeliveryContactImageUpload: () => null }));
 vi.mock("@/hooks/useFleet", () => ({
   useFleetMetrics: () => ({
     data: {

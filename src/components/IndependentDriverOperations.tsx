@@ -115,7 +115,7 @@ export const IndependentDriverPrices = ({ driverId }: { driverId: string }) => {
   );
 };
 
-export const IndependentDriverFinance = ({ driverId }: { driverId: string }) => {
+export const IndependentDriverFinance = ({ driverId, monthEarnings }: { driverId: string; monthEarnings?: number }) => {
   const { t, i18n } = useTranslation();
   const finance = useQuery({
     queryKey: ["independent-driver-finance", driverId],
@@ -140,6 +140,9 @@ export const IndependentDriverFinance = ({ driverId }: { driverId: string }) => 
     <Card>
       <CardContent className="space-y-4 p-4">
         <div className="flex flex-wrap justify-between gap-4">
+          {monthEarnings != null && (
+            <div><p className="text-sm text-muted-foreground">{t("deliveryContactImage.monthlyGross")}</p><p className="text-xl font-bold">{formatCFA(monthEarnings)}</p></div>
+          )}
           <div><p className="text-sm text-muted-foreground">{t("driverDashboard.platformBalance")}</p><p className="text-xl font-bold">{formatCFA(Number(summary.saldo_plataforma))}</p></div>
           <div><p className="text-sm text-muted-foreground">{t("fleetDashboard.commissionGenerated")}</p><p className="font-semibold">{formatCFA(Number(summary.comissao_gerada))}</p></div>
         </div>

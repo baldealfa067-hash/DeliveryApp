@@ -1,4 +1,12 @@
 {
+  "deliveryContactImage": {
+    "monthlyGross": "Gains bruts du mois",
+    "fleetLogo": "Importer le logo de la flotte",
+    "driverPhoto": "Importer la photo de profil",
+    "invalidFile": "Choisissez une image JPEG, PNG ou WebP de 5 Mo maximum.",
+    "saved": "Image enregistrée.",
+    "failed": "Impossible d’enregistrer l’image. Réessayez."
+  },
   "common": {
     "seeAll": "Voir tout",
     "minutesShort": "{{minutes}} min",

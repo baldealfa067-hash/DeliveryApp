@@ -1,3 +1,4 @@
+import { DeliveryDriverContactIcon } from "@/components/DeliveryContactImage";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
@@ -288,7 +289,7 @@ const OrderTrackingPage = () => {
             {order.driver_phone && (
               <Button asChild size="lg" className="w-full h-auto min-h-14 py-2 gap-3 justify-start whitespace-normal text-base">
                 <a href={`tel:${order.driver_phone}`}>
-                  <Phone className="h-5 w-5 shrink-0" />
+                  <DeliveryDriverContactIcon orderId={order.id} contact={order.driver_phone} />
                   <span className="flex min-w-0 flex-1 flex-col items-start text-left leading-tight">
                     <span>{t("orderTracking.callDriver")}</span>
                     <span className="break-words text-xs font-normal opacity-90">

@@ -1,4 +1,12 @@
 {
+  "deliveryContactImage": {
+    "monthlyGross": "Gross earnings this month",
+    "fleetLogo": "Upload fleet logo",
+    "driverPhoto": "Upload profile photo",
+    "invalidFile": "Choose a JPEG, PNG or WebP image up to 5 MB.",
+    "saved": "Image saved.",
+    "failed": "Could not save the image. Try again."
+  },
   "common": {
     "seeAll": "See all",
     "minutesShort": "{{minutes}} min",

@@ -1,4 +1,12 @@
 {
+  "deliveryContactImage": {
+    "monthlyGross": "Ganhos brutos do mês",
+    "fleetLogo": "Carregar logótipo da frota",
+    "driverPhoto": "Carregar foto de perfil",
+    "invalidFile": "Escolhe uma imagem JPEG, PNG ou WebP até 5 MB.",
+    "saved": "Imagem guardada.",
+    "failed": "Não foi possível guardar a imagem. Tenta novamente."
+  },
   "common": {
     "seeAll": "Ver todas",
     "minutesShort": "{{minutes}} min",
