@@ -1392,6 +1392,7 @@
     "availableDeliveries": "Disponíveis",
     "myDeliveries": "As Minhas Entregas",
     "noAvailable": "Sem entregas disponíveis de momento.",
+    "noCompletedDeliveries": "Ainda não tens entregas concluídas.",
     "noDeliveries": "Sem entregas ainda.",
     "accept": "Aceitar",
     "pickup": "Recolher",

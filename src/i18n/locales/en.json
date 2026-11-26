@@ -1392,6 +1392,7 @@
     "availableDeliveries": "Available",
     "myDeliveries": "My Deliveries",
     "noAvailable": "No available deliveries at the moment.",
+    "noCompletedDeliveries": "You have no completed deliveries yet.",
     "noDeliveries": "No deliveries yet.",
     "accept": "Accept",
     "pickup": "Pick Up",
