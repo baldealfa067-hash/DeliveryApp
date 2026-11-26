@@ -75,7 +75,7 @@ export function RestaurantTeam({ businessId }: { businessId: string }) {
           </div>
         ) : (
           <>
-            <PhoneInput required value={phone} onChange={setPhone} aria-label={t("auth.phone")} placeholder={t("auth.phonePlaceholder")} />
+            <PhoneInput required value={phone} onChange={(event) => setPhone(event.target.value)} aria-label={t("auth.phone")} placeholder={t("auth.phonePlaceholder")} />
             <Input required type="password" inputMode="numeric" autoComplete="new-password" maxLength={RESTAURANT_STAFF_PIN_LENGTH}
               aria-label={t("restaurantTeam.pinSixDigits")} placeholder={t("restaurantTeam.pinSixDigits")}
               value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, RESTAURANT_STAFF_PIN_LENGTH))} />
