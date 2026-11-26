@@ -266,25 +266,26 @@ export interface DeliveryProof {
   created_at: string;
 }
 
-export const useCreateDeliveryProof = () => {
+export const useSubmitDeliveryPhoto = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: {
-      deliveryId: string;
-      photoUrl: string;
-      qrValidated?: boolean;
-    }) => {
-      const { data, error } = await supabase.rpc("create_delivery_proof", {
+    mutationFn: async (params: { deliveryId: string; stage: "pickup" | "delivery"; photo: string }) => {
+      const { error } = await supabase.rpc("submit_gps_delivery_photo", {
         p_delivery_id: params.deliveryId,
-        p_photo_url: params.photoUrl,
-        p_qr_validated: params.qrValidated ?? false,
+        p_stage: params.stage,
+        p_photo: params.photo,
       });
-      if (error) throw error;
-      return data as string;
+      if (error) throw new Error(error.message);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["my-deliveries"] });
-      qc.invalidateQueries({ queryKey: ["delivery-proofs"] });
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["my-deliveries"] }),
+        qc.invalidateQueries({ queryKey: ["available-deliveries"] }),
+        qc.invalidateQueries({ queryKey: ["driver-delivery-stats"] }),
+        qc.invalidateQueries({ queryKey: ["driver-daily-stats"] }),
+        qc.invalidateQueries({ queryKey: ["customer-orders"] }),
+        qc.invalidateQueries({ queryKey: ["prova-entrega"] }),
+      ]);
     },
   });
 };

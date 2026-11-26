@@ -505,6 +505,8 @@
     "orangeMoneyNeedsNumber": "Saisissez le numéro de téléphone, ou choisissez une autre façon de recevoir."
   },
   "businessDetail": {
+    "deliveryPointRequired": "Indique la destination sur la carte pour continuer.",
+    "restaurantPointMissing": "Le restaurant doit encore indiquer le point de collecte.",
     "deliveryMap": "Carte de livraison",
     "mapPointSelected": "Point marqué",
     "mapPinHint": "Touche la carte pour indiquer le lieu de livraison.",
@@ -1209,6 +1211,7 @@
     "sendLabel": "Envoi de document ou d'objet"
   },
   "orderTracking": {
+    "pickupProofTitle": "Photo de collecte",
     "arrival": {
       "nearby": "Le livreur est près du point de livraison.",
       "enable": "Activer le son d’arrivée",
@@ -1365,6 +1368,13 @@
     "notes": "Remarques"
   },
   "driverDashboard": {
+    "pickupPhoto": "Photographier la collecte",
+    "deliveryPhoto": "Photographier la livraison",
+    "proofPackageHint": "Photographie le colis. Évite les personnes et les données personnelles.",
+    "proofInvalidPhoto": "Impossible d’ouvrir la photo. Réessaie.",
+    "proofGpsRequired": "Active le GPS et attends une position précise.",
+    "proofGetCloser": "Approche-toi du point marqué pour envoyer la photo.",
+    "proofMissingPoint": "Le point de cette étape manque sur la carte.",
     "editZonePrice": "Modifier",
     "platformBalance": "À payer à la plateforme",
     "deliveryCommission": "Commission actuelle : {{rate}} % du prix de la livraison",
@@ -1512,6 +1522,9 @@
     "driverLine": "{{done}}/{{total}} livraisons · {{amount}}"
   },
   "sendPage": {
+    "pickupMap": "Carte de collecte",
+    "pickupMapHint": "Touche la carte pour indiquer le point de collecte.",
+    "mapPointsRequired": "Indique la collecte et la destination pour confirmer l’envoi.",
     "optionalReference": "Point de repère (facultatif)",
     "pickupReference": "Repère de collecte (facultatif)",
     "dropReference": "Repère de destination (facultatif)",

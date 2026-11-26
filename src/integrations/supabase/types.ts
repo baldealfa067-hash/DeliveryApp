@@ -2337,6 +2337,14 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_order_photo_proof: {
+        Args: { p_order_id: string; p_stage: string }
+        Returns: Json
+      }
+      submit_gps_delivery_photo: {
+        Args: { p_delivery_id: string; p_stage: string; p_photo: string }
+        Returns: undefined
+      }
       get_customer_delivery_map: {
         Args: { p_order_id: string }
         Returns: {

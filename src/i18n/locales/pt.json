@@ -505,6 +505,8 @@
     "orangeMoneyNeedsNumber": "Escreva o número de telefone, ou escolha outra forma de receber."
   },
   "businessDetail": {
+    "deliveryPointRequired": "Marca o destino no mapa para continuar.",
+    "restaurantPointMissing": "O restaurante ainda tem de marcar o ponto de recolha.",
     "deliveryMap": "Mapa de entrega",
     "mapPointSelected": "Ponto marcado",
     "mapPinHint": "Toca no mapa para marcar o local de entrega.",
@@ -1209,6 +1211,7 @@
     "sendLabel": "Envio de documento ou objeto"
   },
   "orderTracking": {
+    "pickupProofTitle": "Fotografia da recolha",
     "arrival": {
       "nearby": "O motorista está perto do ponto de entrega.",
       "enable": "Ativar som de chegada",
@@ -1365,6 +1368,13 @@
     "notes": "Observações"
   },
   "driverDashboard": {
+    "pickupPhoto": "Fotografar recolha",
+    "deliveryPhoto": "Fotografar entrega",
+    "proofPackageHint": "Fotografa a encomenda. Evita incluir pessoas ou dados pessoais.",
+    "proofInvalidPhoto": "Não foi possível abrir a fotografia. Tenta novamente.",
+    "proofGpsRequired": "Ativa o GPS e aguarda uma posição precisa.",
+    "proofGetCloser": "Aproxima-te do ponto marcado para enviar a fotografia.",
+    "proofMissingPoint": "Falta marcar o ponto desta etapa no mapa.",
     "editZonePrice": "Editar",
     "platformBalance": "A pagar à plataforma",
     "deliveryCommission": "Comissão atual: {{rate}}% do preço da entrega",
@@ -1512,6 +1522,9 @@
     "driverLine": "{{done}}/{{total}} entregas · {{amount}}"
   },
   "sendPage": {
+    "pickupMap": "Mapa de recolha",
+    "pickupMapHint": "Toca no mapa para marcar o ponto de recolha.",
+    "mapPointsRequired": "Marca a recolha e o destino no mapa para confirmar o envio.",
     "optionalReference": "Ponto de referência (opcional)",
     "pickupReference": "Referência da recolha (opcional)",
     "dropReference": "Referência do destino (opcional)",

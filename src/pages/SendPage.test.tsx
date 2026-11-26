@@ -59,8 +59,10 @@ it.each([
 
   fireEvent.click(screen.getByRole("button", { name: i18n.t("businessDetail.mapClearPoint") }));
   fireEvent.change(screen.getByRole("textbox", { name: i18n.t("sendPage.dropReference") }), { target: { value: "Casa azul" } });
+  expect(confirm).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Marcar teste" }));
   fireEvent.click(confirm);
   expect(submit).toHaveBeenLastCalledWith(expect.objectContaining({
-    destinoMorada: "Bandim - Casa azul", destinoLat: null, destinoLng: null,
+    destinoMorada: "Bandim - Casa azul", destinoLat: 11.86, destinoLng: -15.59,
   }), expect.any(Object));
 });

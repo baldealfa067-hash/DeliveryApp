@@ -35,8 +35,7 @@ const DeliveryLocationMap = lazy(() => import("@/components/DeliveryLocationMap"
  * "a casa a seguir à bomba, pergunta pelo Sr. Mané". §21 põe a voz acima do
  * mapa, e §78 diz que uma referência local vale mais que um número de porta.
  *
- * O GPS é capturado em silêncio quando o cliente deixa (§21), e a sua ausência
- * não bloqueia nada: desde 2026-09-16 a entrega existe com ou sem coordenadas.
+ * Os dois pontos no mapa permitem confirmar a recolha e a entrega no local.
  */
 const TIPOS: { valor: TipoEnvio; chave: string; icone: typeof FileText }[] = [
   { valor: "documento", chave: "sendPage.typeDocument", icone: FileText },
@@ -57,6 +56,8 @@ const SendPage = () => {
   const [recolhaReferencia, setRecolhaReferencia] = useState("");
   const [recolhaBairro, setRecolhaBairro] = useState<string>("");
   const [recolhaVoz, setRecolhaVoz] = useState<string | null>(null);
+  const [recolhaPonto, setRecolhaPonto] = useState<GeoPosition | null>(null);
+  const [mapaRecolhaAberto, setMapaRecolhaAberto] = useState(false);
   const [destinoReferencia, setDestinoReferencia] = useState("");
   const [destinoBairro, setDestinoBairro] = useState<string>("");
   const [destinoVoz, setDestinoVoz] = useState<string | null>(null);
@@ -83,12 +84,9 @@ const SendPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // GPS em silêncio (§21). Vale como origem: quem envia está quase sempre no
-  // ponto de recolha quando faz o pedido.
-  const detectarGps = geo.detect;
-  useEffect(() => { detectarGps(); }, [detectarGps]);
-
-  const podeEnviar = Boolean(recolhaBairro && destinoBairro && telefone.trim() && preco);
+  const pontoRecolha = recolhaPonto ?? geo.position;
+  const podeEnviar = Boolean(recolhaBairro && destinoBairro && telefone.trim() && preco
+    && pontoRecolha && destinoPonto);
 
   const submeter = () => {
     if (!podeEnviar || criar.isPending) return;
@@ -98,8 +96,8 @@ const SendPage = () => {
         recolhaMorada: [recolhaBairro, recolhaReferencia.trim()].filter(Boolean).join(" - "),
         recolhaBairro,
         recolhaVoz,
-        recolhaLat: geo.position?.lat ?? null,
-        recolhaLng: geo.position?.lng ?? null,
+        recolhaLat: pontoRecolha?.lat ?? null,
+        recolhaLng: pontoRecolha?.lng ?? null,
         destinoMorada: [destinoBairro, destinoReferencia.trim()].filter(Boolean).join(" - "),
         destinoBairro,
         destinoVoz,
@@ -166,6 +164,29 @@ const SendPage = () => {
         <Input className="h-12" placeholder={t("sendPage.optionalReference")}
           aria-label={t("sendPage.pickupReference")}
           value={recolhaReferencia} onChange={e => setRecolhaReferencia(e.target.value)} />
+        <div className="space-y-2">
+          <Button type="button" variant="outline" aria-expanded={mapaRecolhaAberto}
+            onClick={() => setMapaRecolhaAberto(open => !open)}>
+            <MapPin aria-hidden="true" />
+            {t("sendPage.pickupMap")} *
+          </Button>
+          {pontoRecolha && <p className="text-sm text-muted-foreground">{t("businessDetail.mapPointSelected")}</p>}
+          {mapaRecolhaAberto && (
+            <div className="isolate space-y-2">
+              <p className="text-sm text-muted-foreground">{t("sendPage.pickupMapHint")}</p>
+              <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-muted" />}>
+                <DeliveryLocationMap position={pontoRecolha} onSelect={setRecolhaPonto} />
+              </Suspense>
+              <Button type="button" variant="outline" disabled={geo.loading} onClick={() => {
+                setRecolhaPonto(null);
+                geo.detect();
+              }}>
+                {t("businessDetail.mapUseMyLocation")}
+              </Button>
+              {geo.error && <p role="status" className="text-sm text-muted-foreground">{geo.error}</p>}
+            </div>
+          )}
+        </div>
         <VoiceRecorderField
           titulo={t("sendPage.pickupVoiceTitle")}
           ajuda={t("sendPage.pickupVoiceHelp")}
@@ -251,6 +272,9 @@ const SendPage = () => {
         </CardContent>
       </Card>
 
+      {(!pontoRecolha || !destinoPonto) && (
+        <p className="text-sm text-muted-foreground">{t("sendPage.mapPointsRequired")}</p>
+      )}
       <Button className="w-full h-14 text-base" disabled={!podeEnviar || criar.isPending}
         onClick={submeter}>
         {criar.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

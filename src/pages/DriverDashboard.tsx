@@ -15,13 +15,12 @@ import {
   PowerOff,
   Camera,
   Volume2,
-  ExternalLink,
 } from "lucide-react";
+import { latLng } from "leaflet";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -38,10 +37,7 @@ import {
   useAvailableDeliveries,
   useMyDeliveries,
   useAcceptDelivery,
-  usePickupDelivery,
-  useCompleteDelivery,
-  useCreateDeliveryProof,
-  useValidateDeliveryCode,
+  useSubmitDeliveryPhoto,
   useUpdateDeliveryTracking,
   useUpdateDriverLocation,
   type Delivery,
@@ -83,8 +79,6 @@ const DriverDashboard = () => {
   const { data: availableDeliveries = [] } = useAvailableDeliveries(!!driver);
   const { data: myDeliveries = [] } = useMyDeliveries(!!driver);
   const acceptDelivery = useAcceptDelivery();
-  const pickupDelivery = usePickupDelivery();
-  const completeDelivery = useCompleteDelivery();
   const updateTracking = useUpdateDeliveryTracking();
   const updateDriverLocation = useUpdateDriverLocation();
 
@@ -94,16 +88,12 @@ const DriverDashboard = () => {
   const [proofDialogOpen, setProofDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [codeLocked, setCodeLocked] = useState(false);
-  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
-  const [codeDeliveryId, setCodeDeliveryId] = useState<string | null>(null);
-  const [codeInput, setCodeInput] = useState("");
-  const [codeError, setCodeError] = useState(false);
+  const [proofStage, setProofStage] = useState<"pickup" | "delivery">("delivery");
+  const [submittingProof, setSubmittingProof] = useState(false);
+  const createProof = useSubmitDeliveryPhoto();
   const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number } | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const lastLocationPushRef = useRef(0);
-  const createProof = useCreateDeliveryProof();
-  const validateCode = useValidateDeliveryCode();
 
   // Auto-update location — must be before any early returns (Rules of Hooks)
   // Refs para o callback do GPS ler sempre o estado actual (ver o comentario
@@ -184,10 +174,11 @@ const DriverDashboard = () => {
   }
 
   const compressImage = (file: File): Promise<string> =>
-    new Promise((resolve) => {
+    new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
+        img.onerror = reject;
         img.onload = () => {
           const MAX = 800;
           const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
@@ -199,59 +190,40 @@ const DriverDashboard = () => {
         };
         img.src = e.target?.result as string;
       };
+      reader.onerror = reject;
       reader.readAsDataURL(file);
     });
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const compressed = await compressImage(file);
-    setPhotoPreview(compressed);
+    setPhotoPreview(null);
+    try {
+      setPhotoPreview(await compressImage(file));
+    } catch {
+      toast.error(t("driverDashboard.proofInvalidPhoto"));
+    }
   };
 
   const handleProofSubmit = async () => {
-    if (!selectedDeliveryId || !photoPreview) return;
+    if (!selectedDeliveryId || !photoPreview || submittingProof) return;
+    setSubmittingProof(true);
     try {
-      await createProof.mutateAsync({
-        deliveryId: selectedDeliveryId,
-        photoUrl: photoPreview,
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error(t("driverDashboard.proofGpsRequired")));
+        navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error(t("driverDashboard.proofGpsRequired"))),
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
       });
-      await completeDelivery.mutateAsync(selectedDeliveryId);
+      if (position.coords.accuracy > 100) throw new Error(t("driverDashboard.proofGpsRequired"));
+      await updateDriverLocation.mutateAsync({ lat: position.coords.latitude, lng: position.coords.longitude });
+      await createProof.mutateAsync({ deliveryId: selectedDeliveryId, stage: proofStage, photo: photoPreview });
       setProofDialogOpen(false);
       setPhotoPreview(null);
       setSelectedDeliveryId(null);
     } catch (err) {
-      // Antes so ia para a consola: o motorista via o dialogo nao fechar e nao
-      // sabia porque. Com a prova obrigatoria, esta mensagem e a unica pista.
       toast.error(err instanceof Error ? err.message : t("driverDashboard.proofRequired"));
-      console.error("[driver] proof error:", err);
-    }
-  };
-
-
-  const handleCodeValidate = async () => {
-    if (!codeDeliveryId || codeInput.trim().length !== 6) return;
-    try {
-      const ok = await validateCode.mutateAsync({ deliveryId: codeDeliveryId, code: codeInput.trim() });
-      if (ok) {
-        setCodeDialogOpen(false);
-        setCodeInput("");
-        setCodeDeliveryId(null);
-        setCodeError(false);
-      } else {
-        setCodeError(true);
-      }
-    } catch (err) {
-      // Ao 5o erro o servidor bloqueia o codigo DESTA entrega. Dizer so "codigo
-      // incorreto" deixava o motorista a tentar para sempre um codigo que ja
-      // nunca vai passar -- a saida e a fotografia, e o ecra tem de o dizer.
-      const msg = err instanceof Error ? err.message : String(err);
-      if (/bloqueado/i.test(msg)) {
-        setCodeLocked(true);
-      } else {
-        setCodeError(true);
-      }
-      console.error("[driver] code validate error:", err);
+    } finally {
+      setSubmittingProof(false);
     }
   };
 
@@ -400,118 +372,94 @@ const DriverDashboard = () => {
           </Suspense>
         )}
 
-        {activeDeliveries.map(delivery => (
-          <Card key={delivery.id} className="mb-4 border-2 border-primary/50 bg-primary/5">
-            <CardContent className="p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-primary mb-2">
-                #{delivery.order_number ?? delivery.id.slice(0, 8)} ·
-                {delivery.status === "aceite"
-                  ? "🛵 " + t("driverDashboard.onTheWayToRestaurant")
-                  : "📦 " + t("driverDashboard.onTheWayToCustomer")}
-              </p>
-              {/* Nome e morada por inteiro (a morada em duas linhas), e o botão de
-                  ligar por baixo: lado a lado, o botão empurrava os dois para
-                  reticências e o motorista não lia a morada toda. */}
-              <div className="space-y-2">
-                <div className="min-w-0">
-                  <p className="text-base font-bold break-words">
-                    {delivery.status === "aceite"
-                      ? delivery.restaurant_name
-                      : delivery.customer_name}
-                  </p>
-                  <p className="line-clamp-2 text-sm text-muted-foreground">
-                    {delivery.status === "aceite"
-                      ? delivery.restaurant_address
-                      : delivery.customer_address}
-                  </p>
+        {activeDeliveries.map(delivery => {
+          const pickup = delivery.status === "aceite";
+          const lat = pickup ? delivery.restaurant_lat : delivery.customer_lat;
+          const lng = pickup ? delivery.restaurant_lng : delivery.customer_lng;
+          const hasPoint = lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng)
+            && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+          const nearby = hasPoint && driverPosition &&
+            latLng(driverPosition.lat, driverPosition.lng).distanceTo([lat, lng]) <= 100;
+          return (
+            <Card key={delivery.id} className="mb-4 border-2 border-primary/50 bg-primary/5">
+              <CardContent className="p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-primary mb-2">
+                  #{delivery.order_number ?? delivery.id.slice(0, 8)} ·
+                  {delivery.status === "aceite"
+                    ? "🛵 " + t("driverDashboard.onTheWayToRestaurant")
+                    : "📦 " + t("driverDashboard.onTheWayToCustomer")}
+                </p>
+                {/* Nome e morada por inteiro (a morada em duas linhas), e o botão de
+                    ligar por baixo: lado a lado, o botão empurrava os dois para
+                    reticências e o motorista não lia a morada toda. */}
+                <div className="space-y-2">
+                  <div className="min-w-0">
+                    <p className="text-base font-bold break-words">
+                      {delivery.status === "aceite"
+                        ? delivery.restaurant_name
+                        : delivery.customer_name}
+                    </p>
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                      {delivery.status === "aceite"
+                        ? delivery.restaurant_address
+                        : delivery.customer_address}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {delivery.restaurant_phone && (
+                      <a href={`tel:${delivery.restaurant_phone.replace(/\s/g, "")}`}
+                        className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-sm font-medium text-primary">
+                        <Phone className="h-4 w-4" /> {t("driverDashboard.callRestaurant")}
+                      </a>
+                    )}
+                    {delivery.status === "recolhido" && delivery.customer_phone && (
+                      <a href={`tel:${delivery.customer_phone.replace(/\s/g, "")}`}
+                        className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-success-soft px-3 text-sm font-medium text-success-foreground">
+                        <Phone className="h-4 w-4" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {delivery.restaurant_phone && (
-                    <a href={`tel:${delivery.restaurant_phone.replace(/\s/g, "")}`}
-                      className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-sm font-medium text-primary">
-                      <Phone className="h-4 w-4" /> {t("driverDashboard.callRestaurant")}
-                    </a>
-                  )}
-                  {delivery.status === "recolhido" && delivery.customer_phone && (
-                    <a href={`tel:${delivery.customer_phone.replace(/\s/g, "")}`}
-                      className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-success-soft px-3 text-sm font-medium text-success-foreground">
-                      <Phone className="h-4 w-4" /> {t("driverDashboard.callCustomer", "Ligar ao cliente")}
-                    </a>
-                  )}
-                </div>
-              </div>
-              {/* Fase 7.3 — a voz da RECOLHA aparece ANTES da de entrega e some
-                  depois de recolher: o motorista tem duas gravações e precisa
-                  delas em momentos diferentes. Enquanto não recolheu, o sítio
-                  que lhe interessa é a origem (§51 — nada desnecessário a
-                  competir com a acção actual).
+                {/* Fase 7.3 — a voz da RECOLHA aparece ANTES da de entrega e some
+                    depois de recolher: o motorista tem duas gravações e precisa
+                    delas em momentos diferentes. Enquanto não recolheu, o sítio
+                    que lhe interessa é a origem (§51 — nada desnecessário a
+                    competir com a acção actual).
 
-                  As duas fontes partilham este slot porque respondem à mesma
-                  pergunta — "onde vou buscar isto?" — e nunca coexistem: um
-                  envio tem `pickup_voice_note_url` e não tem restaurante; um
-                  pedido de restaurante é o contrário. Dois blocos separados
-                  davam ao motorista duas caixas para a mesma coisa, uma delas
-                  sempre vazia. */}
-              {vozDaRecolha(delivery) && delivery.status !== "recolhido" && (
-                <BlocoVoz tom="recolha" etiqueta={t("driverDashboard.whereToPickUp")} refFicheiro={vozDaRecolha(delivery) as string} />
-              )}
-              {/* Voice note from customer */}
-              {delivery.voice_note_url && (
-                <BlocoVoz tom="entrega" etiqueta={t("driverDashboard.voiceDirectionFrom", { name: delivery.customer_name ?? t("driverDashboard.voiceDirection") })} refFicheiro={delivery.voice_note_url} />
-              )}
-              {/* Google Maps link */}
-              {delivery.status === "recolhido" && delivery.customer_lat != null && delivery.customer_lng != null && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${delivery.customer_lat},${delivery.customer_lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-2.5 py-2 rounded-md"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" /> {t("driverDashboard.openGoogleMaps")}
-                </a>
-              )}
-              {delivery.status === "aceite" && delivery.restaurant_lat != null && delivery.restaurant_lng != null && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${delivery.restaurant_lat},${delivery.restaurant_lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 px-2.5 py-2 rounded-md"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" /> {t("driverDashboard.openGoogleMaps")}
-                </a>
-              )}
-              <DeliveryPayload items={delivery.items} orderTotal={delivery.order_total}
-                deliveryFee={delivery.delivery_fee} paymentMethod={delivery.payment_method} paymentStatus={delivery.payment_status} />
-              {delivery.status === "aceite" && (
-                <Button onClick={() => pickupDelivery.mutate(delivery.id)} disabled={pickupDelivery.isPending} className="mt-3 h-12 w-full text-base">
-                  {t("driverDashboard.pickup")}
+                    As duas fontes partilham este slot porque respondem à mesma
+                    pergunta — "onde vou buscar isto?" — e nunca coexistem: um
+                    envio tem `pickup_voice_note_url` e não tem restaurante; um
+                    pedido de restaurante é o contrário. Dois blocos separados
+                    davam ao motorista duas caixas para a mesma coisa, uma delas
+                    sempre vazia. */}
+                {vozDaRecolha(delivery) && delivery.status !== "recolhido" && (
+                  <BlocoVoz tom="recolha" etiqueta={t("driverDashboard.whereToPickUp")} refFicheiro={vozDaRecolha(delivery) as string} />
+                )}
+                {/* Voice note from customer */}
+                {delivery.voice_note_url && (
+                  <BlocoVoz tom="entrega" etiqueta={t("driverDashboard.voiceDirectionFrom", { name: delivery.customer_name ?? t("driverDashboard.voiceDirection") })} refFicheiro={delivery.voice_note_url} />
+                )}
+                <DeliveryPayload items={delivery.items} orderTotal={delivery.order_total}
+                  deliveryFee={delivery.delivery_fee} paymentMethod={delivery.payment_method} paymentStatus={delivery.payment_status} />
+                {!nearby && (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {t(!hasPoint ? "driverDashboard.proofMissingPoint" : !driverPosition
+                      ? "driverDashboard.proofGpsRequired" : "driverDashboard.proofGetCloser")}
+                  </p>
+                )}
+                <Button className="mt-3 h-12 w-full" disabled={!nearby} onClick={() => {
+                  setSelectedDeliveryId(delivery.id);
+                  setProofStage(pickup ? "pickup" : "delivery");
+                  setPhotoPreview(null);
+                  setProofDialogOpen(true);
+                }}>
+                  <Camera aria-hidden="true" />
+                  {t(pickup ? "driverDashboard.pickupPhoto" : "driverDashboard.deliveryPhoto")}
                 </Button>
-              )}
-              {delivery.status === "recolhido" && (
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <Button onClick={() => {
-                    setCodeDeliveryId(delivery.id);
-                    setCodeInput("");
-                    setCodeError(false);
-                    setCodeDialogOpen(true);
-                  }} className="h-12 gap-1.5 text-base">
-                    <CheckCircle2 className="h-4 w-4" /> {t("driverDashboard.enterCode")}
-                  </Button>
-                  <Button variant="outline" onClick={() => {
-                    setSelectedDeliveryId(delivery.id);
-                    setProofDialogOpen(true);
-                  }} className="h-12 gap-1.5 text-base">
-                    <Camera className="h-4 w-4" /> {t("driverDashboard.proof")}
-                  </Button>
-                  {/* Fase 9.3: o botao "Sem codigo" saiu. Concluia a entrega sem
-                      deixar rasto nenhum, e o backend passou a recusar esse
-                      caminho de qualquer forma. Ficam as duas saidas com
-                      prova: o codigo do cliente, ou uma fotografia. */}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
 
         {/* Tabs */}
         <Tabs defaultValue="available">
@@ -617,54 +565,12 @@ const DriverDashboard = () => {
         </Tabs>
       </main>
 
-      {/* Code Validation Dialog */}
-      <Dialog open={codeDialogOpen} onOpenChange={(open) => { setCodeDialogOpen(open); if (!open) { setCodeInput(""); setCodeError(false); setCodeDeliveryId(null); } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("driverDashboard.codeTitle", "Código de entrega")}</DialogTitle>
-            <DialogDescription>{t("driverDashboard.codeDesc", "Pede ao cliente o código de 6 dígitos que aparece na app dele.")}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3 py-2">
-            <Input
-              type="number"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="000000"
-              value={codeInput}
-              onChange={(e) => { setCodeInput(e.target.value.slice(0, 6)); setCodeError(false); }}
-              className="text-center text-2xl tracking-widest font-bold h-14"
-            />
-            {codeError && !codeLocked && (
-              <p className="text-sm text-destructive text-center">{t("driverDashboard.codeError")}</p>
-            )}
-            {codeLocked && (
-              <div className="space-y-2 text-center">
-                <p className="text-sm text-destructive">{t("driverDashboard.codeLocked")}</p>
-                <Button variant="outline" className="w-full h-11" onClick={() => {
-                  setSelectedDeliveryId(codeDeliveryId);
-                  setCodeDialogOpen(false);
-                  setCodeLocked(false);
-                  setProofDialogOpen(true);
-                }}>
-                  <Camera className="h-4 w-4 mr-2" />{t("driverDashboard.useProofInstead")}
-                </Button>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCodeValidate} disabled={codeInput.trim().length !== 6 || validateCode.isPending}>
-              {validateCode.isPending ? t("common.saving") : t("driverDashboard.codeValidate")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Photo Proof Dialog */}
-      <Dialog open={proofDialogOpen} onOpenChange={(open) => { setProofDialogOpen(open); if (!open) { setPhotoPreview(null); setSelectedDeliveryId(null); } }}>
+      <Dialog open={proofDialogOpen} onOpenChange={(open) => { if (submittingProof) return; setProofDialogOpen(open); if (!open) { setPhotoPreview(null); setSelectedDeliveryId(null); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("driverDashboard.proofTitle")}</DialogTitle>
-            <DialogDescription>{t("driverDashboard.proofDesc")}</DialogDescription>
+            <DialogTitle>{t(proofStage === "pickup" ? "driverDashboard.pickupPhoto" : "driverDashboard.deliveryPhoto")}</DialogTitle>
+            <DialogDescription>{t("driverDashboard.proofPackageHint")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <input
@@ -684,8 +590,8 @@ const DriverDashboard = () => {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={handleProofSubmit} disabled={!photoPreview || createProof.isPending}>
-              {createProof.isPending ? t("common.saving") : t("driverDashboard.submitProof")}
+            <Button onClick={handleProofSubmit} disabled={!photoPreview || submittingProof}>
+              {submittingProof ? t("common.saving") : t("driverDashboard.submitProof")}
             </Button>
           </DialogFooter>
         </DialogContent>

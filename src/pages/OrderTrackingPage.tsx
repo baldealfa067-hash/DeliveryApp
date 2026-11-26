@@ -446,24 +446,9 @@ const OrderTrackingPage = () => {
         </Card>
       )}
 
-      {/* Delivery Code — shown when driver is handling the order */}
-      {order.consumption_option === "entrega" &&
-        ["motorista_encontrado", "pedido_recolhido", "a_caminho"].includes(order.status) &&
-        order.delivery_code && (
-          <Card className="mb-4 border-2 border-primary/40 bg-primary/5">
-            <CardContent className="p-4 text-center">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-                {t("orderTracking.deliveryCode")}
-              </p>
-              <p className="text-4xl font-bold tracking-widest text-primary">
-                {order.delivery_code}
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                {t("orderTracking.deliveryCodeHint")}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+      {hasDelivery && deliveryStage >= 2 && !cancelado && (
+        <div className="mb-4"><DeliveryProofView orderId={order.id} stage="pickup" /></div>
+      )}
 
       {/* Fase 9.4 -- avaliar o restaurante e o motorista, so em pedido concluido.
           Quem decide o que aparece e o servidor; o componente some-se sozinho. */}
@@ -471,7 +456,7 @@ const OrderTrackingPage = () => {
 
       {/* Fase 9.3 -- a prova de entrega, depois de concluida (§37). So faz sentido
           numa entrega; num pedido para comer no local nao ha nada a provar. */}
-      {order.consumption_option === "entrega" && order.status === "concluido" && (
+      {hasDelivery && order.status === "concluido" && (
         <div className="mb-4"><DeliveryProofView orderId={order.id} /></div>
       )}
 

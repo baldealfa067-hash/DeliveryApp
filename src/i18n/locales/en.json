@@ -505,6 +505,8 @@
     "orangeMoneyNeedsNumber": "Enter the phone number, or choose another way to receive."
   },
   "businessDetail": {
+    "deliveryPointRequired": "Mark your destination on the map to continue.",
+    "restaurantPointMissing": "The restaurant still needs to mark its pickup location.",
     "deliveryMap": "Delivery map",
     "mapPointSelected": "Pin placed",
     "mapPinHint": "Tap the map to mark the delivery location.",
@@ -1209,6 +1211,7 @@
     "sendLabel": "Document or parcel delivery"
   },
   "orderTracking": {
+    "pickupProofTitle": "Pickup photo",
     "arrival": {
       "nearby": "The driver is near the delivery point.",
       "enable": "Enable arrival sound",
@@ -1365,6 +1368,13 @@
     "notes": "Notes"
   },
   "driverDashboard": {
+    "pickupPhoto": "Photograph pickup",
+    "deliveryPhoto": "Photograph delivery",
+    "proofPackageHint": "Photograph the package. Avoid including people or personal information.",
+    "proofInvalidPhoto": "Could not open the photo. Try again.",
+    "proofGpsRequired": "Enable GPS and wait for an accurate location.",
+    "proofGetCloser": "Move closer to the marked point to send the photo.",
+    "proofMissingPoint": "This step has no location marked on the map.",
     "editZonePrice": "Edit",
     "platformBalance": "Due to the platform",
     "deliveryCommission": "Current commission: {{rate}}% of the delivery fee",
@@ -1512,6 +1522,9 @@
     "driverLine": "{{done}}/{{total}} deliveries · {{amount}}"
   },
   "sendPage": {
+    "pickupMap": "Pickup map",
+    "pickupMapHint": "Tap the map to mark the pickup point.",
+    "mapPointsRequired": "Mark both pickup and destination on the map to confirm the shipment.",
     "optionalReference": "Landmark (optional)",
     "pickupReference": "Pickup landmark (optional)",
     "dropReference": "Destination landmark (optional)",

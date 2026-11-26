@@ -395,6 +395,20 @@ const BusinessDetail = () => {
     return false;
   };
 
+  const hasDeliveryPoints = () => {
+    if (activeConsumption !== "entrega") return true;
+    if (business.lat == null || business.lng == null) {
+      toast.error(t("businessDetail.restaurantPointMissing"));
+      return false;
+    }
+    if (!customerLocation) {
+      setDeliveryMapOpen(true);
+      toast.error(t("businessDetail.deliveryPointRequired"));
+      return false;
+    }
+    return true;
+  };
+
   const sendOrder = async () => {
     if (!id) return;
     if (!cartItems.length) return toast.error(t("businessDetail.addItems"));
@@ -406,7 +420,7 @@ const BusinessDetail = () => {
       if (!deliveryPhone.trim()) return toast.error(t("businessDetail.enterPhone"));
       if (!bairro.trim()) return toast.error(t("businessDetail.selectBairro"));
     }
-    if (travarSemComprovativo()) return;
+    if (!hasDeliveryPoints() || travarSemComprovativo()) return;
     if (user) setOrderConfirmOpen(true);
     else requireAuth(() => setConfirmarAposLogin(true));
   };
@@ -416,7 +430,7 @@ const BusinessDetail = () => {
     if (!orderCustomerName.trim()) return toast.error(t("businessDetail.enterName"));
     const phoneForOrder = activeConsumption === "entrega" ? deliveryPhone.trim() : orderCustomerPhone.trim();
     if (!phoneForOrder) return toast.error(t("businessDetail.enterPhone"));
-    if (travarSemComprovativo()) {
+    if (!hasDeliveryPoints() || travarSemComprovativo()) {
       setOrderConfirmOpen(false);
       return;
     }
@@ -720,7 +734,7 @@ const BusinessDetail = () => {
                   <Button type="button" variant="outline" aria-expanded={deliveryMapOpen}
                     onClick={() => setDeliveryMapOpen(open => !open)}>
                     <MapPin aria-hidden="true" />
-                    {t("businessDetail.deliveryMap")}
+                    {t("businessDetail.deliveryMap")} *
                   </Button>
                   {customerLocation && (
                     <span className="block text-sm text-muted-foreground sm:inline sm:pl-2">

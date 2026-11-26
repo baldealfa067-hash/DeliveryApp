@@ -632,6 +632,7 @@
     "sendLabel": "Envio di dokumentu o objetu"
   },
   "orderTracking": {
+    "pickupProofTitle": "Foto di rekolha",
     "arrival": {
       "nearby": "Motorista sta pertu di puntu di entrega.",
       "enable": "Ativa son di txigada",
@@ -811,6 +812,13 @@
     "appointmentsManagement": "Gestason di Markasons"
   },
   "driverDashboard": {
+    "pickupPhoto": "Tira foto di rekolha",
+    "deliveryPhoto": "Tira foto di entrega",
+    "proofPackageHint": "Tira foto di enkumenda, sin djintis nen dadus personal.",
+    "proofInvalidPhoto": "Ka pudi abri foto. Tenta di novu.",
+    "proofGpsRequired": "Ativa GPS i pera lokalizason sertu.",
+    "proofGetCloser": "Tisiga puntu markadu pa manda foto.",
+    "proofMissingPoint": "Puntu di es etapa ka sta markadu na mapa.",
     "editZonePrice": "Edita",
     "platformBalance": "Pa paga plataforma",
     "deliveryCommission": "Komison atual: {{rate}}% di presu di entrega",
@@ -981,6 +989,8 @@
     "viewPublic": "Djubi pajina publiku di stabelesimentu"
   },
   "businessDetail": {
+    "deliveryPointRequired": "Marka destinu na mapa pa kontinua.",
+    "restaurantPointMissing": "Restoranti inda ten ku marka puntu di rekolha.",
     "deliveryMap": "Mapa di entrega",
     "mapPointSelected": "Puntu markadu",
     "mapPinHint": "Toka na mapa pa marka lugar di entrega.",
@@ -1162,6 +1172,9 @@
     "driverLine": "{{done}}/{{total}} entregas · {{amount}}"
   },
   "sendPage": {
+    "pickupMap": "Mapa di rekolha",
+    "pickupMapHint": "Toka na mapa pa marka puntu di rekolha.",
+    "mapPointsRequired": "Marka rekolha i destinu na mapa pa konfirma enviu.",
     "optionalReference": "Puntu di referensia (opsional)",
     "pickupReference": "Referensia di rekolha (opsional)",
     "dropReference": "Referensia di destinu (opsional)",
