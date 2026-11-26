@@ -431,7 +431,8 @@
     "phonePlaceholder": "+245 957107795",
     "locationRequired": "Localização *",
     "businessLocation": "Localização do estabelecimento",
-    "businessLocationHint": "Usada para calcular a distância até aos teus clientes.",
+    "businessLocationHint": "Junto à entrada onde os motoristas recolhem os pedidos, toca em Detetar e depois em Guardar alterações.",
+    "pickupSaveError": "O perfil foi guardado, mas houve um erro ao guardar o ponto de recolha. Tenta novamente.",
     "detectLocation": "Detetar",
     "locationDetected": "Localização detetada com sucesso!",
     "locationError": "Não foi possível detetar a localização.",
@@ -1612,6 +1613,7 @@
     "contested": "Contestado. A dívida mantém-se."
   },
   "manualOrder": {
+    "configurePickup": "Configurar ponto de recolha",
     "pickupRequired": "Configura o ponto de recolha no perfil do restaurante para criar entregas.",
     "destinationPoint": "Destino da entrega",
     "destinationHint": "Toca no mapa para marcar o destino.",

@@ -49,7 +49,11 @@ const rpc = supabase.rpc.bind(supabase) as unknown as (
   fn: string, args?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-export const ManualOrderDialog = ({ businessId, pickupConfigured }: { businessId: string; pickupConfigured: boolean }) => {
+export const ManualOrderDialog = ({ businessId, pickupConfigured, onConfigurePickup }: {
+  businessId: string;
+  pickupConfigured: boolean;
+  onConfigurePickup: () => void;
+}) => {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [aberto, setAberto] = useState(false);
@@ -217,7 +221,12 @@ export const ManualOrderDialog = ({ businessId, pickupConfigured }: { businessId
                 <Input placeholder={t("manualOrder.address")} className="h-11"
                   value={morada} onChange={(e) => setMorada(e.target.value)} />
                 {!pickupConfigured ? (
-                  <p className="text-sm text-problem">{t("manualOrder.pickupRequired")}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-problem">{t("manualOrder.pickupRequired")}</p>
+                    <Button type="button" variant="outline" className="w-full" onClick={onConfigurePickup}>
+                      {t("manualOrder.configurePickup")}
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-1.5">
                     <p className="text-sm font-medium">{t("manualOrder.destinationPoint")}</p>

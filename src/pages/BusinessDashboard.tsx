@@ -246,6 +246,7 @@ const BusinessDashboard = () => {
                   e na mesma tabela; o que muda é `source`. */}
               <ManualOrderDialog
                 businessId={profile.id}
+                onConfigurePickup={() => navigate("/painel-loja/editar#ponto-de-recolha")}
                 pickupConfigured={profile.lat != null && profile.lng != null
                   && Math.abs(profile.lat) <= 90 && Math.abs(profile.lng) <= 180}
               />

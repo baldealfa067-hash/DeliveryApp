@@ -895,7 +895,8 @@
     "prepTimeUnavailable": "Perfil gardadu, ma tempu di preparason inda ka pudi ser gardadu.",
     "locationRequired": "Lokalizason *",
     "businessLocation": "Lokalizason di stabelesimentu",
-    "businessLocationHint": "Uzadu pa kalkula distansa te na bu klientis.",
+    "businessLocationHint": "Na entrada undi motorista ta rekodje pididu, toka na Deteta, dipus guarda mudansa.",
+    "pickupSaveError": "Perfil sta guardadu, ma lugar di rekodja ka guarda. Tenta di novu.",
     "detectLocation": "Deteta",
     "locationDetected": "Lokalizason detetadu!",
     "locationError": "Ka konsigi deteta lokalizason.",
@@ -1262,6 +1263,7 @@
     "contested": "Kontestadu. Dibida ta fika."
   },
   "manualOrder": {
+    "configurePickup": "Konfigura lugar di rekodja",
     "pickupRequired": "Marka lugar di rekodja na perfil di restoran pa cria ntrega.",
     "destinationPoint": "Destinu di ntrega",
     "destinationHint": "Toka na mapa pa marka destinu.",

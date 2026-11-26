@@ -16,6 +16,7 @@ import i18n from "@/i18n";
 import { ManualOrderDialog } from "./ManualOrderDialog";
 
 const rpc = vi.fn();
+const configurePickup = vi.fn();
 const menu = [
   { id: "m1", name: "Caldo de Mancarra", price: 3500, is_orderable: true, track_stock: false, stock_qty: null },
 ];
@@ -48,7 +49,7 @@ vi.mock("@/components/DeliveryLocationMap", () => ({
 const desenhar = (pickupConfigured: boolean) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <ManualOrderDialog businessId="b1" pickupConfigured={pickupConfigured} />
+      <ManualOrderDialog businessId="b1" pickupConfigured={pickupConfigured} onConfigurePickup={configurePickup} />
     </QueryClientProvider>,
   );
 
@@ -105,6 +106,8 @@ describe("ManualOrderDialog — bairro da lista", () => {
     const d = await abrirComEntrega(false);
     await escolher(d, "Bairro Militar");
     expect(within(d).getByText(/Configura o ponto de recolha/)).toBeVisible();
+    fireEvent.click(within(d).getByRole("button", { name: "Configurar ponto de recolha" }));
+    expect(configurePickup).toHaveBeenCalled();
     expect(despachar(d)).toBeDisabled();
   });
 

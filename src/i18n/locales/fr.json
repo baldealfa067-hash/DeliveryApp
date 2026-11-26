@@ -431,7 +431,8 @@
     "phonePlaceholder": "+245 957107795",
     "locationRequired": "Localisation *",
     "businessLocation": "Emplacement de l'établissement",
-    "businessLocationHint": "Utilisée pour calculer la distance jusqu'à vos clients.",
+    "businessLocationHint": "À l’entrée où les livreurs récupèrent les commandes, touchez Détecter puis Enregistrer les modifications.",
+    "pickupSaveError": "Le profil a été enregistré, mais le point de retrait n’a pas pu être sauvegardé. Réessayez.",
     "detectLocation": "Détecter",
     "locationDetected": "Localisation détectée avec succès !",
     "locationError": "Impossible de détecter la localisation.",
@@ -1612,6 +1613,7 @@
     "contested": "Contesté. La dette est maintenue."
   },
   "manualOrder": {
+    "configurePickup": "Configurer le point de retrait",
     "pickupRequired": "Configurez le point de retrait dans le profil du restaurant pour créer des livraisons.",
     "destinationPoint": "Destination de la livraison",
     "destinationHint": "Touchez la carte pour indiquer la destination.",

@@ -122,6 +122,13 @@ const BusinessDashboard = () => {
   const [savingStock, setSavingStock] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(empty);
   const [businessLocation, setBusinessLocation] = useState<GeoPosition | null>(null);
+  const pickupSection = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (profileId && window.location.hash === "#ponto-de-recolha") {
+      pickupSection.current?.scrollIntoView({ block: "center" });
+    }
+  }, [profileId]);
+
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -319,15 +326,24 @@ const BusinessDashboard = () => {
       ({ error, data } = await write(withoutPrepTime));
       if (!error) toast.warning(t("businessEdit.prepTimeUnavailable"));
     }
-    setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      setSaving(false);
+      return toast.error(error.message);
+    }
     if (data) {
       setProfileId(data.id);
       await supabase.rpc("register_as_business");
     }
     if (businessLocation) {
-      await supabase.rpc("update_business_location", { p_lat: businessLocation.lat, p_lng: businessLocation.lng });
+      const { error: locationError } = await supabase.rpc("update_business_location", {
+        p_lat: businessLocation.lat, p_lng: businessLocation.lng,
+      });
+      if (locationError) {
+        setSaving(false);
+        return toast.error(t("businessEdit.pickupSaveError"));
+      }
     }
+    setSaving(false);
     toast.success(t("businessEdit.profileSaved"));
   };
 
@@ -568,7 +584,7 @@ const BusinessDashboard = () => {
               </div>
               {/* GPS capture without map — product decision: map hidden in Bissau context */}
               {profileId && (
-                <div className="space-y-1">
+                <div id="ponto-de-recolha" ref={pickupSection} className="space-y-1">
                   <Label>{t("businessEdit.businessLocation")}</Label>
                   <p className="text-[11px] text-muted-foreground -mt-1">{t("businessEdit.businessLocationHint")}</p>
                   <Button

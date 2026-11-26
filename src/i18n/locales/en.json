@@ -431,7 +431,8 @@
     "phonePlaceholder": "+245 957107795",
     "locationRequired": "Location *",
     "businessLocation": "Business location",
-    "businessLocationHint": "Used to calculate the distance to your customers.",
+    "businessLocationHint": "At the entrance where drivers collect orders, tap Detect and then Save changes.",
+    "pickupSaveError": "The profile was saved, but saving the pickup point failed. Try again.",
     "detectLocation": "Detect",
     "locationDetected": "Location detected successfully!",
     "locationError": "Could not detect location.",
@@ -1612,6 +1613,7 @@
     "contested": "Disputed. The debt stays."
   },
   "manualOrder": {
+    "configurePickup": "Set pickup point",
     "pickupRequired": "Set the pickup point in the restaurant profile to create deliveries.",
     "destinationPoint": "Delivery destination",
     "destinationHint": "Tap the map to mark the destination.",
