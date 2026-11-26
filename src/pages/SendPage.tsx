@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,9 +16,11 @@ import { VoiceRecorderField } from "@/components/VoiceRecorderField";
 import type { AcabadoDeCriar } from "@/components/OrderPlacedDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useBairros } from "@/hooks/useBairros";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useGeolocation, type GeoPosition } from "@/hooks/useGeolocation";
 import { useDeliveryPrice, useCreateSendOrder, type TipoEnvio } from "@/hooks/useSendOrder";
 import { formatCFA } from "@/lib/format";
+
+const DeliveryLocationMap = lazy(() => import("@/components/DeliveryLocationMap"));
 
 /**
  * Enviar um documento ou objecto (§19).
@@ -52,12 +54,14 @@ const SendPage = () => {
 
   const [tipo, setTipo] = useState<TipoEnvio>("documento");
   const [descricao, setDescricao] = useState("");
-  const [recolhaMorada, setRecolhaMorada] = useState("");
+  const [recolhaReferencia, setRecolhaReferencia] = useState("");
   const [recolhaBairro, setRecolhaBairro] = useState<string>("");
   const [recolhaVoz, setRecolhaVoz] = useState<string | null>(null);
-  const [destinoMorada, setDestinoMorada] = useState("");
+  const [destinoReferencia, setDestinoReferencia] = useState("");
   const [destinoBairro, setDestinoBairro] = useState<string>("");
   const [destinoVoz, setDestinoVoz] = useState<string | null>(null);
+  const [destinoPonto, setDestinoPonto] = useState<GeoPosition | null>(null);
+  const [mapaDestinoAberto, setMapaDestinoAberto] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
 
@@ -84,28 +88,23 @@ const SendPage = () => {
   const detectarGps = geo.detect;
   useEffect(() => { detectarGps(); }, [detectarGps]);
 
-  const podeEnviar = useMemo(
-    () => recolhaMorada.trim() && destinoMorada.trim() && destinoBairro && telefone.trim() && preco,
-    [recolhaMorada, destinoMorada, destinoBairro, telefone, preco],
-  );
+  const podeEnviar = Boolean(recolhaBairro && destinoBairro && telefone.trim() && preco);
 
   const submeter = () => {
-    if (!preco) {
-      toast.error(t("sendPage.pickBairroFirst"));
-      return;
-    }
+    if (!podeEnviar || criar.isPending) return;
     criar.mutate(
       {
         tipo, descricao,
-        recolhaMorada: recolhaMorada.trim(),
-        recolhaBairro: recolhaBairro || null,
+        recolhaMorada: [recolhaBairro, recolhaReferencia.trim()].filter(Boolean).join(" - "),
+        recolhaBairro,
         recolhaVoz,
         recolhaLat: geo.position?.lat ?? null,
         recolhaLng: geo.position?.lng ?? null,
-        destinoMorada: destinoMorada.trim(),
+        destinoMorada: [destinoBairro, destinoReferencia.trim()].filter(Boolean).join(" - "),
         destinoBairro,
         destinoVoz,
-        destinoLat: null, destinoLng: null,
+        destinoLat: destinoPonto?.lat ?? null,
+        destinoLng: destinoPonto?.lng ?? null,
         nome: nome.trim() || t("sendPage.defaultName"),
         telefone: telefone.trim(),
       },
@@ -156,14 +155,17 @@ const SendPage = () => {
       {/* 2. De onde */}
       <Card><CardContent className="p-4 space-y-3">
         <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />{t("sendPage.pickupWhere")}</Label>
-        <Input className="h-12" placeholder={t("sendPage.pickupPlaceholder")}
-          value={recolhaMorada} onChange={(e) => setRecolhaMorada(e.target.value)} />
         <Select value={recolhaBairro} onValueChange={setRecolhaBairro}>
-          <SelectTrigger className="h-12"><SelectValue placeholder={t("sendPage.pickupBairro")} /></SelectTrigger>
+          <SelectTrigger className="h-12" aria-label={t("sendPage.pickupBairro")} aria-required="true">
+            <SelectValue placeholder={t("sendPage.pickupBairro")} />
+          </SelectTrigger>
           <SelectContent>
             {bairros.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Input className="h-12" placeholder={t("sendPage.optionalReference")}
+          aria-label={t("sendPage.pickupReference")}
+          value={recolhaReferencia} onChange={e => setRecolhaReferencia(e.target.value)} />
         <VoiceRecorderField
           titulo={t("sendPage.pickupVoiceTitle")}
           ajuda={t("sendPage.pickupVoiceHelp")}
@@ -174,14 +176,40 @@ const SendPage = () => {
       {/* 3. Para onde — é este bairro que decide o preço */}
       <Card><CardContent className="p-4 space-y-3">
         <Label className="flex items-center gap-2"><MapPin className="h-4 w-4" />{t("sendPage.dropWhere")}</Label>
-        <Input className="h-12" placeholder={t("sendPage.dropPlaceholder")}
-          value={destinoMorada} onChange={(e) => setDestinoMorada(e.target.value)} />
         <Select value={destinoBairro} onValueChange={setDestinoBairro}>
-          <SelectTrigger className="h-12"><SelectValue placeholder={t("sendPage.dropBairro")} /></SelectTrigger>
+          <SelectTrigger className="h-12" aria-label={t("sendPage.dropBairro")} aria-required="true">
+            <SelectValue placeholder={t("sendPage.dropBairro")} />
+          </SelectTrigger>
           <SelectContent>
             {bairros.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Input className="h-12" placeholder={t("sendPage.optionalReference")}
+          aria-label={t("sendPage.dropReference")}
+          value={destinoReferencia} onChange={e => setDestinoReferencia(e.target.value)} />
+        <div className="space-y-2">
+          <Button type="button" variant="outline" aria-expanded={mapaDestinoAberto}
+            onClick={() => setMapaDestinoAberto(open => !open)}>
+            <MapPin aria-hidden="true" />
+            {t("businessDetail.deliveryMap")}
+          </Button>
+          {destinoPonto && (
+            <p role="status" className="text-sm text-muted-foreground">{t("businessDetail.mapPointSelected")}</p>
+          )}
+          {mapaDestinoAberto && (
+            <div className="isolate space-y-2">
+              <p className="text-sm text-muted-foreground">{t("businessDetail.mapPinHint")}</p>
+              <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-muted" />}>
+                <DeliveryLocationMap position={destinoPonto} onSelect={setDestinoPonto} />
+              </Suspense>
+              {destinoPonto && (
+                <Button type="button" variant="ghost" onClick={() => setDestinoPonto(null)}>
+                  {t("businessDetail.mapClearPoint")}
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
         <VoiceRecorderField
           titulo={t("sendPage.dropVoiceTitle")}
           ajuda={t("sendPage.dropVoiceHelp")}

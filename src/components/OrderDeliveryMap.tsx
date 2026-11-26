@@ -1,3 +1,4 @@
+import { latLng } from "leaflet";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import "leaflet/dist/leaflet.css";
 import { DeliveryRouteLegend, DeliveryRouteLine, mapPoint, useDeliveryRoute } from "./DeliveryRouteLine";
 
+import { DeliveryArrivalAlert } from "./DeliveryArrivalAlert";
 import { DeliveryMapMarker } from "./DeliveryMapMarker";
 
 type Point = { id: string; label: string; coords: [number, number]; color: string };
@@ -40,7 +42,7 @@ function Recenter({ points, label }: { points: Point[]; label: string }) {
 
 export default function OrderDeliveryMap({ orderId, toCustomer, isShipment, statusLabel }: { orderId: string; toCustomer: boolean; isShipment: boolean; statusLabel: string }) {
   const { t, i18n } = useTranslation();
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetchedAfterMount } = useQuery({
     queryKey: ["customer-delivery-map", orderId],
     queryFn: async () => {
       const { data: row, error } = await supabase.rpc("get_customer_delivery_map", { p_order_id: orderId }).maybeSingle();
@@ -65,6 +67,8 @@ export default function OrderDeliveryMap({ orderId, toCustomer, isShipment, stat
     ? mapPoint(data?.destination_lat, data?.destination_lng)
     : mapPoint(data?.pickup_lat, data?.pickup_lng);
   const route = useDeliveryRoute(currentDriver, target);
+  const driverNearby = Boolean(isFetchedAfterMount && toCustomer && currentDriver && target &&
+    latLng(currentDriver).distanceTo(target) <= 50);
 
   return (
     <section aria-label={t("orderTracking.map.title")} className="isolate overflow-hidden rounded-2xl border bg-card">
@@ -125,6 +129,7 @@ export default function OrderDeliveryMap({ orderId, toCustomer, isShipment, stat
           {t(isLoading ? "common.loading" : isError ? "orderTracking.map.unavailable" : "orderTracking.map.noLocation")}
         </p>
       )}
+      <DeliveryArrivalAlert orderId={orderId} nearby={driverNearby} />
     </section>
   );
 }

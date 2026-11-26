@@ -1209,6 +1209,12 @@
     "sendLabel": "Envio de documento ou objeto"
   },
   "orderTracking": {
+    "arrival": {
+      "nearby": "O motorista está perto do ponto de entrega.",
+      "enable": "Ativar som de chegada",
+      "enabled": "Som de chegada ativo enquanto acompanhas o pedido.",
+      "unavailable": "O som de chegada não está disponível neste navegador."
+    },
     "map": {
       "livePosition": "GPS ativo",
       "nextStopEstimate": "Tempo até ao próximo ponto",
@@ -1505,6 +1511,9 @@
     "driverLine": "{{done}}/{{total}} entregas · {{amount}}"
   },
   "sendPage": {
+    "optionalReference": "Ponto de referência (opcional)",
+    "pickupReference": "Referência da recolha (opcional)",
+    "dropReference": "Referência do destino (opcional)",
     "title": "Enviar",
     "subtitle": "Documentos e objetos, de um ponto a outro.",
     "typeDocument": "Documento",

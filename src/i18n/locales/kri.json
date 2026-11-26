@@ -632,6 +632,12 @@
     "sendLabel": "Envio di dokumentu o objetu"
   },
   "orderTracking": {
+    "arrival": {
+      "nearby": "Motorista sta pertu di puntu di entrega.",
+      "enable": "Ativa son di txigada",
+      "enabled": "Son di txigada sta ativu ku bu ta kunpanha pididu.",
+      "unavailable": "Son di txigada ka sta dispunivel na es navegador."
+    },
     "map": {
       "livePosition": "GPS ativu",
       "nextStopEstimate": "Tempu te prosimu puntu",
@@ -1155,6 +1161,9 @@
     "driverLine": "{{done}}/{{total}} entregas · {{amount}}"
   },
   "sendPage": {
+    "optionalReference": "Puntu di referensia (opsional)",
+    "pickupReference": "Referensia di rekolha (opsional)",
+    "dropReference": "Referensia di destinu (opsional)",
     "title": "Manda",
     "subtitle": "Dokumentu i objetu, di un ponto pa otru.",
     "typeDocument": "Dokumentu",

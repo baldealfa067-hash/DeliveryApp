@@ -1209,6 +1209,12 @@
     "sendLabel": "Document or parcel delivery"
   },
   "orderTracking": {
+    "arrival": {
+      "nearby": "The driver is near the delivery point.",
+      "enable": "Enable arrival sound",
+      "enabled": "Arrival sound is active while you track the order.",
+      "unavailable": "Arrival sound is unavailable in this browser."
+    },
     "map": {
       "livePosition": "GPS active",
       "nextStopEstimate": "Time to next stop",
@@ -1505,6 +1511,9 @@
     "driverLine": "{{done}}/{{total}} deliveries · {{amount}}"
   },
   "sendPage": {
+    "optionalReference": "Landmark (optional)",
+    "pickupReference": "Pickup landmark (optional)",
+    "dropReference": "Destination landmark (optional)",
     "title": "Send",
     "subtitle": "Documents and objects, from one point to another.",
     "typeDocument": "Document",
