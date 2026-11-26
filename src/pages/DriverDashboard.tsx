@@ -37,6 +37,7 @@ import {
   useAvailableDeliveries,
   useMyDeliveries,
   useAcceptDelivery,
+  useDeclineDelivery,
   useSubmitDeliveryPhoto,
   useUpdateDeliveryTracking,
   useUpdateDriverLocation,
@@ -76,9 +77,23 @@ const DriverDashboard = () => {
   const navigate = useNavigate();
   const { data: driver, isLoading: driverLoading } = useDriverProfile(user?.id ?? null);
   const toggleAvailability = useToggleAvailability();
-  const { data: availableDeliveries = [] } = useAvailableDeliveries(!!driver);
+  const { data: availableDeliveries = [] } = useAvailableDeliveries(driver?.id ?? null);
   const { data: myDeliveries = [] } = useMyDeliveries(!!driver);
   const acceptDelivery = useAcceptDelivery();
+  const declineDelivery = useDeclineDelivery();
+  const offerExpiry = availableDeliveries[0]?.offer_expires_at;
+  const [offerClock, setOfferClock] = useState(Date.now);
+  useEffect(() => {
+    if (!offerExpiry) return;
+    setOfferClock(Date.now());
+    const timer = window.setInterval(() => setOfferClock(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [offerExpiry]);
+  const offerSeconds = offerExpiry
+    ? Math.max(0, Math.ceil((Date.parse(offerExpiry) - offerClock) / 1000))
+    : 0;
+  const responding = acceptDelivery.isPending || declineDelivery.isPending;
+
   const updateTracking = useUpdateDeliveryTracking();
   const updateDriverLocation = useUpdateDriverLocation();
 
@@ -105,13 +120,21 @@ const DriverDashboard = () => {
   const atualizarPosicaoRef = useRef(updateDriverLocation.mutate);
   atualizarPosicaoRef.current = updateDriverLocation.mutate;
 
-  const hasActiveDelivery = myDeliveries.some(d => ["aceite", "recolhido"].includes(d.status));
+  const hasActiveDelivery = myDeliveries.some(d => ["aceite", "recolhido", "em_entrega"].includes(d.status));
   const needsLocation = Boolean(driver?.is_available || hasActiveDelivery);
   useEffect(() => {
     if (!needsLocation) {
       setDriverPosition(null);
       return;
     }
+    let watching = true;
+    const heartbeat = window.setInterval(() => {
+      navigator.geolocation?.getCurrentPosition(({ coords, timestamp }) => {
+        if (!watching || Date.now() - timestamp > 15000 || Date.now() - lastLocationPushRef.current < 25000) return;
+        lastLocationPushRef.current = Date.now();
+        atualizarPosicaoRef.current({ lat: coords.latitude, lng: coords.longitude });
+      }, () => {}, { maximumAge: 10000, timeout: 10000 });
+    }, 45000);
     const watchId = navigator.geolocation?.watchPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -134,7 +157,7 @@ const DriverDashboard = () => {
         // o cliente nunca via o motorista a mexer-se (§52). Com a ref le-se
         // sempre a lista actual sem reiniciar o watchPosition.
         const deliveryId = minhasEntregasRef.current
-          .find((d) => ["aceite", "recolhido"].includes(d.status))?.id ?? "";
+          .find((d) => ["aceite", "recolhido", "em_entrega"].includes(d.status))?.id ?? "";
         if (deliveryId) {
           atualizarTrackingRef.current({ ...coords, deliveryId });
         }
@@ -143,6 +166,9 @@ const DriverDashboard = () => {
       { enableHighAccuracy: true, maximumAge: 10000 }
     );
     return () => {
+      watching = false;
+      lastLocationPushRef.current = 0;
+      window.clearInterval(heartbeat);
       if (watchId !== undefined) navigator.geolocation?.clearWatch(watchId);
     };
   }, [needsLocation]);
@@ -227,7 +253,7 @@ const DriverDashboard = () => {
     }
   };
 
-  const activeDeliveries = myDeliveries.filter(d => ["aceite", "recolhido"].includes(d.status));
+  const activeDeliveries = myDeliveries.filter(d => ["aceite", "recolhido", "em_entrega"].includes(d.status));
   const activeDelivery = activeDeliveries[0];
   const completedDeliveries = myDeliveries.filter(d => d.status === "entregue")
     .sort((a, b) => Date.parse(b.delivered_at ?? b.created_at) - Date.parse(a.delivered_at ?? a.created_at));
@@ -518,13 +544,32 @@ const DriverDashboard = () => {
                         paymentMethod={d.payment_method}
                         paymentStatus={d.payment_status}
                       />
-                      <Button
-                        onClick={() => acceptDelivery.mutate(d.id)}
-                        disabled={acceptDelivery.isPending}
-                        className="mt-3 h-12 w-full text-base"
-                      >
-                        {t("driverDashboard.accept")}
-                      </Button>
+                      <p className="mt-3 text-sm font-medium">
+                        {offerSeconds > 0
+                          ? t("driverDashboard.offerTime", { seconds: offerSeconds })
+                          : t("driverDashboard.offerExpired")}
+                      </p>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => declineDelivery.mutate(d.id, {
+                            onError: () => toast.error(t("driverDashboard.offerUnavailable")),
+                          })}
+                          disabled={responding || offerSeconds === 0}
+                          className="h-12"
+                        >
+                          {t("driverDashboard.declineOffer")}
+                        </Button>
+                        <Button
+                          onClick={() => acceptDelivery.mutate(d.id, {
+                            onError: () => toast.error(t("driverDashboard.offerUnavailable")),
+                          })}
+                          disabled={responding || offerSeconds === 0}
+                          className="h-12 flex-1 text-base"
+                        >
+                          {t("driverDashboard.accept")}
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

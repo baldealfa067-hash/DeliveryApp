@@ -1293,6 +1293,7 @@
     "cancelado": "Cancelado"
   },
   "orderManagement": {
+    "reofferQueued": "Entrega em fila para procurar um motorista.",
     "reofferSent": "{{count}} motorista(s) notificado(s)",
     "reoffer": "Voltar a chamar motorista",
     "itemCount": "{{count}} itens",
@@ -1368,6 +1369,10 @@
     "notes": "Observações"
   },
   "driverDashboard": {
+    "offerTime": "{{seconds}} s para responder",
+    "offerExpired": "Oferta expirada",
+    "offerUnavailable": "Esta oferta já não está disponível.",
+    "declineOffer": "Recusar",
     "pickupPhoto": "Fotografar recolha",
     "deliveryPhoto": "Fotografar entrega",
     "proofPackageHint": "Fotografa a encomenda. Evita incluir pessoas ou dados pessoais.",

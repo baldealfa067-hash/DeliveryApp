@@ -260,12 +260,9 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
     // parecia nao fazer nada.
     const reoferecer = () =>
       reoffer.mutate(order.id, {
-        onSuccess: (r) =>
+        onSuccess: () =>
           toast.success(
-            t("orderManagement.reofferSent", {
-              count: r?.motoristas_notificados ?? 0,
-              defaultValue: "{{count}} motorista(s) notificado(s)",
-            })
+            t("orderManagement.reofferQueued")
           ),
         onError: (e: unknown) =>
           toast.error(

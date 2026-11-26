@@ -181,7 +181,7 @@ export const useReofferDelivery = () => {
         p_order_id: orderId,
       });
       if (error) throw error;
-      return data as { ronda: number; motoristas_notificados: number };
+      return data as { queued: boolean };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["business-orders"] });

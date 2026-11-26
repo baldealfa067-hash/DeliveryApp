@@ -51,6 +51,7 @@ export interface Delivery {
 }
 
 export interface AvailableDelivery {
+  offer_expires_at: string;
   id: string;
   order_id: string;
   restaurant_name: string;
@@ -138,16 +139,16 @@ export const useUpdateDriverLocation = () =>
     },
   });
 
-export const useAvailableDeliveries = (enabled: boolean = true) =>
+export const useAvailableDeliveries = (driverId: string | null) =>
   useQuery({
-    queryKey: ["available-deliveries"],
+    queryKey: ["available-deliveries", driverId],
     queryFn: async (): Promise<AvailableDelivery[]> => {
       const { data, error } = await supabase.rpc("get_available_deliveries");
       if (error) throw error;
       return (data ?? []) as AvailableDelivery[];
     },
-    refetchInterval: enabled ? 5000 : false,
-    enabled,
+    refetchInterval: driverId ? 5000 : false,
+    enabled: !!driverId,
   });
 
 export const useMyDeliveries = (enabled: boolean = true) =>
@@ -171,10 +172,21 @@ export const useAcceptDelivery = () => {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["available-deliveries"] });
       qc.invalidateQueries({ queryKey: ["my-deliveries"] });
     },
+  });
+};
+
+export const useDeclineDelivery = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (deliveryId: string) => {
+      const { error } = await supabase.rpc("decline_delivery", { p_delivery_id: deliveryId });
+      if (error) throw error;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["available-deliveries"] }),
   });
 };
 

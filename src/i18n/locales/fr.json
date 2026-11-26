@@ -1293,6 +1293,7 @@
     "cancelado": "Annulée"
   },
   "orderManagement": {
+    "reofferQueued": "Livraison en attente d’un livreur.",
     "reofferSent": "{{count}} livreur(s) notifié(s)",
     "reoffer": "Rappeler un livreur",
     "itemCount": "{{count}} articles",
@@ -1368,6 +1369,10 @@
     "notes": "Remarques"
   },
   "driverDashboard": {
+    "offerTime": "{{seconds}} s pour répondre",
+    "offerExpired": "Offre expirée",
+    "offerUnavailable": "Cette offre n’est plus disponible.",
+    "declineOffer": "Refuser",
     "pickupPhoto": "Photographier la collecte",
     "deliveryPhoto": "Photographier la livraison",
     "proofPackageHint": "Photographie le colis. Évite les personnes et les données personnelles.",

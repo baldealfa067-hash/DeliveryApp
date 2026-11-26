@@ -1293,6 +1293,7 @@
     "cancelado": "Cancelled"
   },
   "orderManagement": {
+    "reofferQueued": "Delivery queued to find a driver.",
     "reofferSent": "{{count}} driver(s) notified",
     "reoffer": "Call a driver again",
     "itemCount": "{{count}} items",
@@ -1368,6 +1369,10 @@
     "notes": "Notes"
   },
   "driverDashboard": {
+    "offerTime": "{{seconds}} s to respond",
+    "offerExpired": "Offer expired",
+    "offerUnavailable": "This offer is no longer available.",
+    "declineOffer": "Decline",
     "pickupPhoto": "Photograph pickup",
     "deliveryPhoto": "Photograph delivery",
     "proofPackageHint": "Photograph the package. Avoid including people or personal information.",

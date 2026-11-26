@@ -520,6 +520,8 @@ export type Database = {
           customer_lng: number | null
           delivered_at: string | null
           delivery_fee: number | null
+          dispatch_alerted_at: string | null
+          dispatch_retried_at: string | null
           distance_km: number | null
           driver_id: string | null
           fleet_id: string | null
@@ -541,6 +543,8 @@ export type Database = {
           customer_lng?: number | null
           delivered_at?: string | null
           delivery_fee?: number | null
+          dispatch_alerted_at?: string | null
+          dispatch_retried_at?: string | null
           distance_km?: number | null
           driver_id?: string | null
           fleet_id?: string | null
@@ -562,6 +566,8 @@ export type Database = {
           customer_lng?: number | null
           delivered_at?: string | null
           delivery_fee?: number | null
+          dispatch_alerted_at?: string | null
+          dispatch_retried_at?: string | null
           distance_km?: number | null
           driver_id?: string | null
           fleet_id?: string | null
@@ -2007,6 +2013,7 @@ export type Database = {
     }
     Functions: {
       accept_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
+      decline_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
       add_driver_to_fleet: {
         Args: { p_name?: string; p_phone: string; p_vehicle_type?: string }
         Returns: string
@@ -2206,6 +2213,7 @@ export type Database = {
           distance_km: number
           id: string
           items: Json
+          offer_expires_at: string
           order_id: string
           order_total: number
           payment_method: string

@@ -714,6 +714,7 @@
     "cancelado": "Anuladu"
   },
   "orderManagement": {
+    "reofferQueued": "Ntrega sta na fila pa buska motorista.",
     "reofferSent": "{{count}} motorista notifikadu",
     "reoffer": "Yama motorista di nobu",
     "itemCount": "{{count}} itens",
@@ -812,6 +813,10 @@
     "appointmentsManagement": "Gestason di Markasons"
   },
   "driverDashboard": {
+    "offerTime": "{{seconds}} s pa responde",
+    "offerExpired": "Oferta kaba",
+    "offerUnavailable": "Es oferta ka sta disponivel mas.",
+    "declineOffer": "Rikuza",
     "pickupPhoto": "Tira foto di rekolha",
     "deliveryPhoto": "Tira foto di entrega",
     "proofPackageHint": "Tira foto di enkumenda, sin djintis nen dadus personal.",
