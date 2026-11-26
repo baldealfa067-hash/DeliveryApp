@@ -1,6 +1,6 @@
 import { LoadError } from "@/components/LoadError";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { LogOut, Settings, Loader2, Eye, MessageCircle, Phone, MessageSquareText, Star, BellRing, ShoppingBag, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +30,14 @@ type ProviderProfile = {
 const Profile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, isBusiness, isClient, isAdmin, roles, rolesLoaded, rolesError, retryRoles, loading, signOut, sessionError, retrySession } = useAuth();
+  const { user, isBusiness, isClient, roles, rolesLoaded, rolesError, retryRoles, loading, signOut, sessionError, retrySession } = useAuth();
+  // Only use roles accepted by the corresponding route guards. Sending a
+  // legacy account to a panel it cannot open would cause a redirect loop.
+  const dashboard = roles.includes("admin") ? "/admin"
+    : roles.includes("fleet") ? "/painel-frota"
+    : roles.includes("driver") ? "/painel-motorista"
+    : roles.includes("business") ? "/painel-loja"
+    : null;
   // O Supabase NAO tem `user.name`: o nome gravado no registo vive em
   // `user_metadata.name`. Lia-se `user.name`, sempre undefined, e caia no email --
   // que num cliente de telefone+PIN e sintetico (`c<telefone>@deliveryapp.gw`).
@@ -55,27 +62,7 @@ const Profile = () => {
   const push = usePushSettings(user?.id ?? null);
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      navigate("/login", { replace: true });
-      return;
-    }
-    if (isAdmin) {
-      navigate("/admin", { replace: true });
-      return;
-    }
-    if (rolesLoaded && roles.includes("fleet")) {
-      navigate("/painel-frota", { replace: true });
-      return;
-    }
-    if (isBusiness && !isProvider) {
-      navigate("/painel-loja", { replace: true });
-      return;
-    }
-    // Sem papéis confirmados não se decide nada: as queries e o render
-    // esperam. Foi a corrida com roles vazias que pintava o estado de
-    // "sem perfil de prestador" a contas normais no arranque.
-    if (!rolesLoaded) return;
+    if (loading || sessionError || !user || !rolesLoaded || dashboard) return;
     let cancelled = false;
     setProfileStatus("loading");
     supabase
@@ -98,7 +85,7 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
-  }, [user, isAdmin, isBusiness, isProvider, roles, rolesLoaded, loading, navigate, profileAttempt]);
+  }, [user, rolesLoaded, dashboard, loading, sessionError, profileAttempt]);
 
   useEffect(() => {
     if (!profileId) return;
@@ -144,7 +131,8 @@ const Profile = () => {
     );
   }
 
-  if (!user || isAdmin) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (dashboard) return <Navigate to={dashboard} replace />;
 
   // A query de profiles ainda não terminou com sucesso: nunca mostrar o
   // estado "sem perfil" por antecipação — era isso que o refresh pintava.
