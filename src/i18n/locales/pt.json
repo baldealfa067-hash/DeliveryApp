@@ -1302,6 +1302,8 @@
     "cancelado": "Cancelado"
   },
   "orderManagement": {
+    "driverProofRequired": "O motorista confirma a recolha e a entrega com foto no local.",
+    "statusUpdateFailed": "Não foi possível atualizar o pedido.",
     "reofferQueued": "Entrega em fila para procurar um motorista.",
     "reofferSent": "{{count}} motorista(s) notificado(s)",
     "reoffer": "Voltar a chamar motorista",

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   ALLOWED_TRANSITIONS,
   RESTAURANT_PANEL_STEPS,
+  restaurantOrderActions,
   canTransition,
   isTerminal,
   nextStatuses,
@@ -154,4 +155,12 @@ describe("máquina de estados do pedido — caminho feliz", () => {
       }
     }
   });
+});
+
+it("reserva a confirmação por foto ao motorista e mantém o fecho ao balcão", () => {
+  expect(restaurantOrderActions("a_caminho", "entrega")).toEqual({ steps: [], requiresDriverProof: true });
+  expect(restaurantOrderActions("motorista_encontrado", "entrega").steps).not.toContain("pedido_recolhido");
+  expect(restaurantOrderActions("pronto", "para_levar").steps).toContain("concluido");
+  expect(restaurantOrderActions("novo", "entrega").steps).toContain("confirmado");
+  expect(restaurantOrderActions("na_cozinha", "entrega").steps).toContain("pronto");
 });

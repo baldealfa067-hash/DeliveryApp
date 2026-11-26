@@ -1302,6 +1302,8 @@
     "cancelado": "Annulée"
   },
   "orderManagement": {
+    "driverProofRequired": "Le livreur confirme le retrait et la livraison avec une photo sur place.",
+    "statusUpdateFailed": "Impossible de mettre à jour la commande.",
     "reofferQueued": "Livraison en attente d’un livreur.",
     "reofferSent": "{{count}} livreur(s) notifié(s)",
     "reoffer": "Rappeler un livreur",

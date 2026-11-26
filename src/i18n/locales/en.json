@@ -1302,6 +1302,8 @@
     "cancelado": "Cancelled"
   },
   "orderManagement": {
+    "driverProofRequired": "The driver confirms pickup and delivery with a photo at each location.",
+    "statusUpdateFailed": "Could not update the order.",
     "reofferQueued": "Delivery queued to find a driver.",
     "reofferSent": "{{count}} driver(s) notified",
     "reoffer": "Call a driver again",

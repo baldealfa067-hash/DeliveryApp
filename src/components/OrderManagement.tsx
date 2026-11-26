@@ -37,7 +37,7 @@ import { OrderTotals, temTaxaDeEntrega, totalAPagar } from "@/components/OrderTo
 import { cn } from "@/lib/utils";
 import { DeliveryProofView } from "@/components/DeliveryProofView";
 import { toast } from "sonner";
-import { RESTAURANT_PANEL_STEPS } from "@/lib/orderTransitions";
+import { restaurantOrderActions } from "@/lib/orderTransitions";
 import { BUCKET_PRIVADO } from "@/lib/armazenamentoPrivado";
 import { AudioPrivado, ImagemPrivada } from "@/components/MediaPrivada";
 
@@ -198,18 +198,25 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
     setDetailOpen(true);
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const reportStatusError = (error: unknown) => {
+    const message = (error as { message?: string } | null)?.message;
+    toast.error(message || t("orderManagement.statusUpdateFailed"));
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: string, onSuccess?: () => void) => {
     if (newStatus === "em_preparacao") {
       setSelectedOrder(allOrders.find((o) => o.id === orderId) ?? null);
       setPendingStatus(newStatus);
       setPrepTimeInput("");
+      onSuccess?.();
       setPrepTimeDialogOpen(true);
       return;
     }
     try {
       await updateStatus.mutateAsync({ orderId, newStatus });
+      onSuccess?.();
     } catch (err) {
-      console.error("[order] status update error:", err);
+      reportStatusError(err);
     }
   };
 
@@ -225,7 +232,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
       setPrepTimeDialogOpen(false);
       setSelectedOrder(null);
     } catch (err) {
-      console.error("[order] status update error:", err);
+      reportStatusError(err);
     }
   };
 
@@ -240,15 +247,12 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
 
   // A accao que faz avancar o pedido e' a principal; cancelar e' rara e fica
   // discreta ao lado de "Ver" (§5.5: uma accao principal larga, em baixo).
-  const nextSteps = (order: Order) => RESTAURANT_PANEL_STEPS[order.status] ?? [];
-
-  const statusActions = (order: Order, onBefore?: () => void) => {
-    const steps = nextSteps(order);
+  const statusActions = (order: Order, onSuccess?: () => void) => {
+    const { steps, requiresDriverProof } = restaurantOrderActions(order.status, order.consumption_option);
     const avancar = steps.find((s) => s !== "cancelado");
     const podeCancelar = steps.includes("cancelado");
     const agir = (newStatus: string) => {
-      onBefore?.();
-      handleStatusChange(order.id, newStatus);
+      void handleStatusChange(order.id, newStatus, onSuccess);
     };
     // Só faz sentido insistir enquanto o pedido está à espera de alguém que o
     // aceite. Assim que há motorista o estado avança e o botão desaparece
@@ -270,7 +274,7 @@ const OrderManagement = ({ businessId }: OrderManagementProps) => {
               t("common.error", "Nao foi possivel voltar a oferecer")
           ),
       });
-    return { avancar, podeCancelar, agir, podeReoferecer, reoferecer };
+    return { avancar, podeCancelar, agir, podeReoferecer, reoferecer, requiresDriverProof };
   };
 
   return (
@@ -434,6 +438,7 @@ const OrderActions = ({
   podeReoferecer,
   reoferecer,
   reofferPending,
+  requiresDriverProof,
 }: {
   avancar?: string;
   podeCancelar: boolean;
@@ -442,11 +447,13 @@ const OrderActions = ({
   podeReoferecer?: boolean;
   reoferecer?: () => void;
   reofferPending?: boolean;
+  requiresDriverProof: boolean;
 }) => {
   const { t } = useTranslation();
 
   return (
     <div className="w-full space-y-2">
+      {requiresDriverProof && <p className="text-sm text-muted-foreground">{t("orderManagement.driverProofRequired")}</p>}
       {podeReoferecer && reoferecer && (
         <Button
           variant="outline"

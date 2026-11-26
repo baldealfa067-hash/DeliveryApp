@@ -129,13 +129,22 @@ export const RESTAURANT_PANEL_STEPS: Record<string, OrderStatus[]> = {
   novo: ["confirmado", "cancelado"],
   confirmado: ["em_preparacao", "cancelado"],
   em_preparacao: ["pronto"],
-  // Pedido de balcão (comer no local / levantar): o restaurante fecha-o aqui.
-  // Sendo entrega, `update_order_status` reencaminha sozinho para
-  // `aguardando_motorista` e cria a entrega — o botão é o mesmo.
+  na_cozinha: ["pronto"],
+  // O restaurante pode concluir os pedidos servidos ao balcão.
   pronto: ["concluido"],
   aguardando_motorista: [],
   motorista_encontrado: ["pedido_recolhido"],
   pedido_recolhido: ["a_caminho"],
-  // Recurso para quando o motorista não confirma pela sua própria via.
   a_caminho: ["concluido"],
 };
+
+/** As etapas de entrega protegidas por foto são confirmadas pelo motorista. */
+export function restaurantOrderActions(status: string, consumptionOption: string) {
+  const steps = RESTAURANT_PANEL_STEPS[status] ?? [];
+  const requiresDriverProof = consumptionOption === "entrega"
+    && ["pronto", "motorista_encontrado", "pedido_recolhido", "a_caminho", "saiu_para_entrega"].includes(status);
+  return {
+    steps: requiresDriverProof ? steps.filter((step) => step === "cancelado") : steps,
+    requiresDriverProof,
+  };
+}

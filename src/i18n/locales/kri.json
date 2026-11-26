@@ -722,6 +722,8 @@
     "cancelado": "Anuladu"
   },
   "orderManagement": {
+    "driverProofRequired": "Motorista ta konfirma rekodja ku ntrega ku foto na lugar.",
+    "statusUpdateFailed": "Ka konsigi atualiza pididu.",
     "reofferQueued": "Ntrega sta na fila pa buska motorista.",
     "reofferSent": "{{count}} motorista notifikadu",
     "reoffer": "Yama motorista di nobu",
