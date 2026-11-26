@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { latLng } from "leaflet";
@@ -39,14 +40,35 @@ export function distanceRecordedKm(samples: TrackingPoint[]): number | null {
 const routingBase = import.meta.env.VITE_OSRM_URL?.replace(/\/$/, "");
 
 export function useDeliveryRoute(from: MapPoint | null, to: MapPoint | null) {
-  const waypoints = from && to && from.join(",") !== to.join(",")
-    ? [from, to].map(([lat, lng]) => `${lng.toFixed(4)},${lat.toFixed(4)}`).join(";")
+  const origin = from?.map(value => value.toFixed(4)).reverse().join(",") ?? "";
+  const destination = to?.map(value => value.toFixed(4)).reverse().join(",") ?? "";
+  const latestOrigin = useRef(origin);
+  const [sample, setSample] = useState({ origin, destination });
+  const routeOrigin = sample.destination === destination ? sample.origin : origin;
+
+  useEffect(() => {
+    latestOrigin.current = origin;
+    if (!routeOrigin && origin) setSample({ origin, destination });
+  }, [origin, routeOrigin, destination]);
+
+  // GPS updates the marker immediately. Requests sample it less frequently
+  // so they have time to finish and do not hit the server's 8-second limit.
+  useEffect(() => {
+    setSample({ origin: latestOrigin.current, destination });
+    if (!destination) return;
+    const timer = setInterval(() => setSample({ origin: latestOrigin.current, destination }), 15000);
+    return () => clearInterval(timer);
+  }, [destination]);
+
+  const waypoints = origin && routeOrigin && destination && routeOrigin !== destination
+    ? `${routeOrigin};${destination}`
     : "";
-  const { data } = useQuery({
+  const { data, dataUpdatedAt } = useQuery({
     queryKey: ["delivery-road-route", waypoints],
     enabled: Boolean(waypoints),
     staleTime: 30000,
     retry: false,
+    refetchInterval: query => query.state.status === "error" || query.state.data === null ? 15000 : false,
     refetchOnWindowFocus: false,
     queryFn: async ({ signal }) => {
       const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(8500)]);
@@ -55,7 +77,7 @@ export function useDeliveryRoute(from: MapPoint | null, to: MapPoint | null) {
       let seconds: number | undefined;
       if (routingBase) {
         const response = await fetch(`${routingBase}/route/v1/driving/${waypoints}?overview=full&geometries=geojson`, { signal: requestSignal });
-        if (!response.ok) return null;
+        if (!response.ok) throw new Error(`Routing failed (${response.status})`);
         const result = await response.json();
         if (result.code !== "Ok") return null;
         const route = result.routes?.[0];
@@ -71,7 +93,7 @@ export function useDeliveryRoute(from: MapPoint | null, to: MapPoint | null) {
           body: JSON.stringify({ coordinates: waypoints.split(";").map(point => point.split(",").map(Number)) }),
           signal: requestSignal,
         });
-        if (!response.ok) return null;
+        if (!response.ok) throw new Error(`Routing failed (${response.status})`);
         ({ coordinates, distance: meters, duration: seconds } = await response.json());
       }
       if (!Array.isArray(coordinates) || typeof meters !== "number") return null;
@@ -81,13 +103,23 @@ export function useDeliveryRoute(from: MapPoint | null, to: MapPoint | null) {
         : null;
     },
   });
+  // Keep a recent road route for this same target while the next request
+  // runs or recovers from a temporary failure.
+  const lastRoad = useRef<{ destination: string; data: NonNullable<typeof data>; updatedAt: number } | null>(null);
+  useEffect(() => {
+    if (data && waypoints) lastRoad.current = { destination, data, updatedAt: dataUpdatedAt };
+  }, [data, dataUpdatedAt, destination, waypoints]);
+
+  const recentRoad = lastRoad.current;
+  const road = waypoints ? data ?? (recentRoad?.destination === destination &&
+    Date.now() - recentRoad.updatedAt < 45000 ? recentRoad.data : null) : null;
   return {
-    positions: data?.positions ?? (waypoints && from && to ? [from, to] : null),
-    byRoad: Boolean(data),
-    usesOpenRouteService: Boolean(data && !routingBase),
-    estimatedMinutes: typeof data?.seconds === "number" && Number.isFinite(data.seconds) && data.seconds >= 0
-      ? Math.ceil(data.seconds / 60) : null,
-    remainingKm: from && to ? (data?.meters ?? latLng(from).distanceTo(to)) / 1000 : null,
+    positions: road?.positions ?? (waypoints && from && to ? [from, to] : null),
+    byRoad: Boolean(road),
+    usesOpenRouteService: Boolean(road && !routingBase),
+    estimatedMinutes: typeof road?.seconds === "number" && Number.isFinite(road.seconds) && road.seconds >= 0
+      ? Math.ceil(road.seconds / 60) : null,
+    remainingKm: from && to ? (road?.meters ?? latLng(from).distanceTo(to)) / 1000 : null,
   };
 }
 

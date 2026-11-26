@@ -379,72 +379,72 @@ const OrderTrackingPage = () => {
         </CardContent>
       </Card>
 
-      {/* Progress Timeline */}
-      <Card className="mb-4">
-        <CardContent className="p-4">
-          <h2 className="text-sm font-semibold mb-3">{t("orderTracking.progress")}</h2>
-          <div className="space-y-0">
-            {passos.map((status, idx) => {
-              const isPast = idx < currentStatusIndex;
-              const isCurrent = idx === currentStatusIndex;
-              const historyEntry = history.find((h) => h.status === status);
-              const temLinha = idx < passos.length - 1 || cancelado;
-
-              return (
-                <div key={status} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                        isPast
-                          ? "bg-primary text-primary-foreground"
-                          : isCurrent
-                          ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isPast ? "✓" : isCurrent ? STATUS_ICONS[status] ?? "●" : "○"}
+      {(!hasDelivery || cancelado) && (
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <h2 className="text-sm font-semibold mb-3">{t("orderTracking.progress")}</h2>
+            <div className="space-y-0">
+              {passos.map((status, idx) => {
+                const isPast = idx < currentStatusIndex;
+                const isCurrent = idx === currentStatusIndex;
+                const historyEntry = history.find((h) => h.status === status);
+                const temLinha = idx < passos.length - 1 || cancelado;
+                return (
+                  <div key={status} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                          isPast
+                            ? "bg-primary text-primary-foreground"
+                            : isCurrent
+                            ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {isPast ? "✓" : isCurrent ? STATUS_ICONS[status] ?? "●" : "○"}
+                      </div>
+                      {temLinha && (
+                        <div className={`w-0.5 h-6 ${cancelado ? "bg-problem/40" : isPast ? "bg-primary" : "bg-muted"}`} />
+                      )}
                     </div>
-                    {temLinha && (
-                      <div className={`w-0.5 h-6 ${cancelado ? "bg-problem/40" : isPast ? "bg-primary" : "bg-muted"}`} />
-                    )}
+                    <div className="pb-4">
+                      <p className={`text-sm ${isCurrent ? "font-semibold" : isPast ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
+                        {t(`orderStatus.${status}`, status)}
+                      </p>
+                      {historyEntry && (
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(historyEntry.created_at).toLocaleString()}
+                          {historyEntry.note && ` · ${historyEntry.note}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="pb-4">
-                    <p className={`text-sm ${isCurrent ? "font-semibold" : isPast ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
-                      {t(`orderStatus.${status}`, status)}
-                    </p>
-                    {historyEntry && (
+                );
+              })}
+              {/* O fim de um pedido cancelado: a cor do problema, não o cinzento
+                  neutro dos passos que ainda estão por vir. */}
+              {cancelado && (
+                <div className="flex gap-3" data-testid="timeline-cancelado">
+                  <div className="flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center bg-problem text-white">
+                      <XCircle className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                  </div>
+                  <div className="pb-1">
+                    <p className="text-sm font-semibold text-problem">{t("orderStatus.cancelado")}</p>
+                    {entradaCancelado && (
                       <p className="text-[10px] text-muted-foreground">
-                        {new Date(historyEntry.created_at).toLocaleString()}
-                        {historyEntry.note && ` · ${historyEntry.note}`}
+                        {new Date(entradaCancelado.created_at).toLocaleString()}
+                        {entradaCancelado.note && ` · ${entradaCancelado.note}`}
                       </p>
                     )}
                   </div>
                 </div>
-              );
-            })}
-            {/* O fim de um pedido cancelado: a cor do problema, não o cinzento
-                neutro dos passos que ainda estão por vir. */}
-            {cancelado && (
-              <div className="flex gap-3" data-testid="timeline-cancelado">
-                <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-problem text-white">
-                    <XCircle className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                </div>
-                <div className="pb-1">
-                  <p className="text-sm font-semibold text-problem">{t("orderStatus.cancelado")}</p>
-                  {entradaCancelado && (
-                    <p className="text-[10px] text-muted-foreground">
-                      {new Date(entradaCancelado.created_at).toLocaleString()}
-                      {entradaCancelado.note && ` · ${entradaCancelado.note}`}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Delivery Code — shown when driver is handling the order */}
       {order.consumption_option === "entrega" &&

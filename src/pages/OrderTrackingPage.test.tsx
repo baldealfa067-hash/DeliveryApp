@@ -179,10 +179,12 @@ describe("OrderTrackingPage", () => {
       expect(screen.getByTestId("timeline-cancelado")).toBeInTheDocument();
     });
 
-    it("um pedido NÃO cancelado continua a mostrar o percurso inteiro", () => {
+    it("uma entrega ativa mostra apenas o progresso junto ao mapa", () => {
       historico.data = hist("novo");
       desenhar();
-      expect(passo("concluido")).toBeInTheDocument();
+      const progress = i18n.t("orderTracking.progress");
+      expect(screen.getByRole("list", { name: progress })).toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: progress })).not.toBeInTheDocument();
       expect(screen.queryByTestId("timeline-cancelado")).not.toBeInTheDocument();
     });
   });
