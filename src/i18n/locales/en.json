@@ -1210,6 +1210,11 @@
   },
   "orderTracking": {
     "map": {
+      "livePosition": "GPS active",
+      "nextStopEstimate": "Time to next stop",
+      "remainingRoad": "Remaining by road",
+      "remainingDirect": "Remaining straight-line distance",
+      "recordedDistance": "Recorded by GPS",
       "restaurant": "Restaurant",
       "customer": "Customer",
       "noPoint": "No location",

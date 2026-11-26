@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { LocateFixed, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,8 @@ import { BISSAU_CENTER } from "@/hooks/useGeolocation";
 import { Button } from "@/components/ui/button";
 import "leaflet/dist/leaflet.css";
 import { DeliveryRouteLegend, DeliveryRouteLine, mapPoint, useDeliveryRoute } from "./DeliveryRouteLine";
+
+import { DeliveryMapMarker } from "./DeliveryMapMarker";
 
 type Point = { id: string; label: string; coords: [number, number]; color: string };
 
@@ -29,15 +31,15 @@ function Recenter({ points, label }: { points: Point[]; label: string }) {
   }, [map]);
   return (
     <Button type="button" size="icon" variant="outline" aria-label={label}
-      className="absolute right-3 top-3 z-[450] rounded-full bg-card shadow-card"
+      className="absolute right-3 top-14 z-[450] rounded-full bg-card shadow-card"
       onClick={() => fit(map, points)}>
       <LocateFixed aria-hidden="true" />
     </Button>
   );
 }
 
-export default function OrderDeliveryMap({ orderId, toCustomer, isShipment }: { orderId: string; toCustomer: boolean; isShipment: boolean }) {
-  const { t } = useTranslation();
+export default function OrderDeliveryMap({ orderId, toCustomer, isShipment, statusLabel }: { orderId: string; toCustomer: boolean; isShipment: boolean; statusLabel: string }) {
+  const { t, i18n } = useTranslation();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["customer-delivery-map", orderId],
     queryFn: async () => {
@@ -68,18 +70,27 @@ export default function OrderDeliveryMap({ orderId, toCustomer, isShipment }: { 
     <section aria-label={t("orderTracking.map.title")} className="isolate overflow-hidden rounded-2xl border bg-card">
       {points.length > 0 ? (
         <>
-          <MapContainer center={points[0].coords} zoom={15} scrollWheelZoom={false} className="h-60 w-full bg-muted sm:h-72">
-            <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
-            <Recenter points={points} label={t("orderTracking.map.recenter")} />
-            <DeliveryRouteLine {...route} />
-            {points.map(point => (
-              <CircleMarker key={point.id} center={point.coords} radius={point.id === "driver" ? 10 : 7}
-                pathOptions={{ color: "white", weight: 3, fillColor: point.color, fillOpacity: 1 }}>
-                <Tooltip permanent direction={point.id === "driver" ? "bottom" : point.id === "pickup" ? "right" : "left"}>{point.label}</Tooltip>
-              </CircleMarker>
-            ))}
-          </MapContainer>
+          <div className="relative">
+            <MapContainer center={points[0].coords} zoom={15} scrollWheelZoom={false} className="h-72 w-full bg-muted sm:h-80">
+              <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' />
+              <Recenter points={points} label={t("orderTracking.map.recenter")} />
+              <DeliveryRouteLine {...route} />
+              {points.map(point => (
+                <DeliveryMapMarker key={point.id} point={point.coords} label={point.label} color={point.color}
+                  kind={point.id === "driver" ? "driver" : point.id === "destination" ? "customer" : isShipment ? "pickup" : "restaurant"} />
+              ))}
+            </MapContainer>
+            <div className="pointer-events-none absolute inset-x-12 top-3 z-[450] flex justify-center">
+              <span className="inline-flex min-w-0 items-center gap-2 rounded-full bg-card px-3 py-2 text-xs font-semibold shadow-card">
+                {currentDriver && <span className="inline-flex shrink-0 items-center gap-1 text-primary">
+                  <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+                  {t("orderTracking.map.livePosition")}
+                </span>}
+                <span className="truncate">{statusLabel}</span>
+              </span>
+            </div>
+          </div>
           <ul className="flex flex-wrap gap-x-4 gap-y-1 px-3 py-2 text-xs">
             {points.map(point => (
               <li key={point.id} className="flex items-center gap-1.5">
@@ -89,6 +100,24 @@ export default function OrderDeliveryMap({ orderId, toCustomer, isShipment }: { 
             ))}
           </ul>
           {route.positions && <div className="px-3 pb-2"><DeliveryRouteLegend byRoad={route.byRoad} /></div>}
+          {route.remainingKm !== null && (
+            <dl className="mx-3 mb-3 grid auto-cols-fr grid-flow-col divide-x rounded-xl bg-primary/10 py-2 text-center">
+              <div className="px-2">
+                <dt className="text-xs text-muted-foreground">{t(route.byRoad ? "orderTracking.map.remainingRoad" : "orderTracking.map.remainingDirect")}</dt>
+                <dd className="font-bold tabular-nums">{new Intl.NumberFormat(i18n.language, {
+                  style: "unit", unit: "kilometer", maximumFractionDigits: 2,
+                }).format(route.remainingKm)}</dd>
+              </div>
+              {route.estimatedMinutes !== null && (
+                <div className="px-2">
+                  <dt className="text-xs text-muted-foreground">{t("orderTracking.map.nextStopEstimate")}</dt>
+                  <dd className="font-bold tabular-nums">{new Intl.NumberFormat(i18n.language, {
+                    style: "unit", unit: "minute",
+                  }).format(route.estimatedMinutes)}</dd>
+                </div>
+              )}
+            </dl>
+          )}
         </>
       ) : (
         <p className="flex min-h-24 items-center gap-3 px-4 py-3 text-sm text-muted-foreground">

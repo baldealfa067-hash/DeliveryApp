@@ -204,6 +204,8 @@ const OrderTrackingPage = () => {
       },
     );
 
+  const statusLabel = t(`orderStatus.${order.status.replace(/\./g, "_")}`, order.status);
+
   return (
     <div className="max-w-lg mx-auto px-4 pt-4 pb-20">
       <div className="flex items-center gap-3 mb-4">
@@ -221,17 +223,17 @@ const OrderTrackingPage = () => {
       {hasDelivery && !terminado && (
         <div className="mb-3">
           <Suspense fallback={<div className="h-24 animate-pulse rounded-2xl bg-muted" />}>
-            <OrderDeliveryMap key={order.id} orderId={order.id} isShipment={envio} toCustomer={deliveryStage >= 2} />
+            <OrderDeliveryMap key={order.id} orderId={order.id} isShipment={envio} toCustomer={deliveryStage >= 2} statusLabel={statusLabel} />
           </Suspense>
         </div>
       )}
 
-      <Card className="mb-4 rounded-2xl border-primary/20 shadow-card">
+      <Card className="mb-4 rounded-3xl border-primary/20 shadow-card">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <span className="text-3xl">{STATUS_ICONS[order.status] ?? "📋"}</span>
             <div>
-              <p className="text-xl font-bold tracking-tight">{t(`orderStatus.${order.status.replace(/\./g, "_")}`, order.status)}</p>
+              <p className="text-xl font-bold tracking-tight">{statusLabel}</p>
               {order.preparation_time && order.status === "em_preparacao" && (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   ⏱️ {t("orderTracking.estimatedTime", { time: order.preparation_time })}
@@ -240,10 +242,13 @@ const OrderTrackingPage = () => {
             </div>
           </div>
           {hasDelivery && !cancelado && (
-            <ol aria-label={t("orderTracking.progress")} className="mt-5 grid grid-cols-4 gap-1">
+            <ol aria-label={t("orderTracking.progress")} className="relative mt-5 grid grid-cols-4 gap-1">
+              <li aria-hidden="true" role="presentation" className="absolute inset-x-[12.5%] top-4 h-1 rounded-full bg-muted">
+                <span className="block h-full rounded-full bg-primary" style={{ width: `${deliveryStage / 3 * 100}%` }} />
+              </li>
               {DELIVERY_MILESTONES.map(({ label, icon: Icon }, index) => (
                 <li key={label} aria-current={index === deliveryStage ? "step" : undefined}
-                  className="flex min-w-0 flex-col items-center gap-2 text-center text-[11px] font-medium leading-tight">
+                  className="relative flex min-w-0 flex-col items-center gap-2 text-center text-[11px] font-medium leading-tight">
                   <span className={`flex size-9 items-center justify-center rounded-full ${index <= deliveryStage
                     ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                     <Icon className="size-4" aria-hidden="true" />
@@ -268,34 +273,6 @@ const OrderTrackingPage = () => {
             <p className="text-xs text-muted-foreground">{t("orderTracking.sendBadgeHint")}</p>
           </div>
         </div>
-      )}
-
-      {/* Até quando se cancela (2026-09-26). A regra já existia no servidor desde
-          a Fase 1 (restaurante) e a 7.1 (envio), mas nenhum ecrã a oferecia: o
-          cliente não tinha como cancelar nem sabia que podia. Fora da janela,
-          diz-se porquê e a quem ligar, em vez de o botão só desaparecer. */}
-      {podeCancelar ? (
-        <Card className="mb-4">
-          <CardContent className="space-y-3 p-4">
-            <p className="text-sm">
-              {envio ? t("orderTracking.cancelUntilDriver") : t("orderTracking.cancelUntilRestaurant")}
-            </p>
-            <Button
-              variant="outline"
-              className="w-full border-problem text-problem hover:bg-problem-soft hover:text-problem"
-              onClick={() => setConfirmarCancelar(true)}
-            >
-              <XCircle className="h-4 w-4" />
-              {envio ? t("orderTracking.cancelSend") : t("orderTracking.cancelOrder")}
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        !terminado && (
-          <p className="mb-4 px-1 text-xs text-muted-foreground">
-            {envio ? t("orderTracking.cancelClosedSend") : t("orderTracking.cancelClosedRestaurant")}
-          </p>
-        )
       )}
 
       {/* Ligar sobre o pedido (§52: "quem está cuidando dele?"). O telefone do
@@ -338,6 +315,34 @@ const OrderTrackingPage = () => {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Até quando se cancela (2026-09-26). A regra já existia no servidor desde
+          a Fase 1 (restaurante) e a 7.1 (envio), mas nenhum ecrã a oferecia: o
+          cliente não tinha como cancelar nem sabia que podia. Fora da janela,
+          diz-se porquê e a quem ligar, em vez de o botão só desaparecer. */}
+      {podeCancelar ? (
+        <Card className="mb-4">
+          <CardContent className="space-y-3 p-4">
+            <p className="text-sm">
+              {envio ? t("orderTracking.cancelUntilDriver") : t("orderTracking.cancelUntilRestaurant")}
+            </p>
+            <Button
+              variant="outline"
+              className="w-full border-problem text-problem hover:bg-problem-soft hover:text-problem"
+              onClick={() => setConfirmarCancelar(true)}
+            >
+              <XCircle className="h-4 w-4" />
+              {envio ? t("orderTracking.cancelSend") : t("orderTracking.cancelOrder")}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        !terminado && (
+          <p className="mb-4 px-1 text-xs text-muted-foreground">
+            {envio ? t("orderTracking.cancelClosedSend") : t("orderTracking.cancelClosedRestaurant")}
+          </p>
+        )
       )}
 
       {/* Order Items */}
