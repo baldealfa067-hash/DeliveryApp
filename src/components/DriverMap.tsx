@@ -63,7 +63,7 @@ export default function DriverMap({ driverPosition, activeDelivery }: {
             </li>
           ))}
         </ul>
-        {route.positions && <DeliveryRouteLegend byRoad={route.byRoad} />}
+        {route.positions && <DeliveryRouteLegend byRoad={route.byRoad} usesOpenRouteService={route.usesOpenRouteService} />}
         <dl className="grid grid-cols-2 gap-2 border-t pt-2">
           <div className="rounded-lg bg-muted px-3 py-2">
             <dt className="text-xs text-muted-foreground">{t(route.byRoad

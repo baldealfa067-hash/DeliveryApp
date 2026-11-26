@@ -99,7 +99,7 @@ export default function OrderDeliveryMap({ orderId, toCustomer, isShipment, stat
               </li>
             ))}
           </ul>
-          {route.positions && <div className="px-3 pb-2"><DeliveryRouteLegend byRoad={route.byRoad} /></div>}
+          {route.positions && <div className="px-3 pb-2"><DeliveryRouteLegend byRoad={route.byRoad} usesOpenRouteService={route.usesOpenRouteService} /></div>}
           {route.remainingKm !== null && (
             <dl className="mx-3 mb-3 grid auto-cols-fr grid-flow-col divide-x rounded-xl bg-primary/10 py-2 text-center">
               <div className="px-2">
