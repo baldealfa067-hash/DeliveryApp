@@ -1612,6 +1612,10 @@
     "contested": "Contestado. A dívida mantém-se."
   },
   "manualOrder": {
+    "pickupRequired": "Configura o ponto de recolha no perfil do restaurante para criar entregas.",
+    "destinationPoint": "Destino da entrega",
+    "destinationHint": "Toca no mapa para marcar o destino.",
+    "destinationSelected": "Destino marcado. Toca no mapa para o alterar.",
     "open": "Lançar pedido manual",
     "title": "Pedido por telefone ou balcão",
     "items": "Artigos",

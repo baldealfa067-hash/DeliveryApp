@@ -1612,6 +1612,10 @@
     "contested": "Contesté. La dette est maintenue."
   },
   "manualOrder": {
+    "pickupRequired": "Configurez le point de retrait dans le profil du restaurant pour créer des livraisons.",
+    "destinationPoint": "Destination de la livraison",
+    "destinationHint": "Touchez la carte pour indiquer la destination.",
+    "destinationSelected": "Destination indiquée. Touchez la carte pour la modifier.",
     "open": "Saisir une commande manuelle",
     "title": "Commande par téléphone ou au comptoir",
     "items": "Articles",

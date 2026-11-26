@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +15,9 @@ import { OrderTotals } from "@/components/OrderTotals";
 import { useBairros } from "@/hooks/useBairros";
 import { useDeliveryPrice } from "@/hooks/useFleet";
 import { formatCFA } from "@/lib/format";
+import type { GeoPosition } from "@/hooks/useGeolocation";
+
+const DeliveryLocationMap = lazy(() => import("@/components/DeliveryLocationMap"));
 
 /**
  * Lançar um pedido que não veio pela aplicação — telefone ou balcão (Fase 2.4).
@@ -46,7 +49,7 @@ const rpc = supabase.rpc.bind(supabase) as unknown as (
   fn: string, args?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
+export const ManualOrderDialog = ({ businessId, pickupConfigured }: { businessId: string; pickupConfigured: boolean }) => {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [aberto, setAberto] = useState(false);
@@ -56,6 +59,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
   const [modo, setModo] = useState<"comer_no_local" | "para_levar" | "entrega">("comer_no_local");
   const [bairro, setBairro] = useState("");
   const [morada, setMorada] = useState("");
+  const [destino, setDestino] = useState<GeoPosition | null>(null);
 
   const { data: bairros = [] } = useBairros();
   const { data: precoEntrega, isLoading: aCarregarPreco } = useDeliveryPrice(
@@ -63,7 +67,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
   );
   const taxa = modo === "entrega" ? precoEntrega?.preco ?? null : null;
   const semFrota = modo === "entrega" && !!bairro && !aCarregarPreco && !precoEntrega;
-  const entregaIncompleta = modo === "entrega" && (!bairro || aCarregarPreco || !precoEntrega);
+  const entregaIncompleta = modo === "entrega" && (!bairro || aCarregarPreco || !precoEntrega || !destino || !pickupConfigured);
 
   const { data: menu = [] } = useQuery({
     queryKey: ["menu-para-manual", businessId],
@@ -88,7 +92,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
 
   const limpar = () => {
     setQuantidades({}); setNome(""); setTelefone("");
-    setModo("comer_no_local"); setBairro(""); setMorada("");
+    setModo("comer_no_local"); setBairro(""); setMorada(""); setDestino(null);
   };
 
   const criar = useMutation({
@@ -106,6 +110,8 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
         p_bairro: modo === "entrega" ? bairro || null : null,
         p_address: modo === "entrega" ? morada || null : null,
         p_concluir: concluir,
+        p_customer_lat: modo === "entrega" ? destino?.lat ?? null : null,
+        p_customer_lng: modo === "entrega" ? destino?.lng ?? null : null,
       });
       if (error) throw new Error(error.message);
       return data as string;
@@ -194,7 +200,7 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
               <>
                 <div className="space-y-1.5 pt-1">
                   <Label>{t("manualOrder.bairro")}</Label>
-                  <Select value={bairro} onValueChange={setBairro}>
+                  <Select value={bairro} onValueChange={(value) => { setBairro(value); setDestino(null); }}>
                     <SelectTrigger className="h-11">
                       <SelectValue placeholder={t("manualOrder.selectBairro")} />
                     </SelectTrigger>
@@ -210,6 +216,19 @@ export const ManualOrderDialog = ({ businessId }: { businessId: string }) => {
                 </div>
                 <Input placeholder={t("manualOrder.address")} className="h-11"
                   value={morada} onChange={(e) => setMorada(e.target.value)} />
+                {!pickupConfigured ? (
+                  <p className="text-sm text-problem">{t("manualOrder.pickupRequired")}</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-medium">{t("manualOrder.destinationPoint")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t(destino ? "manualOrder.destinationSelected" : "manualOrder.destinationHint")}
+                    </p>
+                    <Suspense fallback={<div className="h-56 rounded-lg bg-muted animate-pulse" />}>
+                      <DeliveryLocationMap position={destino} onSelect={setDestino} />
+                    </Suspense>
+                  </div>
+                )}
               </>
             )}
           </div>

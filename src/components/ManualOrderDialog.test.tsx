@@ -39,10 +39,16 @@ vi.mock("@/hooks/useFleet", () => ({
   }),
 }));
 
-const desenhar = () =>
+vi.mock("@/components/DeliveryLocationMap", () => ({
+  default: ({ onSelect }: { onSelect: (point: { lat: number; lng: number; accuracy: number }) => void }) => (
+    <button onClick={() => onSelect({ lat: 11.86, lng: -15.59, accuracy: 0 })}>Marcar destino</button>
+  ),
+}));
+
+const desenhar = (pickupConfigured: boolean) =>
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <ManualOrderDialog businessId="b1" />
+      <ManualOrderDialog businessId="b1" pickupConfigured={pickupConfigured} />
     </QueryClientProvider>,
   );
 
@@ -53,8 +59,8 @@ beforeAll(() => {
   Element.prototype.scrollIntoView ??= () => {};
 });
 
-const abrirComEntrega = async () => {
-  desenhar();
+const abrirComEntrega = async (pickupConfigured = true) => {
+  desenhar(pickupConfigured);
   fireEvent.click(screen.getByRole("button", { name: /Lançar pedido manual/ }));
   const d = await screen.findByRole("dialog");
   await within(d).findByText("Caldo de Mancarra");
@@ -95,6 +101,13 @@ describe("ManualOrderDialog — bairro da lista", () => {
     expect(despachar(d)).toBeDisabled();
   });
 
+  it("bloqueia entregas quando o restaurante não tem ponto de recolha", async () => {
+    const d = await abrirComEntrega(false);
+    await escolher(d, "Bairro Militar");
+    expect(within(d).getByText(/Configura o ponto de recolha/)).toBeVisible();
+    expect(despachar(d)).toBeDisabled();
+  });
+
   it("bairro com frota: mostra a taxa, soma ao total e envia o bairro escolhido", async () => {
     const d = await abrirComEntrega();
     await escolher(d, "Bairro Militar");
@@ -102,13 +115,15 @@ describe("ManualOrderDialog — bairro da lista", () => {
     expect(within(d).getByText("Total a pagar")).toBeTruthy();
     // 3500 de comida + 1500 da frota
     expect(within(d).getAllByText((_, el) => el?.textContent?.replace(/\s/g, "") === "5000CFA").length).toBeGreaterThan(0);
+    expect(despachar(d)).toBeDisabled();
+    fireEvent.click(await within(d).findByRole("button", { name: "Marcar destino" }));
     expect(despachar(d)).not.toBeDisabled();
 
     fireEvent.click(despachar(d));
     await waitFor(() => expect(rpc).toHaveBeenCalled());
     const [nome, args] = rpc.mock.calls[0];
     expect(nome).toBe("create_manual_order");
-    expect(args).toMatchObject({ p_consumption_option: "entrega", p_bairro: "Bairro Militar", p_concluir: false });
+    expect(args).toMatchObject({ p_consumption_option: "entrega", p_bairro: "Bairro Militar", p_concluir: false, p_customer_lat: 11.86, p_customer_lng: -15.59 });
     // o preço nunca sai do ecrã: quem o resolve é o servidor
     expect(args).not.toHaveProperty("p_delivery_fee");
   });

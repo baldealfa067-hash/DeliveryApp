@@ -2117,6 +2117,8 @@ export type Database = {
           p_business_id: string
           p_concluir?: boolean
           p_consumption_option: string
+          p_customer_lat?: number
+          p_customer_lng?: number
           p_customer_name?: string
           p_customer_phone?: string
           p_items: Json

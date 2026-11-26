@@ -244,7 +244,11 @@ const BusinessDashboard = () => {
             <TabsContent value="pedidos" className="mt-0 space-y-3">
               {/* Fase 2.4 — pedidos por telefone e balcão entram na mesma lista
                   e na mesma tabela; o que muda é `source`. */}
-              <ManualOrderDialog businessId={profile.id} />
+              <ManualOrderDialog
+                businessId={profile.id}
+                pickupConfigured={profile.lat != null && profile.lng != null
+                  && Math.abs(profile.lat) <= 90 && Math.abs(profile.lng) <= 180}
+              />
               <OrderManagement businessId={profile.id} />
             </TabsContent>
 

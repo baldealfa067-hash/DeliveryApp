@@ -1612,6 +1612,10 @@
     "contested": "Disputed. The debt stays."
   },
   "manualOrder": {
+    "pickupRequired": "Set the pickup point in the restaurant profile to create deliveries.",
+    "destinationPoint": "Delivery destination",
+    "destinationHint": "Tap the map to mark the destination.",
+    "destinationSelected": "Destination marked. Tap the map to change it.",
     "open": "Add a manual order",
     "title": "Order by phone or at the counter",
     "items": "Items",

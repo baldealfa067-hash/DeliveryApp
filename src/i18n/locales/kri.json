@@ -1262,6 +1262,10 @@
     "contested": "Kontestadu. Dibida ta fika."
   },
   "manualOrder": {
+    "pickupRequired": "Marka lugar di rekodja na perfil di restoran pa cria ntrega.",
+    "destinationPoint": "Destinu di ntrega",
+    "destinationHint": "Toka na mapa pa marka destinu.",
+    "destinationSelected": "Destinu sta markadu. Toka na mapa pa mudal.",
     "open": "Lansa pedidu manual",
     "title": "Pedidu pa telefoni o na balkon",
     "items": "Artigus",
