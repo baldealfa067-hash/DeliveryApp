@@ -1,3 +1,4 @@
+import { DeliveryConfirmationCode } from "@/components/DeliveryConfirmationCode";
 import { DeliveryDriverContactIcon } from "@/components/DeliveryContactImage";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -220,6 +221,10 @@ const OrderTrackingPage = () => {
           {!envio && <p className="truncate text-xs text-muted-foreground">{order.business_name}</p>}
         </div>
       </div>
+
+      {hasDelivery && ["motorista_encontrado", "pedido_recolhido", "a_caminho"].includes(order.status) && (
+        <div className="mb-4"><DeliveryConfirmationCode orderId={order.id} /></div>
+      )}
 
       {hasDelivery && !terminado && (
         <div className="mb-3">

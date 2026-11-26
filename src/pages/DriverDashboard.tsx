@@ -40,6 +40,7 @@ import {
   useAcceptDelivery,
   useDeclineDelivery,
   useSubmitDeliveryPhoto,
+  useValidateDeliveryCode,
   useUpdateDeliveryTracking,
   useUpdateDriverLocation,
   type Delivery,
@@ -104,7 +105,9 @@ const DriverDashboard = () => {
   const [proofDialogOpen, setProofDialogOpen] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [proofStage, setProofStage] = useState<"pickup" | "delivery">("delivery");
+  const [codeDeliveryId, setCodeDeliveryId] = useState<string | null>(null);
+  const [deliveryCode, setDeliveryCode] = useState("");
+  const validateCode = useValidateDeliveryCode();
   const [submittingProof, setSubmittingProof] = useState(false);
   const createProof = useSubmitDeliveryPhoto();
   const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -243,7 +246,7 @@ const DriverDashboard = () => {
       });
       if (position.coords.accuracy > 100) throw new Error(t("driverDashboard.proofGpsRequired"));
       await updateDriverLocation.mutateAsync({ lat: position.coords.latitude, lng: position.coords.longitude });
-      await createProof.mutateAsync({ deliveryId: selectedDeliveryId, stage: proofStage, photo: photoPreview });
+      await createProof.mutateAsync({ deliveryId: selectedDeliveryId, stage: "pickup", photo: photoPreview });
       setProofDialogOpen(false);
       setPhotoPreview(null);
       setSelectedDeliveryId(null);
@@ -470,20 +473,24 @@ const DriverDashboard = () => {
                 )}
                 <DeliveryPayload items={delivery.items} orderTotal={delivery.order_total}
                   deliveryFee={delivery.delivery_fee} paymentMethod={delivery.payment_method} paymentStatus={delivery.payment_status} />
-                {!nearby && (
+                {pickup && !nearby && (
                   <p className="mt-3 text-sm text-muted-foreground">
                     {t(!hasPoint ? "driverDashboard.proofMissingPoint" : !driverPosition
                       ? "driverDashboard.proofGpsRequired" : "driverDashboard.proofGetCloser")}
                   </p>
                 )}
-                <Button className="mt-3 h-12 w-full" disabled={!nearby} onClick={() => {
+                <Button className="mt-3 h-12 w-full" disabled={pickup && !nearby} onClick={() => {
+                  if (!pickup) {
+                    setDeliveryCode("");
+                    setCodeDeliveryId(delivery.id);
+                    return;
+                  }
                   setSelectedDeliveryId(delivery.id);
-                  setProofStage(pickup ? "pickup" : "delivery");
                   setPhotoPreview(null);
                   setProofDialogOpen(true);
                 }}>
                   <Camera aria-hidden="true" />
-                  {t(pickup ? "driverDashboard.pickupPhoto" : "driverDashboard.deliveryPhoto")}
+                  {t(pickup ? "driverDashboard.pickupPhoto" : "deliveryConfirmation.enterCode")}
                 </Button>
               </CardContent>
             </Card>
@@ -613,11 +620,44 @@ const DriverDashboard = () => {
         </Tabs>
       </main>
 
+      <Dialog open={!!codeDeliveryId} onOpenChange={(open) => {
+        if (!open && !validateCode.isPending) setCodeDeliveryId(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("deliveryConfirmation.enterCode")}</DialogTitle>
+            <DialogDescription>{t("deliveryConfirmation.driverHint")}</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={async (event) => {
+            event.preventDefault();
+            if (!codeDeliveryId || deliveryCode.length !== 4 || validateCode.isPending) return;
+            try {
+              if (!await validateCode.mutateAsync({ deliveryId: codeDeliveryId, code: deliveryCode })) {
+                toast.error(t("deliveryConfirmation.invalidCode"));
+                return;
+              }
+              setCodeDeliveryId(null);
+              toast.success(t("deliveryConfirmation.confirmed"));
+            } catch (error) {
+              toast.error((error as { message?: string })?.message || t("deliveryConfirmation.invalidCode"));
+            }
+          }}>
+            <input type="text" inputMode="numeric" maxLength={4} autoComplete="off"
+              aria-label={t("deliveryConfirmation.title")} value={deliveryCode}
+              onChange={(event) => setDeliveryCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
+              className="w-full rounded-md border bg-background p-3 text-center font-mono text-2xl tracking-widest" />
+            <Button type="submit" className="w-full" disabled={deliveryCode.length !== 4 || validateCode.isPending}>
+              {validateCode.isPending ? t("common.saving") : t("common.confirm")}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Photo Proof Dialog */}
       <Dialog open={proofDialogOpen} onOpenChange={(open) => { if (submittingProof) return; setProofDialogOpen(open); if (!open) { setPhotoPreview(null); setSelectedDeliveryId(null); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t(proofStage === "pickup" ? "driverDashboard.pickupPhoto" : "driverDashboard.deliveryPhoto")}</DialogTitle>
+            <DialogTitle>{t("driverDashboard.pickupPhoto")}</DialogTitle>
             <DialogDescription>{t("driverDashboard.proofPackageHint")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">

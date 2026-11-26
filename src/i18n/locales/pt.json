@@ -1,4 +1,13 @@
 {
+  "deliveryConfirmation": {
+    "title": "Código de confirmação da entrega",
+    "customerHint": "Este código de 4 dígitos confirma que recebeste o pedido. Dá-o ao motorista apenas quando tiveres o pedido em mãos.",
+    "manualHint": "Comunica este código ao destinatário. Ele deve dá-lo ao motorista apenas quando receber o pedido.",
+    "enterCode": "Introduzir código de entrega",
+    "driverHint": "Pede ao destinatário o código de 4 dígitos depois de lhe entregares o pedido.",
+    "invalidCode": "Código incorreto ou indisponível. Confirma-o com o destinatário.",
+    "confirmed": "Entrega confirmada por código."
+  },
   "deliveryContactImage": {
     "monthlyGross": "Ganhos brutos do mês",
     "fleetLogo": "Carregar logótipo da frota",
@@ -1302,7 +1311,7 @@
     "cancelado": "Cancelado"
   },
   "orderManagement": {
-    "driverProofRequired": "O motorista confirma a recolha e a entrega com foto no local.",
+    "driverProofRequired": "O motorista confirma a recolha com foto e a entrega com o código do destinatário.",
     "statusUpdateFailed": "Não foi possível atualizar o pedido.",
     "reofferQueued": "Entrega em fila para procurar um motorista.",
     "reofferSent": "{{count}} motorista(s) notificado(s)",

@@ -1,3 +1,4 @@
+import { DeliveryConfirmationCode } from "@/components/DeliveryConfirmationCode";
 import { useState, useEffect } from "react";
 import {
   Package,
@@ -638,6 +639,10 @@ const OrderDetail = ({
           {/* Fase 9.3 -- o restaurante ve a prova da entrega (§37): e ele que fica
               com a divida de comida a receber, e precisa de saber que o pedido
               chegou mesmo ao cliente. */}
+          {order.consumption_option === "entrega" && !order.customer_id
+            && ["motorista_encontrado", "pedido_recolhido", "a_caminho"].includes(order.status) && (
+              <DeliveryConfirmationCode orderId={order.id} manual />
+            )}
           {order.consumption_option === "entrega" && order.status === "concluido" && (
             <DeliveryProofView orderId={order.id} />
           )}

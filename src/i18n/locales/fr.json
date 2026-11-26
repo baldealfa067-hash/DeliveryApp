@@ -1,4 +1,13 @@
 {
+  "deliveryConfirmation": {
+    "title": "Code de confirmation de livraison",
+    "customerHint": "Ce code à 4 chiffres confirme la réception. Communiquez-le au livreur uniquement lorsque vous avez la commande en main.",
+    "manualHint": "Transmettez ce code au destinataire. Il doit le donner au livreur uniquement après avoir reçu la commande.",
+    "enterCode": "Saisir le code de livraison",
+    "driverHint": "Demandez le code à 4 chiffres après avoir remis la commande au destinataire.",
+    "invalidCode": "Code incorrect ou indisponible. Vérifiez auprès du destinataire.",
+    "confirmed": "Livraison confirmée par code."
+  },
   "deliveryContactImage": {
     "monthlyGross": "Gains bruts du mois",
     "fleetLogo": "Importer le logo de la flotte",
@@ -1302,7 +1311,7 @@
     "cancelado": "Annulée"
   },
   "orderManagement": {
-    "driverProofRequired": "Le livreur confirme le retrait et la livraison avec une photo sur place.",
+    "driverProofRequired": "Le livreur confirme le retrait par photo et la livraison avec le code du destinataire.",
     "statusUpdateFailed": "Impossible de mettre à jour la commande.",
     "reofferQueued": "Livraison en attente d’un livreur.",
     "reofferSent": "{{count}} livreur(s) notifié(s)",

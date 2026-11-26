@@ -1,4 +1,13 @@
 {
+  "deliveryConfirmation": {
+    "title": "Delivery confirmation code",
+    "customerHint": "This 4-digit code confirms that you received the order. Give it to the driver only once you have your order.",
+    "manualHint": "Share this code with the recipient. They should give it to the driver only after receiving the order.",
+    "enterCode": "Enter delivery code",
+    "driverHint": "Ask the recipient for the 4-digit code after handing them the order.",
+    "invalidCode": "Incorrect or unavailable code. Check with the recipient.",
+    "confirmed": "Delivery confirmed by code."
+  },
   "deliveryContactImage": {
     "monthlyGross": "Gross earnings this month",
     "fleetLogo": "Upload fleet logo",
@@ -1302,7 +1311,7 @@
     "cancelado": "Cancelled"
   },
   "orderManagement": {
-    "driverProofRequired": "The driver confirms pickup and delivery with a photo at each location.",
+    "driverProofRequired": "The driver confirms pickup with a photo and delivery with the recipient’s code.",
     "statusUpdateFailed": "Could not update the order.",
     "reofferQueued": "Delivery queued to find a driver.",
     "reofferSent": "{{count}} driver(s) notified",

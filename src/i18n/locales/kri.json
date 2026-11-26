@@ -1,4 +1,13 @@
 {
+  "deliveryConfirmation": {
+    "title": "Kodigu pa konfirma ntrega",
+    "customerHint": "Es kodigu di 4 numeru ta konfirma kuma bu risibi pididu. Da motorista kodigu só ora ku bu risibi pididu.",
+    "manualHint": "Da es kodigu a kin ku ta risibi pididu. I debe da motorista kodigu só ora ku i risibi pididu.",
+    "enterCode": "Pui kodigu di ntrega",
+    "driverHint": "Pidi kodigu di 4 numeru dipus di ntrega pididu.",
+    "invalidCode": "Kodigu sta erradu o ka sta disponivel. Konfirma ku kin ku risibi.",
+    "confirmed": "Ntrega sta konfirmadu ku kodigu."
+  },
   "deliveryContactImage": {
     "monthlyGross": "Ganho brutu di es mes",
     "fleetLogo": "Karega logotipu di frota",
@@ -722,7 +731,7 @@
     "cancelado": "Anuladu"
   },
   "orderManagement": {
-    "driverProofRequired": "Motorista ta konfirma rekodja ku ntrega ku foto na lugar.",
+    "driverProofRequired": "Motorista ta konfirma rekodja ku foto, i ntrega ku kodigu di kin ku risibi.",
     "statusUpdateFailed": "Ka konsigi atualiza pididu.",
     "reofferQueued": "Ntrega sta na fila pa buska motorista.",
     "reofferSent": "{{count}} motorista notifikadu",

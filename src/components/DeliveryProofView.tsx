@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Camera } from "lucide-react";
+import { Camera, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const DeliveryProofView = ({ orderId, stage = "delivery" }: { orderId: string; stage?: "pickup" | "delivery" }) => {
@@ -12,6 +12,7 @@ export const DeliveryProofView = ({ orderId, stage = "delivery" }: { orderId: st
       if (error) throw new Error(error.message);
       if (!data || typeof data !== "object" || Array.isArray(data) || data.existe !== true) return null;
       return {
+        byCode: data.tipo === "codigo",
         foto: typeof data.foto === "string" ? data.foto : null,
         registada_em: typeof data.registada_em === "string" ? data.registada_em : null,
       };
@@ -28,8 +29,10 @@ export const DeliveryProofView = ({ orderId, stage = "delivery" }: { orderId: st
     <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
       <p className="text-xs font-semibold uppercase text-muted-foreground">{t(stage === "pickup" ? "orderTracking.pickupProofTitle" : "orderTracking.proofTitle")}</p>
       <div className="flex items-center gap-2 text-sm">
-        <Camera className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-        <span className="flex-1">{t("orderTracking.proofByPhoto")}</span>
+        {data.byCode
+          ? <ShieldCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          : <Camera className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
+        <span className="flex-1">{t(data.byCode ? "deliveryConfirmation.confirmed" : "orderTracking.proofByPhoto")}</span>
         {quando && <span className="text-xs text-muted-foreground whitespace-nowrap">{quando}</span>}
       </div>
       {data.foto && (
