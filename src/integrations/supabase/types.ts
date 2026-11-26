@@ -2355,6 +2355,9 @@ export type Database = {
         Args: { p_delivery_id: string; p_stage: string; p_photo: string }
         Returns: undefined
       }
+      get_my_restaurant_team_access: { Args: never; Returns: { business_id: string; permissions: string[] }[] }
+      list_restaurant_team: { Args: { p_business_id: string }; Returns: { user_id: string; email: string; permissions: string[] }[] }
+      set_restaurant_team_access: { Args: { p_business_id: string; p_email: string; p_permissions: string[] }; Returns: undefined }
       get_delivery_confirmation_pin: { Args: { p_order_id: string }; Returns: string | null }
       get_delivery_contact_image: { Args: { p_order_id: string }; Returns: string | null }
       get_customer_delivery_map: {

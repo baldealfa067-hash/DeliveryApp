@@ -1,4 +1,5 @@
 import { LoadError } from "@/components/LoadError";
+import { RestaurantTeamGate } from "@/components/RestaurantTeamGate";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -25,10 +26,12 @@ const RequireRole = ({
   roles,
   children,
   redirectTo = "/inicio",
+  allowRestaurantTeam = false,
 }: {
   roles: AppRole[];
   children: React.ReactNode;
   redirectTo?: string;
+  allowRestaurantTeam?: boolean;
 }) => {
   const { t } = useTranslation();
   const { user, roles: userRoles, rolesLoaded, rolesError, retryRoles, loading, sessionError, retrySession } = useAuth();
@@ -53,11 +56,15 @@ const RequireRole = ({
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to={allowRestaurantTeam ? "/login?mode=equipa" : "/login"} replace />;
 
   // Admin passa em qualquer painel — precisa disso para dar apoio.
   const permitido = userRoles.includes("admin") || roles.some((r) => userRoles.includes(r));
-  if (!permitido) return <Navigate to={redirectTo} replace />;
+  if (!permitido) {
+    return allowRestaurantTeam
+      ? <RestaurantTeamGate userId={user.id} redirectTo={redirectTo}>{children}</RestaurantTeamGate>
+      : <Navigate to={redirectTo} replace />;
+  }
 
   return <>{children}</>;
 };

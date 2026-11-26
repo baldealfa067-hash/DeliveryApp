@@ -52,7 +52,7 @@ const rpc = supabase.rpc.bind(supabase) as unknown as (
 export const ManualOrderDialog = ({ businessId, pickupConfigured, onConfigurePickup }: {
   businessId: string;
   pickupConfigured: boolean;
-  onConfigurePickup: () => void;
+  onConfigurePickup?: () => void;
 }) => {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -223,9 +223,9 @@ export const ManualOrderDialog = ({ businessId, pickupConfigured, onConfigurePic
                 {!pickupConfigured ? (
                   <div className="space-y-2">
                     <p className="text-sm text-problem">{t("manualOrder.pickupRequired")}</p>
-                    <Button type="button" variant="outline" className="w-full" onClick={onConfigurePickup}>
+                    {onConfigurePickup && <Button type="button" variant="outline" className="w-full" onClick={onConfigurePickup}>
                       {t("manualOrder.configurePickup")}
-                    </Button>
+                    </Button>}
                   </div>
                 ) : (
                   <div className="space-y-1.5">

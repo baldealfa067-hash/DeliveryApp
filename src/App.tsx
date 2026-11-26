@@ -80,7 +80,7 @@ const App = () => (
               {/* Painéis de restaurante fechados ao papel business. A verificação
                   dentro do próprio ecrã chegava tarde: o componente montava e
                   corria as queries antes de redirecionar. */}
-              <Route path="/painel-loja" element={<RequireRole roles={["business"]}><BusinessDashboard /></RequireRole>} />
+              <Route path="/painel-loja" element={<RequireRole roles={["business"]} allowRestaurantTeam><BusinessDashboard /></RequireRole>} />
               <Route path="/painel-loja/editar" element={<RequireRole roles={["business"]}><BusinessEdit /></RequireRole>} />
               {/* O painel do motorista fica aberto a quem tem sessão: é aqui que
                   um motorista novo se regista, e sem perfil de motorista o ecrã

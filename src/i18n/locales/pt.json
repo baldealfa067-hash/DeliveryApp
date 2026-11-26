@@ -1,4 +1,23 @@
 {
+  "restaurantTeam": {
+    "title": "Equipa e acessos",
+    "hint": "Cria uma conta com o telefone do funcionário, um PIN de seis dígitos e as permissões que ele vai usar.",
+    "login": "Entrada da equipa",
+    "email": "E-mail da conta",
+    "orders": "Pedidos",
+    "finance": "Financeiro",
+    "commission": "Comissões",
+    "saved": "Acessos atualizados.",
+    "save": "Guardar acessos",
+    "edit": "Editar",
+    "remove": "Retirar acesso",
+    "noAccess": "Esta conta não tem acesso a um restaurante.",
+    "pinSixDigits": "PIN de 6 dígitos",
+    "create": "Criar funcionário",
+    "phoneTaken": "Este número já tem uma conta de funcionário.",
+    "createError": "Não foi possível criar o funcionário.",
+    "inactive": "Acesso retirado"
+  },
   "deliveryConfirmation": {
     "title": "Código de confirmação da entrega",
     "customerHint": "Este código de 4 dígitos confirma que recebeste o pedido. Dá-o ao motorista apenas quando tiveres o pedido em mãos.",

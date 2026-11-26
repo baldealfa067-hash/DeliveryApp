@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 // Mock useAuth to simulate unauthenticated user in "choose" mode
@@ -29,6 +29,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import Login from "./Login";
+import { supabase } from "@/integrations/supabase/client";
 
 describe("Login — registo público de clientes", () => {
   beforeEach(() => { mockNavigate.mockClear(); });
@@ -45,6 +46,20 @@ describe("Login — registo público de clientes", () => {
     render(<MemoryRouter initialEntries={["/login?mode=motorista&tab=registar"]}><Login /></MemoryRouter>);
     expect(screen.getByRole("tabpanel")).toHaveAttribute("id", expect.stringContaining("login"));
     expect(screen.getByLabelText("PIN")).toBeInTheDocument();
+  });
+
+  it("autentica a equipa com número e PIN de seis dígitos sem expor registo", async () => {
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ data: { user: null, session: null }, error: null });
+    render(<MemoryRouter initialEntries={["/login?mode=equipa&tab=registar"]}><Login /></MemoryRouter>);
+    expect(screen.getByRole("heading", { name: "Entrada da equipa" })).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Registar" })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Telefone"), { target: { value: "955123456" } });
+    fireEvent.change(screen.getByLabelText("PIN"), { target: { value: "001234" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Entrar" }).closest("form")!);
+    await waitFor(() => expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: "r955123456@deliveryapp.gw",
+      password: "DgStaff1!955123456:001234",
+    }));
   });
 
   it("ignora o pedido de registo num link antigo de restaurante", () => {

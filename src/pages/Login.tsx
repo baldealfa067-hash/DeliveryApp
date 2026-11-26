@@ -1,3 +1,4 @@
+import { isRestaurantStaffPin, RESTAURANT_STAFF_PIN_LENGTH, restaurantStaffCredentials } from "@/lib/restaurantStaffAuth";
 import { LoadError } from "@/components/LoadError";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -33,14 +34,15 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, roles, rolesLoaded, rolesError, retryRoles, loading, sessionError, retrySession } = useAuth();
+  const staffLogin = searchParams.get("mode") === "equipa";
   const [mode, setMode] = useState<AuthMode>(() => {
     const m = searchParams.get("mode");
-    if (m === "cliente" || m === "motorista") return "client";
+    if (m === "cliente" || m === "motorista" || m === "equipa") return "client";
     if (m === "restaurante" || m === "profissional" || m === "email") return "professional";
     return "choose";
   });
   const [tab, setTab] = useState<"login" | "signup">(
-    searchParams.get("mode") !== "motorista" && searchParams.get("tab") === "registar" ? "signup" : "login"
+    !staffLogin && searchParams.get("mode") !== "motorista" && searchParams.get("tab") === "registar" ? "signup" : "login"
   );
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -61,6 +63,11 @@ const Login = () => {
     if (loading || !rolesLoaded) return;
     if (!user) return;
 
+    if (staffLogin || searchParams.get("next") === "restaurant") {
+      navigate("/painel-loja", { replace: true });
+      return;
+    }
+
     let active = true;
     void getPostLoginDestination(user.id, roles).then((destination) => {
       if (active) navigate(destination, { replace: true });
@@ -68,7 +75,7 @@ const Login = () => {
       if (active) setDestinationError(true);
     });
     return () => { active = false; };
-  }, [user, roles, rolesLoaded, loading, navigate, searchParams, destinationAttempt, mode]);
+  }, [user, roles, rolesLoaded, loading, navigate, searchParams, destinationAttempt, mode, staffLogin]);
 
   // ── Cliente: telefone + PIN ──────────────────────────────────────────────
   // A password vai derivada do telefone e do PIN, portanto o mesmo par
@@ -82,10 +89,14 @@ const Login = () => {
   const handleClientLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidPhone(phone)) return toast.error(t("auth.enterValidPhone"));
-    if (!isValidPin(pin)) return toast.error(t("auth.pinFourDigits"));
+    if (staffLogin ? !isRestaurantStaffPin(pin) : !isValidPin(pin)) {
+      return toast.error(t(staffLogin ? "restaurantTeam.pinSixDigits" : "auth.pinFourDigits"));
+    }
     setSubmitting(true);
     try {
-      const { error } = await entrarComPin(phone, pin);
+      const { error } = staffLogin
+        ? await supabase.auth.signInWithPassword(restaurantStaffCredentials(phone, pin))
+        : await entrarComPin(phone, pin);
       if (error) return toast.error(t(clientAuthErrorKey(error.message, "login")));
       toast.success(t("auth.loginSuccess"));
     } catch (err) {
@@ -154,7 +165,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/login?mode=email`,
+        redirectTo: `${window.location.origin}/login?mode=email${searchParams.get("next") === "restaurant" ? "&next=restaurant" : ""}`,
       },
     });
     setSubmitting(false);
@@ -234,6 +245,7 @@ const Login = () => {
   // ─── ECRÃ: Autenticação ───
   const isClientFlow = mode === "client";
 
+  const loginPinLength = staffLogin ? RESTAURANT_STAFF_PIN_LENGTH : PIN_LENGTH;
   const campoPin = (id: string, valor: string, setter: (v: string) => void, etiqueta: string) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{etiqueta}</Label>
@@ -243,10 +255,10 @@ const Login = () => {
         inputMode="numeric"
         autoComplete="off"
         pattern="\d*"
-        maxLength={PIN_LENGTH}
-        placeholder={"\u2022".repeat(PIN_LENGTH)}
+        maxLength={loginPinLength}
+        placeholder={"\u2022".repeat(loginPinLength)}
         value={valor}
-        onChange={(e) => setter(e.target.value.replace(/\D/g, "").slice(0, PIN_LENGTH))}
+        onChange={(e) => setter(e.target.value.replace(/\D/g, "").slice(0, loginPinLength))}
         className="h-12 text-center text-title tracking-[0.5em]"
       />
     </div>
@@ -272,6 +284,23 @@ const Login = () => {
   // Sem email e sem Google: o cliente identifica-se pelo telefone, que é o que
   // ele sabe de cor. O PIN é escolhido por ele, e a credencial derivada dos dois
   // é sempre a mesma — por isso entrar noutro telemóvel é só voltar a escrevê-los.
+  if (staffLogin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <form className="w-full max-w-sm space-y-4" onSubmit={handleClientLogin}>
+          <LanguageSelector />
+          <img src={logo} alt="iTudoo" className="mx-auto h-10" />
+          <h1 className="text-center text-title">{t("restaurantTeam.login")}</h1>
+          {campoTelefone("staff-login-phone")}
+          {campoPin("staff-login-pin", pin, setPin, t("auth.pin"))}
+          <Button type="submit" disabled={submitting} className="h-12 w-full">
+            {submitting ? t("auth.loggingIn") : t("auth.loginButton")}
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
   if (isClientFlow) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">

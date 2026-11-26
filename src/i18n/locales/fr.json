@@ -1,4 +1,23 @@
 {
+  "restaurantTeam": {
+    "title": "Équipe et accès",
+    "hint": "Créez un compte avec le téléphone de l’employé, un code PIN à six chiffres et ses autorisations.",
+    "login": "Connexion de l’équipe",
+    "email": "E-mail du compte",
+    "orders": "Commandes",
+    "finance": "Finances",
+    "commission": "Commissions",
+    "saved": "Accès mis à jour.",
+    "save": "Enregistrer les accès",
+    "edit": "Modifier",
+    "remove": "Retirer l’accès",
+    "noAccess": "Ce compte n’a accès à aucun restaurant.",
+    "pinSixDigits": "Code PIN à 6 chiffres",
+    "create": "Créer un compte employé",
+    "phoneTaken": "Ce numéro est déjà lié à un compte employé.",
+    "createError": "Impossible de créer le compte employé.",
+    "inactive": "Accès retiré"
+  },
   "deliveryConfirmation": {
     "title": "Code de confirmation de livraison",
     "customerHint": "Ce code à 4 chiffres confirme la réception. Communiquez-le au livreur uniquement lorsque vous avez la commande en main.",

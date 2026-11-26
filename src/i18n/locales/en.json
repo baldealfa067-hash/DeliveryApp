@@ -1,4 +1,23 @@
 {
+  "restaurantTeam": {
+    "title": "Team and access",
+    "hint": "Create an account with the employee’s phone number, a six-digit PIN and their permissions.",
+    "login": "Team sign-in",
+    "email": "Account email",
+    "orders": "Orders",
+    "finance": "Finance",
+    "commission": "Commissions",
+    "saved": "Access updated.",
+    "save": "Save access",
+    "edit": "Edit",
+    "remove": "Remove access",
+    "noAccess": "This account does not have access to a restaurant.",
+    "pinSixDigits": "6-digit PIN",
+    "create": "Create employee",
+    "phoneTaken": "This number already has a staff account.",
+    "createError": "Could not create the staff account.",
+    "inactive": "Access removed"
+  },
   "deliveryConfirmation": {
     "title": "Delivery confirmation code",
     "customerHint": "This 4-digit code confirms that you received the order. Give it to the driver only once you have your order.",

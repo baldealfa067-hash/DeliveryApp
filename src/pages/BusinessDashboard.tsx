@@ -1,3 +1,5 @@
+import { useRestaurantTeamAccess } from "@/hooks/useRestaurantTeamAccess";
+import { RestaurantTeam } from "@/components/RestaurantTeam";
 import { useEffect, useRef, useState } from "react";
 import { BUCKET_PRIVADO, caminhoPrivado } from "@/lib/armazenamentoPrivado";
 import { Link, useNavigate } from "react-router-dom";
@@ -43,6 +45,7 @@ import { BusinessCashSettlements } from "@/components/BusinessCashSettlements";
 
 type DashboardProfile = {
   id: string;
+  user_id: string;
   name: string;
   category: string;
   photo_url: string | null;
@@ -56,16 +59,31 @@ const BusinessDashboard = () => {
   const navigate = useNavigate();
   const { user, isBusiness, isAdmin, rolesLoaded, loading, signOut } = useAuth();
   const qc = useQueryClient();
+  const staff = useRestaurantTeamAccess(rolesLoaded ? user?.id : undefined);
   const [profile, setProfile] = useState<DashboardProfile | null>(null);
+  const owner = !!profile && profile.user_id === user?.id;
+  const staffPermissions = profile && staff.data?.business_id === profile.id ? staff.data.permissions : [];
+  const ordersAccess = owner || staffPermissions.includes("orders");
+  const financeAccess = owner || staffPermissions.includes("finance");
+  const commissionAccess = owner || staffPermissions.includes("commission");
+  const tabs = [
+    ["pedidos", ShoppingCart, "businessDashboard.ordersManagement", ordersAccess],
+    ["vendas", TrendingUp, "businessDashboard.salesTab", financeAccess],
+    ["conta", DollarSign, "businessDashboard.accountTab", financeAccess],
+    ["comissoes", DollarSign, "restaurantTeam.commission", commissionAccess],
+    ["perfil", Store, "businessDashboard.profileTab", owner],
+  ] as const;
+  const allowedTabs = tabs.filter(([, , , allowed]) => allowed);
+  const [selectedTab, setSelectedTab] = useState("pedidos");
   const [fetching, setFetching] = useState(true);
   const [orderCount, setOrderCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
   const { data: stats = { profile_views: 0, whatsapp_clicks: 0, call_clicks: 0 } } = useProviderStatsQuery(profile?.id ?? null);
   const { data: bizCats = [] } = useBusinessCategories();
-  const { data: salesStats } = useBusinessSalesStats(profile?.id ?? null);
-  const { data: dailySales = [] } = useBusinessDailySales(profile?.id ?? null);
-  const { data: commission } = useBusinessCommission(profile?.id ?? null);
-  const { data: commissionPayments = [] } = useCommissionPayments(profile?.id ?? null);
+  const { data: salesStats } = useBusinessSalesStats(financeAccess ? profile?.id ?? null : null);
+  const { data: dailySales = [] } = useBusinessDailySales(financeAccess ? profile?.id ?? null : null);
+  const { data: commission } = useBusinessCommission(commissionAccess ? profile?.id ?? null : null);
+  const { data: commissionPayments = [] } = useCommissionPayments(commissionAccess ? profile?.id ?? null : null);
   const createCommissionPayment = useCreateCommissionPayment();
   const { data: platformSettings } = usePlatformSettings();
   const [commProofUrl, setCommProofUrl] = useState<string | null>(null);
@@ -122,27 +140,29 @@ const BusinessDashboard = () => {
 
   useEffect(() => {
     if (loading || !rolesLoaded) return;
-    if (!user) return navigate("/login", { replace: true });
-    if (!isBusiness && !isAdmin) return navigate("/inicio", { replace: true });
+    if (!user) return navigate("/login?mode=equipa", { replace: true });
+    if (!isBusiness && !isAdmin && staff.isPending) return;
+    let active = true;
+    setFetching(true);
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, name, category, photo_url, verification_status, lat, lng")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data) {
-        setProfile(data as DashboardProfile);
-        await loadCounts(data.id);
-      }
+      const columns = "id, user_id, name, category, photo_url, verification_status, lat, lng";
+      const query = supabase.from("profiles").select(columns).eq("profile_type", "business");
+      const own = await query.eq("user_id", user.id).maybeSingle();
+      const { data } = own.data || !staff.data ? own : await supabase.from("profiles")
+        .select(columns).eq("profile_type", "business").eq("id", staff.data.business_id).maybeSingle();
+      if (!active) return;
+      setProfile(data as DashboardProfile | null);
       setFetching(false);
     })();
-  }, [user, isBusiness, isAdmin, rolesLoaded, loading, navigate]);
+    return () => { active = false; };
+  }, [user, isBusiness, isAdmin, rolesLoaded, loading, navigate, staff.isPending, staff.data?.business_id]);
 
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!profile?.id || !owner) return;
+    void loadCounts(profile.id);
     const interval = setInterval(() => loadCounts(profile.id), 15000);
     return () => clearInterval(interval);
-  }, [profile?.id]);
+  }, [profile?.id, owner]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -167,7 +187,7 @@ const BusinessDashboard = () => {
     return () => { supabase.removeChannel(channel); };
   }, [profile?.id, qc]);
 
-  if (loading || fetching) {
+  if (loading || !rolesLoaded || fetching) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("businessDashboard.loading")}</div>;
   }
 
@@ -208,34 +228,25 @@ const BusinessDashboard = () => {
       />
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-[calc(env(safe-area-inset-bottom))]">
-        {!profile ? (
+        {!profile || !allowedTabs.length ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
               <Store className="h-8 w-8 text-muted-foreground" />
-              <p className="text-muted-foreground">{t("businessDashboard.noProfile")}</p>
-              <Button onClick={() => navigate("/painel-loja/editar")} className="gap-2 min-h-12 text-base">
+              <p className="text-muted-foreground">{t(isBusiness || isAdmin ? "businessDashboard.noProfile" : "restaurantTeam.noAccess")}</p>
+              {(isBusiness || isAdmin) && <Button onClick={() => navigate("/painel-loja/editar")} className="gap-2 min-h-12 text-base">
                 <Settings className="h-5 w-5" /> {t("businessDashboard.createProfile")}
-              </Button>
+              </Button>}
             </CardContent>
           </Card>
         ) : (
-          <Tabs defaultValue="pedidos">
-            {/* Quatro colunas iguais, ícone por cima do rótulo, rótulo que
-                quebra dentro da sua célula. Numa linha só com `whitespace-nowrap`
-                (o TabsTrigger base) a barra media 405px a 360: "Pedidos" saía
-                pela esquerda e "Perfil" pela direita. Mesmo desenho dos
-                separadores de estado em OrderManagement. */}
-            <TabsList className="mb-4 grid h-auto w-full grid-cols-4 gap-1 p-1">
-              {([
-                ["pedidos", ShoppingCart, "businessDashboard.ordersManagement"],
-                ["vendas", TrendingUp, "businessDashboard.salesTab"],
-                ["conta", DollarSign, "businessDashboard.accountTab"],
-                ["perfil", Store, "businessDashboard.profileTab"],
-              ] as const).map(([valor, Icone, chave]) => (
+          <Tabs value={allowedTabs.some(([value]) => value === selectedTab) ? selectedTab : allowedTabs[0]?.[0]} onValueChange={setSelectedTab}>
+            {!owner && <h1 className="mb-4 text-xl font-semibold">{profile.name}</h1>}
+            <TabsList className="mb-4 flex h-auto w-full flex-wrap gap-1 p-1">
+              {allowedTabs.map(([valor, Icone, chave]) => (
                 <TabsTrigger
                   key={valor}
                   value={valor}
-                  className="flex min-h-14 min-w-0 flex-col items-center gap-1 whitespace-normal px-1 py-2 text-xs sm:text-sm"
+                  className="flex min-h-14 min-w-0 flex-1 flex-col items-center gap-1 whitespace-normal px-1 py-2 text-xs sm:text-sm"
                 >
                   <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
                   <span className="w-full break-words text-center leading-tight">{t(chave)}</span>
@@ -243,19 +254,19 @@ const BusinessDashboard = () => {
               ))}
             </TabsList>
 
-            <TabsContent value="pedidos" className="mt-0 space-y-3">
+            {ordersAccess && <TabsContent value="pedidos" className="mt-0 space-y-3">
               {/* Fase 2.4 — pedidos por telefone e balcão entram na mesma lista
                   e na mesma tabela; o que muda é `source`. */}
               <ManualOrderDialog
                 businessId={profile.id}
-                onConfigurePickup={() => navigate("/painel-loja/editar#ponto-de-recolha")}
+                onConfigurePickup={owner ? () => navigate("/painel-loja/editar#ponto-de-recolha") : undefined}
                 pickupConfigured={profile.lat != null && profile.lng != null
                   && Math.abs(profile.lat) <= 90 && Math.abs(profile.lng) <= 180}
               />
               <OrderManagement businessId={profile.id} />
-            </TabsContent>
+            </TabsContent>}
 
-            <TabsContent value="vendas" className="mt-0 space-y-4">
+            {financeAccess && <TabsContent value="vendas" className="mt-0 space-y-4">
               {salesStats && (
                 <>
                   {/* Today */}
@@ -317,7 +328,9 @@ const BusinessDashboard = () => {
                 </>
               )}
 
-              {/* Commission section */}
+            </TabsContent>}
+
+            {commissionAccess && <TabsContent value="comissoes" className="mt-0 space-y-4">
               {commission && (
                 <Card className="border-orange-200 dark:border-orange-800">
                   <CardContent className="p-4 space-y-3">
@@ -466,19 +479,19 @@ const BusinessDashboard = () => {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
+            </TabsContent>}
 
-            <TabsContent value="conta" className="mt-0 space-y-4">
-              <BusinessCurrentAccount businessId={profile.id} />
+            {financeAccess && <TabsContent value="conta" className="mt-0 space-y-4">
+              {owner && <BusinessCurrentAccount businessId={profile.id} />}
               {/* Fase 2.3 — o dinheiro que os motoristas cobraram aos clientes e
                   ainda não entregaram (§28). Fica na conta corrente e não numa
                   aba nova: é a mesma pergunta que o dono já vem aqui fazer
                   ("quanto tenho a haver, e a quem?"), só muda a contraparte —
                   ali é a plataforma, aqui é a frota. */}
               <BusinessCashSettlements businessId={profile.id} />
-            </TabsContent>
+            </TabsContent>}
 
-            <TabsContent value="perfil" className="mt-0 space-y-4">
+            {owner && <TabsContent value="perfil" className="mt-0 space-y-4">
               {/* Profile header */}
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16 rounded-xl">
@@ -532,13 +545,15 @@ const BusinessDashboard = () => {
                 </CardContent>
               </Card>
 
+              <RestaurantTeam businessId={profile.id} />
+
               {/* View public page */}
               <Link to={`/loja/${profile.id}`} className="block">
                 <Button variant="outline" className="w-full min-h-12 text-base">
                   {t("businessDashboard.viewPublic")}
                 </Button>
               </Link>
-            </TabsContent>
+            </TabsContent>}
           </Tabs>
         )}
       </main>
