@@ -1,5 +1,6 @@
 {
   "restaurantTeam": {
+    "phoneLoginPinHint": "Clients : code PIN à 4 chiffres. Équipe : code PIN à 6 chiffres.",
     "title": "Équipe et accès",
     "hint": "Créez un compte avec le téléphone de l’employé, un code PIN à six chiffres et ses autorisations.",
     "login": "Connexion de l’équipe",

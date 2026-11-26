@@ -1,4 +1,4 @@
-import { isRestaurantStaffPin, RESTAURANT_STAFF_PIN_LENGTH, restaurantStaffCredentials } from "@/lib/restaurantStaffAuth";
+import { isRestaurantStaffPin, RESTAURANT_STAFF_PIN_LENGTH, restaurantStaffCredentials, restaurantStaffPhone } from "@/lib/restaurantStaffAuth";
 import { LoadError } from "@/components/LoadError";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -63,7 +63,7 @@ const Login = () => {
     if (loading || !rolesLoaded) return;
     if (!user) return;
 
-    if (staffLogin || searchParams.get("next") === "restaurant") {
+    if (staffLogin || restaurantStaffPhone(user.email ?? "") || searchParams.get("next") === "restaurant") {
       navigate("/painel-loja", { replace: true });
       return;
     }
@@ -89,12 +89,15 @@ const Login = () => {
   const handleClientLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidPhone(phone)) return toast.error(t("auth.enterValidPhone"));
-    if (staffLogin ? !isRestaurantStaffPin(pin) : !isValidPin(pin)) {
-      return toast.error(t(staffLogin ? "restaurantTeam.pinSixDigits" : "auth.pinFourDigits"));
+    const driverLogin = searchParams.get("mode") === "motorista";
+    const useStaffCredentials = staffLogin || (!driverLogin && isRestaurantStaffPin(pin));
+    if (useStaffCredentials ? !isRestaurantStaffPin(pin) : !isValidPin(pin)) {
+      return toast.error(t(staffLogin ? "restaurantTeam.pinSixDigits"
+        : driverLogin ? "auth.pinFourDigits" : "restaurantTeam.phoneLoginPinHint"));
     }
     setSubmitting(true);
     try {
-      const { error } = staffLogin
+      const { error } = useStaffCredentials
         ? await supabase.auth.signInWithPassword(restaurantStaffCredentials(phone, pin))
         : await entrarComPin(phone, pin);
       if (error) return toast.error(t(clientAuthErrorKey(error.message, "login")));
@@ -245,8 +248,8 @@ const Login = () => {
   // ─── ECRÃ: Autenticação ───
   const isClientFlow = mode === "client";
 
-  const loginPinLength = staffLogin ? RESTAURANT_STAFF_PIN_LENGTH : PIN_LENGTH;
-  const campoPin = (id: string, valor: string, setter: (v: string) => void, etiqueta: string) => (
+  const loginPinLength = searchParams.get("mode") === "motorista" ? PIN_LENGTH : RESTAURANT_STAFF_PIN_LENGTH;
+  const campoPin = (id: string, valor: string, setter: (v: string) => void, etiqueta: string, length = PIN_LENGTH) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{etiqueta}</Label>
       <Input
@@ -255,10 +258,10 @@ const Login = () => {
         inputMode="numeric"
         autoComplete="off"
         pattern="\d*"
-        maxLength={loginPinLength}
-        placeholder={"\u2022".repeat(loginPinLength)}
+        maxLength={length}
+        placeholder={"\u2022".repeat(length)}
         value={valor}
-        onChange={(e) => setter(e.target.value.replace(/\D/g, "").slice(0, loginPinLength))}
+        onChange={(e) => setter(e.target.value.replace(/\D/g, "").slice(0, length))}
         className="h-12 text-center text-title tracking-[0.5em]"
       />
     </div>
@@ -292,7 +295,7 @@ const Login = () => {
           <img src={logo} alt="iTudoo" className="mx-auto h-10" />
           <h1 className="text-center text-title">{t("restaurantTeam.login")}</h1>
           {campoTelefone("staff-login-phone")}
-          {campoPin("staff-login-pin", pin, setPin, t("auth.pin"))}
+          {campoPin("staff-login-pin", pin, setPin, t("auth.pin"), RESTAURANT_STAFF_PIN_LENGTH)}
           <Button type="submit" disabled={submitting} className="h-12 w-full">
             {submitting ? t("auth.loggingIn") : t("auth.loginButton")}
           </Button>
@@ -335,7 +338,8 @@ const Login = () => {
                   </p>
                 )}
                 {campoTelefone("cli-login-phone")}
-                {campoPin("cli-login-pin", pin, setPin, t("auth.pin"))}
+                {campoPin("cli-login-pin", pin, setPin, t("auth.pin"), loginPinLength)}
+                {loginPinLength !== PIN_LENGTH && <p className="text-xs text-muted-foreground">{t("restaurantTeam.phoneLoginPinHint")}</p>}
                 <Button type="submit" disabled={submitting} className="h-12 w-full text-body font-semibold">
                   {submitting ? t("auth.loggingIn") : t("auth.loginButton")}
                 </Button>

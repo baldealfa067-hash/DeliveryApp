@@ -1,5 +1,6 @@
 {
   "restaurantTeam": {
+    "phoneLoginPinHint": "Customers: 4-digit PIN. Staff: 6-digit PIN.",
     "title": "Team and access",
     "hint": "Create an account with the employee’s phone number, a six-digit PIN and their permissions.",
     "login": "Team sign-in",

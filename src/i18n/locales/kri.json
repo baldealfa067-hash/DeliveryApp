@@ -1,5 +1,6 @@
 {
   "restaurantTeam": {
+    "phoneLoginPinHint": "Klienti: PIN di 4 numeru. Funsionariu: PIN di 6 numeru.",
     "title": "Ekipa ku asesu",
     "hint": "Cria konta ku telefoni di funsionariu, PIN di seis numeru ku pormison.",
     "login": "Entrada di ekipa",

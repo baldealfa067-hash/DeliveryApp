@@ -62,6 +62,20 @@ describe("Login — registo público de clientes", () => {
     }));
   });
 
+  it("aceita o PIN de funcionário na entrada normal sem aumentar o PIN do registo", async () => {
+    vi.mocked(supabase.auth.signInWithPassword).mockClear().mockResolvedValue({ data: { user: null, session: null }, error: null });
+    render(<MemoryRouter initialEntries={["/login"]}><Login /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: /Entrar com telefone e PIN/ }));
+    expect(screen.getByLabelText("PIN")).toHaveAttribute("maxlength", "6");
+    fireEvent.change(screen.getByLabelText("Telefone"), { target: { value: "955123456" } });
+    fireEvent.change(screen.getByLabelText("PIN"), { target: { value: "001234" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Entrar" }).closest("form")!);
+    await waitFor(() => expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: "r955123456@deliveryapp.gw",
+      password: "DgStaff1!955123456:001234",
+    }));
+  });
+
   it("ignora o pedido de registo num link antigo de restaurante", () => {
     render(<MemoryRouter initialEntries={["/login?mode=restaurante&tab=registar"]}><Login /></MemoryRouter>);
     expect(screen.getByRole("heading", { name: "Entrar com e-mail" })).toBeInTheDocument();
@@ -71,5 +85,6 @@ describe("Login — registo público de clientes", () => {
   it("mantém o formulário de criação de conta para clientes", () => {
     render(<MemoryRouter initialEntries={["/login?mode=cliente&tab=registar"]}><Login /></MemoryRouter>);
     expect(screen.getByRole("button", { name: "Criar Conta" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Escolhe.*PIN/i)).toHaveAttribute("maxlength", "4");
   });
 });
