@@ -6,15 +6,10 @@ import { brokeredPreviewStorage } from './previewAuthStorage';
 // VITE_ vars são públicas (anon/publishable). Fallback hard-coded garante build
 // funciona mesmo se Vercel env falhar — anon é pública por design (RLS protege).
 // DeliveryApp projeto: meafyvhedhhxbjcyzblw (alfabalde922@gmail.com's Project)
-const SUPABASE_URL =
-  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ||
-  "https://meafyvhedhhxbjcyzblw.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lYWZ5dmhlZGhoeGJqY3l6Ymx3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzODgxMTUsImV4cCI6MjEwMzk2NDExNX0.iLqTo5es_u9eq1PqXu8JQV8UdL0Bsxp-13qA-It4inw";
+import { defaultSupabasePublishableKey, defaultSupabaseUrl } from './publicConfig.js';
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || defaultSupabaseUrl;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || defaultSupabasePublishableKey;
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {

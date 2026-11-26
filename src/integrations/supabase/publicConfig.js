@@ -1,0 +1,2 @@
+export const defaultSupabaseUrl = "https://meafyvhedhhxbjcyzblw.supabase.co";
+export const defaultSupabasePublishableKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lYWZ5dmhlZGhoeGJqY3l6Ymx3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzODgxMTUsImV4cCI6MjEwMzk2NDExNX0.iLqTo5es_u9eq1PqXu8JQV8UdL0Bsxp-13qA-It4inw";

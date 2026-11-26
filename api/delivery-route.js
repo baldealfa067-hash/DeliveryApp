@@ -1,3 +1,5 @@
+import { defaultSupabasePublishableKey, defaultSupabaseUrl } from "../src/integrations/supabase/publicConfig.js";
+
 // A best-effort throttle per warm Vercel instance. The provider enforces its quota.
 const nextRequest = new Map();
 
@@ -9,9 +11,9 @@ export default async function handler(req, res) {
   }
 
   const key = process.env.ORS_API_KEY;
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const authKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!key || !supabaseUrl || !authKey) return res.status(503).json({ error: "routing_not_configured" });
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || defaultSupabaseUrl;
+  const authKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || defaultSupabasePublishableKey;
+  if (!key?.trim()) return res.status(503).json({ error: "routing_key_missing" });
 
   const authorization = req.headers.authorization;
   if (!authorization?.startsWith("Bearer ")) return res.status(401).json({ error: "unauthorized" });
