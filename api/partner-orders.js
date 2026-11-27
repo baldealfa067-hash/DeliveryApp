@@ -1,7 +1,7 @@
 import { defaultSupabasePublishableKey, defaultSupabaseUrl } from "../src/integrations/supabase/publicConfig.js";
 
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-const actions = new Set(["accepted", "preparing", "ready"]);
+const actions = new Set(["accepted", "preparing", "ready", "completed", "cancelled"]);
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "private, no-store");
