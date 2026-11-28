@@ -1772,5 +1772,21 @@
     "bodySend": "This is your delivery page: see here when a driver accepts, picks up and delivers it.",
     "later": "You can always find it under Orders, in the menu below.",
     "ok": "Got it"
+  },
+  "restaurantSetup": {
+    "orderCategories": "Reorder categories",
+    "orderDescription": "The first category in the list appears at the top of the menu.",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "saveOrder": "Save order",
+    "orderSaved": "Menu order saved.",
+    "orderError": "Could not save the order. Check the list and try again.",
+    "resetTitle": "Start live operation",
+    "resetDescription": "Start fresh in the dashboard order list and sales figures.",
+    "resetButton": "Reset orders and sales",
+    "resetConfirm": "Previous orders stay in the system history. Your menu, profile, balances and financial records are preserved.",
+    "resetActive": "Complete or cancel active orders before resetting.",
+    "resetError": "Could not reset the operation.",
+    "resetDone": "The dashboard now counts orders and sales for the new operation."
   }
 }

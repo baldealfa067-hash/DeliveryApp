@@ -25,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProviderStatsQuery } from "@/hooks/useProviderStats";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { PanelHeader } from "@/components/PanelHeader";
 import { useBusinessCategories } from "@/hooks/useProviders";
@@ -41,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import BusinessCurrentAccount from "@/components/BusinessCurrentAccount";
 import { ManualOrderDialog } from "@/components/ManualOrderDialog";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { BusinessCashSettlements } from "@/components/BusinessCashSettlements";
 
 type DashboardProfile = {
@@ -76,8 +77,23 @@ const BusinessDashboard = () => {
   const allowedTabs = tabs.filter(([, , , allowed]) => allowed);
   const [selectedTab, setSelectedTab] = useState("pedidos");
   const [fetching, setFetching] = useState(true);
-  const [orderCount, setOrderCount] = useState(0);
-  const [commentCount, setCommentCount] = useState(0);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resettingOperation, setResettingOperation] = useState(false);
+  const { data: profileCounts } = useQuery({
+    queryKey: ["restaurant-profile-counts", profile?.id],
+    enabled: owner,
+    refetchInterval: 15000,
+    queryFn: async () => {
+      const id = profile!.id;
+      const [orders, reviews] = await Promise.all([
+        supabase.rpc("get_restaurant_operation_order_count", { p_business_id: id }),
+        supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", id),
+      ]);
+      if (orders.error) throw orders.error;
+      if (reviews.error) throw reviews.error;
+      return { orders: orders.data ?? 0, reviews: reviews.count ?? 0 };
+    },
+  });
   const { data: stats = { profile_views: 0, whatsapp_clicks: 0, call_clicks: 0 } } = useProviderStatsQuery(profile?.id ?? null);
   const { data: bizCats = [] } = useBusinessCategories();
   const { data: salesStats } = useBusinessSalesStats(financeAccess ? profile?.id ?? null : null);
@@ -129,13 +145,27 @@ const BusinessDashboard = () => {
     }
   };
 
-  const loadCounts = async (pid: string) => {
-    const [{ count: orders }, { count: reviews }] = await Promise.all([
-      supabase.from("orders").select("id", { count: "exact", head: true }).eq("business_id", pid),
-      supabase.from("reviews").select("id", { count: "exact", head: true }).eq("provider_id", pid),
-    ]);
-    setOrderCount(orders ?? 0);
-    setCommentCount(reviews ?? 0);
+  const resetOperation = async () => {
+    if (!owner || !profile || resettingOperation) return;
+    const id = profile.id;
+    setResettingOperation(true);
+    try {
+      const { error } = await supabase.rpc("reset_restaurant_operation", { p_business_id: id });
+      if (error) {
+        toast.error(error.code === "PT409" ? t("restaurantSetup.resetActive") : t("restaurantSetup.resetError"));
+        return;
+      }
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["restaurant-profile-counts", id] }),
+        qc.invalidateQueries({ queryKey: ["business-orders", id] }),
+        qc.invalidateQueries({ queryKey: ["business-sales-stats", id] }),
+        qc.invalidateQueries({ queryKey: ["business-daily-sales", id] }),
+      ]);
+      setResetOpen(false);
+      toast.success(t("restaurantSetup.resetDone"));
+    } finally {
+      setResettingOperation(false);
+    }
   };
 
   useEffect(() => {
@@ -158,13 +188,6 @@ const BusinessDashboard = () => {
   }, [user, isBusiness, isAdmin, rolesLoaded, loading, navigate, staff.isPending, staff.data?.business_id]);
 
   useEffect(() => {
-    if (!profile?.id || !owner) return;
-    void loadCounts(profile.id);
-    const interval = setInterval(() => loadCounts(profile.id), 15000);
-    return () => clearInterval(interval);
-  }, [profile?.id, owner]);
-
-  useEffect(() => {
     if (!profile?.id) return;
     const channel = supabase
       .channel(`business-stats-${profile.id}-${crypto.randomUUID()}`)
@@ -176,12 +199,12 @@ const BusinessDashboard = () => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders", filter: `business_id=eq.${profile.id}` },
-        () => loadCounts(profile.id)
+        () => { void qc.invalidateQueries({ queryKey: ["restaurant-profile-counts", profile.id] }); }
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "reviews", filter: `provider_id=eq.${profile.id}` },
-        () => loadCounts(profile.id)
+        () => { void qc.invalidateQueries({ queryKey: ["restaurant-profile-counts", profile.id] }); }
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -518,7 +541,7 @@ const BusinessDashboard = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="rounded-lg border p-3 flex flex-col items-center gap-1">
                       <ShoppingCart className="h-5 w-5 text-primary" />
-                      <span className="text-2xl font-bold">{orderCount}</span>
+                      <span className="text-2xl font-bold">{profileCounts?.orders ?? "—"}</span>
                       <span className="text-[11px] text-muted-foreground text-center">{t("businessDashboard.ordersReceived")}</span>
                     </div>
                     <div className="rounded-lg border p-3 flex flex-col items-center gap-1">
@@ -538,7 +561,7 @@ const BusinessDashboard = () => {
                     </div>
                     <div className="rounded-lg border p-3 flex flex-col items-center gap-1">
                       <MessageSquareText className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-2xl font-bold">{commentCount}</span>
+                      <span className="text-2xl font-bold">{profileCounts?.reviews ?? "—"}</span>
                       <span className="text-[11px] text-muted-foreground text-center">{t("businessDashboard.comments")}</span>
                     </div>
                   </div>
@@ -546,6 +569,20 @@ const BusinessDashboard = () => {
               </Card>
 
               <RestaurantTeam businessId={profile.id} />
+
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <h2 className="font-semibold">{t("restaurantSetup.resetTitle")}</h2>
+                  <p className="text-sm text-muted-foreground">{t("restaurantSetup.resetDescription")}</p>
+                  <Button variant="outline" className="text-destructive" onClick={() => setResetOpen(true)}>
+                    {t("restaurantSetup.resetButton")}
+                  </Button>
+                </CardContent>
+              </Card>
+              <ConfirmDialog open={resetOpen} onOpenChange={setResetOpen}
+                title={t("restaurantSetup.resetTitle")} description={t("restaurantSetup.resetConfirm")}
+                confirmLabel={t("restaurantSetup.resetButton")} busy={resettingOperation} destructive
+                onConfirm={() => void resetOperation()} />
 
               {/* View public page */}
               <Link to={`/loja/${profile.id}`} className="block">

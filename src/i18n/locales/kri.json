@@ -1458,5 +1458,21 @@
     "bodySend": "Bu sta na pagina di bu envio: li bu ta odja ora ku motorista aseta-l, panha-l i entrega-l.",
     "later": "Bu ta atcha-l sempri na Pedidus, na menu di baxu.",
     "ok": "N ntindi"
+  },
+  "restaurantSetup": {
+    "orderCategories": "Ordena kategoria",
+    "orderDescription": "Purmeru kategoria na lista ta parsi riba na menu.",
+    "moveUp": "Subi {{name}}",
+    "moveDown": "Baxa {{name}}",
+    "saveOrder": "Guarda ordem",
+    "orderSaved": "Ordem di menu guardadu.",
+    "orderError": "I ka pudi guarda ordem. Konfirma lista i torna tenta.",
+    "resetTitle": "Kumsa trabadju di bardadi",
+    "resetDescription": "Kumsa di zero na lista di pididus ku numerus di vendas na painel.",
+    "resetButton": "Rinisia pididus ku vendas",
+    "resetConfirm": "Pididus antigu ta fika guardadu na istoria di sistema. Menu, perfil, saldo ku rejistus di finansas ta fika guardadu.",
+    "resetActive": "Termina o kansela pididus ku sta na anda antis di rinisia.",
+    "resetError": "I ka pudi rinisia trabadju.",
+    "resetDone": "Painel gosi ta konta pididus ku vendas di trabadju novu."
   }
 }

@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   LogOut,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   Upload,
   Loader2,
   Trash2,
@@ -16,6 +18,7 @@ import {
   MapPin,
   Minus,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -146,7 +149,8 @@ const BusinessDashboard = () => {
 
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [orderCount, setOrderCount] = useState(0);
+  const [categoryOrder, setCategoryOrder] = useState<MenuCategory[] | null>(null);
+  const [savingCategoryOrder, setSavingCategoryOrder] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<MenuCategory | null>(null);
   const [itemToDelete, setItemToDelete] = useState<MenuItem | null>(null);
 
@@ -155,14 +159,12 @@ const BusinessDashboard = () => {
   const itemFileRef = useRef<HTMLInputElement>(null);
 
   const loadMenu = async (pid: string) => {
-    const [{ data: cats }, { data: items }, { count: orders }] = await Promise.all([
-      supabase.from("menu_categories").select("id, name").eq("business_id", pid).order("name"),
+    const [{ data: cats }, { data: items }] = await Promise.all([
+      supabase.from("menu_categories").select("id, name").eq("business_id", pid).order("display_position", { nullsFirst: false }).order("name").order("id"),
       supabase.from("menu_items").select("id, name, price, photo_url, category_id, track_stock, stock_qty, is_orderable").eq("business_id", pid).order("name"),
-      supabase.from("orders").select("id", { count: "exact", head: true }).eq("business_id", pid),
     ]);
     setMenuCategories((cats ?? []) as MenuCategory[]);
     setMenuItems((items ?? []) as MenuItem[]);
-    setOrderCount(orders ?? 0);
   };
 
   useEffect(() => {
@@ -345,6 +347,40 @@ const BusinessDashboard = () => {
     }
     setSaving(false);
     toast.success(t("businessEdit.profileSaved"));
+  };
+
+  const moveMenuCategory = (from: number, to: number) => {
+    setCategoryOrder((previous) => {
+      if (!previous || to < 0 || to >= previous.length) return previous;
+      const reordered = [...previous];
+      const [category] = reordered.splice(from, 1);
+      reordered.splice(to, 0, category);
+      return reordered;
+    });
+  };
+
+  const saveMenuCategoryOrder = async () => {
+    if (!profileId || !categoryOrder || savingCategoryOrder) return;
+    setSavingCategoryOrder(true);
+    try {
+      const { error } = await supabase.rpc("save_restaurant_menu_order", {
+        p_business_id: profileId,
+        p_category_ids: categoryOrder.map(({ id }) => id),
+      });
+      if (error) {
+        if (error.code === "22023") {
+          setCategoryOrder(null);
+          await loadMenu(profileId);
+        }
+        toast.error(t("restaurantSetup.orderError"));
+        return;
+      }
+      setMenuCategories(categoryOrder);
+      setCategoryOrder(null);
+      toast.success(t("restaurantSetup.orderSaved"));
+    } finally {
+      setSavingCategoryOrder(false);
+    }
   };
 
   const addMenuCategory = async (name: string) => {
@@ -667,7 +703,14 @@ const BusinessDashboard = () => {
             </CardHeader>
             <CardContent className="flex flex-col gap-5">
               <div>
-                <h3 className="text-sm font-semibold mb-2">{t("businessEdit.menuCategories")}</h3>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">{t("businessEdit.menuCategories")}</h3>
+                  {menuCategories.length > 1 && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setCategoryOrder(menuCategories)}>
+                      {t("restaurantSetup.orderCategories")}
+                    </Button>
+                  )}
+                </div>
                 <ManageList
                   placeholder={t("businessEdit.newCategoryPlaceholder")}
                   items={menuCategories}
@@ -882,6 +925,34 @@ const BusinessDashboard = () => {
           </div>
         )}
 
+        <Dialog open={categoryOrder !== null} onOpenChange={(open) => { if (!open && !savingCategoryOrder) setCategoryOrder(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("restaurantSetup.orderCategories")}</DialogTitle>
+              <DialogDescription>{t("restaurantSetup.orderDescription")}</DialogDescription>
+            </DialogHeader>
+            <ol className="max-h-[50vh] space-y-2 overflow-y-auto">
+              {categoryOrder?.map((category, index) => (
+                <li key={category.id} className="flex items-center gap-2 rounded-md border px-3 py-1">
+                  <span className="min-w-0 flex-1 break-words">{category.name}</span>
+                  <Button type="button" variant="ghost" size="icon" disabled={savingCategoryOrder || index === 0}
+                    aria-label={t("restaurantSetup.moveUp", { name: category.name })} onClick={() => moveMenuCategory(index, index - 1)}>
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" disabled={savingCategoryOrder || index === categoryOrder.length - 1}
+                    aria-label={t("restaurantSetup.moveDown", { name: category.name })} onClick={() => moveMenuCategory(index, index + 1)}>
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                </li>
+              ))}
+            </ol>
+            <DialogFooter>
+              <Button type="button" disabled={savingCategoryOrder} onClick={() => void saveMenuCategoryOrder()}>
+                {t("restaurantSetup.saveOrder")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <ConfirmDialog
           open={categoryToDelete !== null}
           onOpenChange={(o) => { if (!o) setCategoryToDelete(null); }}

@@ -1772,5 +1772,21 @@
     "bodySend": "Voici la page de votre envoi : voyez ici quand un livreur l'accepte, le récupère et le livre.",
     "later": "Vous la retrouverez toujours dans Commandes, dans le menu en bas.",
     "ok": "Compris"
+  },
+  "restaurantSetup": {
+    "orderCategories": "Ordonner les catégories",
+    "orderDescription": "La première catégorie de la liste apparaît en haut du menu.",
+    "moveUp": "Monter {{name}}",
+    "moveDown": "Descendre {{name}}",
+    "saveOrder": "Enregistrer l’ordre",
+    "orderSaved": "Ordre du menu enregistré.",
+    "orderError": "Impossible d’enregistrer l’ordre. Vérifiez la liste et réessayez.",
+    "resetTitle": "Démarrer l’activité réelle",
+    "resetDescription": "Remettez à zéro la liste des commandes et les chiffres de vente du tableau de bord.",
+    "resetButton": "Réinitialiser les commandes et les ventes",
+    "resetConfirm": "Les anciennes commandes restent dans l’historique du système. Le menu, le profil, les soldes et les écritures financières sont conservés.",
+    "resetActive": "Terminez ou annulez les commandes en cours avant la réinitialisation.",
+    "resetError": "Impossible de réinitialiser l’activité.",
+    "resetDone": "Le tableau de bord compte maintenant les commandes et les ventes de la nouvelle activité."
   }
 }

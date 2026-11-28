@@ -1030,18 +1030,21 @@ export type Database = {
       menu_categories: {
         Row: {
           business_id: string
+          display_position: number | null
           created_at: string
           id: string
           name: string
         }
         Insert: {
           business_id: string
+          display_position?: number | null
           created_at?: string
           id?: string
           name: string
         }
         Update: {
           business_id?: string
+          display_position?: number | null
           created_at?: string
           id?: string
           name?: string
@@ -2012,6 +2015,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      save_restaurant_menu_order: {
+        Args: { p_business_id: string; p_category_ids: string[] }
+        Returns: undefined
+      }
+      reset_restaurant_operation: {
+        Args: { p_business_id: string }
+        Returns: undefined
+      }
+      get_restaurant_operation_order_count: {
+        Args: { p_business_id: string }
+        Returns: number
+      }
       accept_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
       decline_delivery: { Args: { p_delivery_id: string }; Returns: undefined }
       add_driver_to_fleet: {

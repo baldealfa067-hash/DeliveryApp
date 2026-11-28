@@ -1772,5 +1772,21 @@
     "bodySend": "Estás na página do teu envio: aqui vês quando um motorista o aceita, recolhe e entrega.",
     "later": "Também o encontras sempre em Pedidos, no menu em baixo.",
     "ok": "Entendi"
+  },
+  "restaurantSetup": {
+    "orderCategories": "Ordenar categorias",
+    "orderDescription": "A primeira categoria da lista aparece no topo do menu.",
+    "moveUp": "Subir {{name}}",
+    "moveDown": "Descer {{name}}",
+    "saveOrder": "Guardar ordem",
+    "orderSaved": "Ordem do menu guardada.",
+    "orderError": "Não foi possível guardar a ordem. Confirma a lista e tenta novamente.",
+    "resetTitle": "Iniciar operação real",
+    "resetDescription": "Começa do zero na lista de pedidos e nos indicadores de vendas do painel.",
+    "resetButton": "Reiniciar pedidos e vendas",
+    "resetConfirm": "Os pedidos anteriores ficam guardados no histórico do sistema. O menu, o perfil, os saldos e os registos financeiros são preservados.",
+    "resetActive": "Conclui ou cancela os pedidos em andamento antes de reiniciar.",
+    "resetError": "Não foi possível reiniciar a operação.",
+    "resetDone": "O painel já conta os pedidos e as vendas da nova operação."
   }
 }

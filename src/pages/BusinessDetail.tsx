@@ -184,7 +184,7 @@ const BusinessDetail = () => {
     (async () => {
       const [{ data: profile }, { data: cats }, { data: items }, { data: revs }] = await Promise.all([
         supabase.from("profiles").select(PUBLIC_PROFILE_COLUMNS).eq("id", id).maybeSingle(),
-        supabase.from("menu_categories").select("id, name").eq("business_id", id).order("name"),
+        supabase.from("menu_categories").select("id, name").eq("business_id", id).order("display_position", { nullsFirst: false }).order("name").order("id"),
         supabase.from("menu_items").select("id, name, price, photo_url, category_id, track_stock, stock_qty, is_orderable").eq("business_id", id).order("name"),
         // Fase 9.4: as avaliacoes sao as do pedido concluido (`order_ratings`), nao
         // as da tabela `reviews` do Bornaal -- essa e a montra da beleza e nao tem
