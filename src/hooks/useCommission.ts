@@ -67,21 +67,32 @@ export const useBusinessCommission = (businessId: string | null) =>
     enabled: !!businessId,
   });
 
-export const useCommissionPayments = (businessId: string | null) =>
+export const useRestaurantFinanceStart = (businessId: string | null) =>
   useQuery({
-    queryKey: ["commission-payments", businessId],
+    queryKey: ["restaurant-finance-start", businessId],
+    enabled: !!businessId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_restaurant_finance_start", { p_business_id: businessId! });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const useCommissionPayments = (businessId: string | null) => {
+  const financeStart = useRestaurantFinanceStart(businessId);
+  return useQuery({
+    queryKey: ["commission-payments", businessId, financeStart.data],
     queryFn: async (): Promise<CommissionPayment[]> => {
       if (!businessId) return [];
-      const { data, error } = await supabase
-        .from("commission_payments")
-        .select("*")
-        .eq("business_id", businessId)
-        .order("created_at", { ascending: false });
+      let query = supabase.from("commission_payments").select("*").eq("business_id", businessId);
+      if (financeStart.data) query = query.gte("created_at", financeStart.data);
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as CommissionPayment[];
     },
-    enabled: !!businessId,
+    enabled: !!businessId && financeStart.isSuccess,
   });
+};
 
 export const useCreateCommissionPayment = () => {
   const qc = useQueryClient();

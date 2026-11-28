@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCFA } from "@/lib/format";
-import { useBusinessCommission, useCommissionPayments } from "@/hooks/useCommission";
+import { useBusinessCommission, useCommissionPayments, useRestaurantFinanceStart } from "@/hooks/useCommission";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
@@ -69,11 +69,16 @@ const BusinessCurrentAccount = ({ businessId }: CurrentAccountProps) => {
   const { data: commission } = useBusinessCommission(businessId);
   const { data: commissionPayments = [] } = useCommissionPayments(businessId);
 
+  const financeStart = useRestaurantFinanceStart(businessId);
+
   // Fetch orders to calculate movement history
   const { data: orders = [] } = useQuery({
-    queryKey: ["business-orders-history", businessId, periodFilter],
+    queryKey: ["business-orders-history", businessId, periodFilter, financeStart.data],
+    enabled: financeStart.isSuccess,
     queryFn: async () => {
-      const startDate = getPeriodDateRange(periodFilter);
+      const periodStart = getPeriodDateRange(periodFilter);
+      const financeDate = financeStart.data ? new Date(financeStart.data) : null;
+      const startDate = financeDate && financeDate > periodStart ? financeDate : periodStart;
 
       const { data, error } = await supabase
         .from("orders")

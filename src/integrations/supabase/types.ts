@@ -2015,6 +2015,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_restaurant_finance_start: {
+        Args: { p_business_id: string }
+        Returns: string | null
+      }
       save_restaurant_menu_order: {
         Args: { p_business_id: string; p_category_ids: string[] }
         Returns: undefined
